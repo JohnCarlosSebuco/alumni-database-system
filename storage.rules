@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isAuth() && request.auth.token.role == 'admin';
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isDoc() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats.*');
+    }
+
+    function sizeLimit(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+
+    // Profile photos
+    match /users/{userId}/profile-photo {
+      allow read:   if isAuth();
+      allow write:  if isOwner(userId) && isImage() && sizeLimit(5);
+    }
+
+    // License files
+    match /users/{userId}/licenses/{licenseId} {
+      allow read:   if isOwner(userId) || isAdmin();
+      allow write:  if isOwner(userId) && isDoc() && sizeLimit(10);
+    }
+
+    // Job resumes
+    match /jobs/{jobId}/resumes/{userId}/{file} {
+      allow read:   if isOwner(userId) || isAdmin();
+      allow write:  if isOwner(userId) && isDoc() && sizeLimit(10);
+    }
+
+    // Event banners
+    match /events/{eventId}/banner {
+      allow read:  if isAuth();
+      allow write: if isAdmin() && isImage() && sizeLimit(5);
+    }
+  }
+}

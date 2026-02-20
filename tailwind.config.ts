@@ -9,11 +9,62 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        navy: {
+          900: "#0F2240",
+          800: "#1E3A5F",
+          700: "#2A4F7C",
+          600: "#3A6499",
+          500: "#4A78B5",
+          400: "#6F99C9",
+          300: "#94BADD",
+          200: "#BADAF1",
+          100: "#E8EFF8",
+          50:  "#F4F7FB",
+        },
+        gold: {
+          600: "#D97706",
+          500: "#F59E0B",
+          400: "#FBBF24",
+          300: "#FCD34D",
+          200: "#FDE68A",
+          100: "#FEF3C7",
+          50:  "#FFFBEB",
+        },
+        success: "#10B981",
+        warning: "#F59E0B",
+        error:   "#EF4444",
+        info:    "#3B82F6",
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        card: "0 1px 3px 0 rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.06)",
+        "card-hover": "0 4px 12px 0 rgba(0,0,0,0.10), 0 2px 4px -1px rgba(0,0,0,0.06)",
+        modal: "0 20px 60px -10px rgba(0,0,0,0.25)",
+      },
+      animation: {
+        "fade-in": "fadeIn 0.2s ease-out",
+        "slide-up": "slideUp 0.2s ease-out",
+        "slide-in-right": "slideInRight 0.25s ease-out",
+      },
+      keyframes: {
+        fadeIn: {
+          from: { opacity: "0" },
+          to:   { opacity: "1" },
+        },
+        slideUp: {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to:   { opacity: "1", transform: "translateY(0)" },
+        },
+        slideInRight: {
+          from: { opacity: "0", transform: "translateX(16px)" },
+          to:   { opacity: "1", transform: "translateX(0)" },
+        },
       },
     },
   },
   plugins: [],
 };
+
 export default config;
