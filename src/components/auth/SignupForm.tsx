@@ -38,9 +38,15 @@ export function SignupForm() {
 
   useEffect(() => {
     getDocs(departmentsRef()).then((snap) => {
-      setDepartments(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Department)));
+      const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Department));
+      // Exclusive to College of Engineering
+      const coe = all.find((d) => d.id === "coe");
+      if (coe) {
+        setDepartments([coe]);
+        setValue("department", coe.name);
+      }
     });
-  }, []);
+  }, [setValue]);
 
   useEffect(() => {
     const dept = departments.find((d) => d.name === selectedDept);
@@ -174,13 +180,13 @@ export function SignupForm() {
         {...register("batchYear", { valueAsNumber: true })}
       />
 
-      <Select
-        label="College / Department"
-        options={departments.map((d) => ({ value: d.name, label: d.name }))}
-        placeholder="Select department"
-        error={errors.department?.message}
-        {...register("department")}
-      />
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium text-gray-700">College / Department</label>
+        <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+          College of Engineering
+        </div>
+        <input type="hidden" {...register("department")} />
+      </div>
 
       <Select
         label="Course / Program"

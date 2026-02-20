@@ -1,8 +1,9 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
-  GraduationCap, Users, Briefcase, Calendar, BarChart3,
-  Bell, Smartphone, ArrowRight, CheckCircle,
+  Users, Briefcase, Calendar, BarChart3,
+  Bell, Smartphone, ArrowRight,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -11,10 +12,11 @@ function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-navy-900/95 backdrop-blur-sm border-b border-navy-800">
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-500">
-          <GraduationCap size={18} className="text-navy-900" />
+        <Image src="/engineering-logo-nobg.png" alt="COE Logo" width={48} height={48} className="rounded-lg" />
+        <div>
+          <span className="text-lg font-bold text-white block leading-none">AlumNayan</span>
+          <span className="text-[10px] text-navy-300 block leading-none">COE · SLSU</span>
         </div>
-        <span className="text-lg font-bold text-white">AlumNayan</span>
       </div>
       <div className="hidden md:flex items-center gap-6">
         <a href="#features" className="text-sm text-navy-200 hover:text-white transition-colors">Features</a>
@@ -46,15 +48,15 @@ function Hero() {
       <div className="relative max-w-7xl mx-auto px-6 py-24 text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-navy-800 border border-navy-700 px-4 py-1.5 text-sm text-gold-400 mb-8">
           <span className="h-2 w-2 rounded-full bg-gold-500 animate-pulse" />
-          Official alumni platform of SLSU
+          Exclusive alumni platform for SLSU College of Engineering
         </div>
         <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight text-balance mb-6">
           The Alumni Platform<br />
           Built for{" "}
-          <span className="text-gold-500">SLSU Graduates</span>
+          <span className="text-gold-500">COE Graduates</span>
         </h1>
         <p className="text-xl text-navy-200 max-w-2xl mx-auto mb-10 leading-relaxed">
-          AlumNayan connects SLSU graduates with their university community. Discover job opportunities, attend events, and showcase your achievements — all in one place.
+          AlumNayan connects SLSU College of Engineering graduates with their university community. Discover job opportunities, attend events, and showcase your achievements — all in one place.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/signup"
@@ -74,10 +76,10 @@ function Hero() {
 
 function StatsBar() {
   const stats = [
-    { value: "10,000+", label: "SLSU Alumni" },
-    { value: "8",       label: "Colleges" },
-    { value: "500+",    label: "Job Postings" },
-    { value: "200+",    label: "Events Held" },
+    { value: "1,000+", label: "COE Alumni" },
+    { value: "4",      label: "Engineering Programs" },
+    { value: "200+",   label: "Job Postings" },
+    { value: "50+",    label: "Events Held" },
   ];
   return (
     <section className="bg-gold-500 py-8">
@@ -135,7 +137,7 @@ function Features() {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900">Everything You Need</h2>
           <p className="mt-3 text-gray-600 text-lg max-w-2xl mx-auto">
-            A complete alumni management system built exclusively for Southern Luzon State University.
+            A complete alumni management system built exclusively for the SLSU College of Engineering.
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -182,7 +184,7 @@ function HowItWorks() {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white">Get Started in 3 Steps</h2>
           <p className="mt-3 text-navy-200 text-lg">
-            Joining AlumNayan is fast, free, and built for every SLSU graduate.
+            Joining AlumNayan is fast, free, and built for every SLSU COE graduate.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
@@ -220,12 +222,10 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-500">
-              <GraduationCap size={18} className="text-navy-900" />
-            </div>
+            <Image src="/engineering-logo-nobg.png" alt="COE Logo" width={44} height={44} className="rounded-lg" />
             <div>
               <p className="text-white font-bold">AlumNayan</p>
-              <p className="text-xs text-navy-400">SLSU Alumni · Connect. Grow. Give Back.</p>
+              <p className="text-xs text-navy-400">SLSU COE Alumni · Connect. Grow. Give Back.</p>
             </div>
           </div>
           <div className="flex items-center gap-6 text-sm text-navy-400">

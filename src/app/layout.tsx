@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     template: "%s | AlumNayan",
   },
   description:
-    "AlumNayan is the official alumni management platform of Southern Luzon State University — connecting SLSU graduates, posting opportunities, and celebrating achievement.",
-  keywords: ["alumni", "SLSU", "Southern Luzon State University", "graduates", "networking"],
+    "AlumNayan is the exclusive alumni management platform of the SLSU College of Engineering — connecting COE graduates, posting opportunities, and celebrating achievement.",
+  keywords: ["alumni", "SLSU", "COE", "College of Engineering", "Southern Luzon State University", "engineering graduates", "networking"],
   openGraph: {
     title: "AlumNayan",
     description: "Connect. Grow. Give Back.",

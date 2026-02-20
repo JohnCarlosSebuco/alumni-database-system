@@ -2,11 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, User, Briefcase, Calendar, Bell,
-  Users, BarChart3, Settings, GraduationCap, ChevronLeft,
-  ChevronRight, FileText,
+  Users, BarChart3, ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -54,9 +55,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-navy-800 px-4 flex-shrink-0">
         <div className="flex items-center gap-2 overflow-hidden">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gold-500">
-            <GraduationCap size={18} className="text-navy-900" />
-          </div>
+          <Image
+            src="/engineering-logo-nobg.png"
+            alt="COE Logo"
+            width={40}
+            height={40}
+            className="flex-shrink-0 rounded"
+          />
           {!collapsed && (
             <span className="text-lg font-bold text-white whitespace-nowrap">AlumNayan</span>
           )}

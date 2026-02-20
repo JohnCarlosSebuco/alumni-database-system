@@ -1,5 +1,5 @@
 import React from "react";
-import { GraduationCap } from "lucide-react";
+import Image from "next/image";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,10 +15,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Logo */}
         <div className="relative flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-500">
-            <GraduationCap size={22} className="text-navy-900" />
+          <Image src="/engineering-logo-nobg.png" alt="COE Logo" width={60} height={60} className="rounded-xl" />
+          <div>
+            <span className="text-2xl font-bold text-white block">AlumNayan</span>
+            <span className="text-xs text-navy-300 block">College of Engineering</span>
           </div>
-          <span className="text-2xl font-bold text-white">AlumNayan</span>
         </div>
 
         {/* Center content */}
@@ -29,15 +30,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <span className="text-gold-500">Give Back.</span>
             </p>
             <p className="text-navy-200 text-lg leading-relaxed">
-              Your SLSU alumni community — stay connected with your university, discover opportunities, and celebrate every milestone together.
+              The exclusive alumni network for SLSU College of Engineering graduates — stay connected, discover opportunities, and celebrate every milestone together.
             </p>
           </blockquote>
 
           <div className="flex gap-6">
             {[
-              { value: "10K+", label: "Alumni" },
-              { value: "50+",  label: "Departments" },
-              { value: "500+", label: "Job Posts" },
+              { value: "1,000+", label: "COE Alumni" },
+              { value: "4",      label: "Programs" },
+              { value: "200+",   label: "Job Posts" },
             ].map((stat) => (
               <div key={stat.label}>
                 <p className="text-2xl font-bold text-gold-500">{stat.value}</p>
@@ -59,9 +60,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-white">
         {/* Mobile logo */}
         <div className="mb-8 flex items-center gap-2 lg:hidden">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-800">
-            <GraduationCap size={18} className="text-gold-500" />
-          </div>
+          <Image src="/engineering-logo-nobg.png" alt="COE Logo" width={40} height={40} className="rounded-lg" />
           <span className="text-xl font-bold text-navy-900">AlumNayan</span>
         </div>
 
