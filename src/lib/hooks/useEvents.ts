@@ -40,10 +40,17 @@ export function useEvents({ adminView = false, statusFilter }: UseEventsOptions 
       );
     }
 
-    const unsub = onSnapshot(q, (snap) => {
-      setEvents(snap.docs.map((d) => ({ id: d.id, ...d.data() } as AlumniEvent)));
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setEvents(snap.docs.map((d) => ({ id: d.id, ...d.data() } as AlumniEvent)));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("useEvents snapshot error:", err.message);
+        setLoading(false);
+      }
+    );
     return () => unsub();
   }, [adminView, statusFilter]);
 

@@ -40,10 +40,17 @@ export function useJobs({ adminView = false, statusFilter }: UseJobsOptions = {}
       );
     }
 
-    const unsub = onSnapshot(q, (snap) => {
-      setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Job)));
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Job)));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("useJobs snapshot error:", err.message);
+        setLoading(false);
+      }
+    );
     return () => unsub();
   }, [adminView, statusFilter]);
 

@@ -6,7 +6,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   limit,
   onSnapshot,
 } from "@/lib/firebase/firestore";
@@ -30,16 +29,28 @@ export function useNotifications(maxItems = 20) {
     const q = query(
       collection(db, "notifications"),
       where("recipientId", "in", [user.uid, "all"]),
-      orderBy("createdAt", "desc"),
       limit(maxItems)
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      const notifs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Notification));
-      setNotifications(notifs);
-      setUnreadCount(notifs.filter((n) => !n.isRead).length);
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const notifs = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() } as Notification))
+          .sort((a, b) => {
+            const ta = a.createdAt?.seconds ?? 0;
+            const tb = b.createdAt?.seconds ?? 0;
+            return tb - ta;
+          });
+        setNotifications(notifs);
+        setUnreadCount(notifs.filter((n) => !n.isRead).length);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("useNotifications snapshot error:", err.message);
+        setLoading(false);
+      }
+    );
 
     return () => unsub();
   }, [user, maxItems]);
