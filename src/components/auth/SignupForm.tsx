@@ -119,8 +119,9 @@ export function SignupForm() {
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+      {/* Name row */}
+      <div className="grid grid-cols-2 gap-3">
         <Input
           label="First name"
           placeholder="Juan"
@@ -136,6 +137,7 @@ export function SignupForm() {
         />
       </div>
 
+      {/* Email */}
       <Input
         label="Email address"
         type="email"
@@ -145,7 +147,8 @@ export function SignupForm() {
         {...register("email")}
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      {/* Password row */}
+      <div className="grid grid-cols-2 gap-3">
         <Input
           label="Password"
           type={showPassword ? "text" : "password"}
@@ -172,22 +175,25 @@ export function SignupForm() {
         />
       </div>
 
-      <Select
-        label="Batch Year"
-        options={yearOptions}
-        placeholder="Select year"
-        error={errors.batchYear?.message}
-        {...register("batchYear", { valueAsNumber: true })}
-      />
-
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-gray-700">College / Department</label>
-        <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
-          College of Engineering
+      {/* Batch year + Department row */}
+      <div className="grid grid-cols-2 gap-3">
+        <Select
+          label="Batch Year"
+          options={yearOptions}
+          placeholder="Select year"
+          error={errors.batchYear?.message}
+          {...register("batchYear", { valueAsNumber: true })}
+        />
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-700">College</label>
+          <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 h-[38px]">
+            College of Engineering
+          </div>
+          <input type="hidden" {...register("department")} />
         </div>
-        <input type="hidden" {...register("department")} />
       </div>
 
+      {/* Course */}
       <Select
         label="Course / Program"
         options={courses.map((c) => ({ value: c, label: c }))}
@@ -197,7 +203,7 @@ export function SignupForm() {
         {...register("course")}
       />
 
-      <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full mt-2">
+      <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full">
         Create Account
       </Button>
 
