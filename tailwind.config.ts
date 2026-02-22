@@ -36,7 +36,7 @@ const config: Config = {
         info:    "#3B82F6",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans: ["var(--font-jakarta)", "system-ui", "sans-serif"],
       },
       boxShadow: {
         card: "0 1px 3px 0 rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.06)",
@@ -44,9 +44,12 @@ const config: Config = {
         modal: "0 20px 60px -10px rgba(0,0,0,0.25)",
       },
       animation: {
-        "fade-in": "fadeIn 0.2s ease-out",
-        "slide-up": "slideUp 0.2s ease-out",
+        "fade-in":      "fadeIn 0.2s ease-out",
+        "slide-up":     "slideUp 0.2s ease-out",
         "slide-in-right": "slideInRight 0.25s ease-out",
+        float:          "float 9s ease-in-out infinite",
+        shimmer:        "shimmer 3.5s linear infinite",
+        glow:           "glow 3s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -60,6 +63,19 @@ const config: Config = {
         slideInRight: {
           from: { opacity: "0", transform: "translateX(16px)" },
           to:   { opacity: "1", transform: "translateX(0)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px) rotate(0deg)" },
+          "40%":       { transform: "translateY(-18px) rotate(1.5deg)" },
+          "70%":       { transform: "translateY(10px) rotate(-1deg)" },
+        },
+        shimmer: {
+          "0%":   { backgroundPosition: "200% center" },
+          "100%": { backgroundPosition: "-200% center" },
+        },
+        glow: {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(245,158,11,0.25), 0 0 40px rgba(245,158,11,0.05)" },
+          "50%":       { boxShadow: "0 0 30px rgba(245,158,11,0.5),  0 0 60px rgba(245,158,11,0.15)" },
         },
       },
     },
