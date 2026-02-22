@@ -11,6 +11,13 @@ export async function POST(req: Request) {
     const decoded = await admin.auth().verifyIdToken(idToken);
     const role = (decoded.role as string) ?? "alumni";
 
+    // Sync Firestore user doc role to match the Auth custom claim
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(decoded.uid)
+      .set({ role, updatedAt: new Date().toISOString() }, { merge: true });
+
     // Create a Firebase session cookie (valid 5 days)
     const sessionCookie = await admin
       .auth()

@@ -27,48 +27,53 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const [alumniSnap, jobsSnap, eventsSnap, recentSnap] = await Promise.all([
-        getDocs(query(collection(db, "users"), where("role", "==", "alumni"))),
-        getDocs(collection(db, "jobs")),
-        getDocs(collection(db, "events")),
-        getDocs(query(collection(db, "users"), where("role", "==", "alumni"), orderBy("createdAt", "desc"), limit(5))),
-      ]);
+      try {
+        const [alumniSnap, jobsSnap, eventsSnap, recentSnap] = await Promise.all([
+          getDocs(query(collection(db, "users"), where("role", "==", "alumni"))),
+          getDocs(collection(db, "jobs")),
+          getDocs(collection(db, "events")),
+          getDocs(query(collection(db, "users"), where("role", "==", "alumni"), orderBy("createdAt", "desc"), limit(5))),
+        ]);
 
-      const alumniDocs = alumniSnap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserDoc));
-      const employedCount = alumniDocs.filter((a) => a.isEmployed === true).length;
-      const totalAlumni = alumniDocs.length;
-      const employmentRate = totalAlumni > 0 ? Math.round((employedCount / totalAlumni) * 100) : 0;
-      const unemploymentRate = totalAlumni > 0 ? 100 - employmentRate : 0;
+        const alumniDocs = alumniSnap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserDoc));
+        const employedCount = alumniDocs.filter((a) => a.isEmployed === true).length;
+        const totalAlumni = alumniDocs.length;
+        const employmentRate = totalAlumni > 0 ? Math.round((employedCount / totalAlumni) * 100) : 0;
+        const unemploymentRate = totalAlumni > 0 ? 100 - employmentRate : 0;
 
-      // Course breakdown (BSIE, BSECE, BSME)
-      const deptMap: Record<string, number> = {};
-      alumniDocs.forEach((a) => {
-        const label = a.course ?? a.department ?? "Unknown";
-        deptMap[label] = (deptMap[label] ?? 0) + 1;
-      });
-      const deptArr = Object.entries(deptMap).slice(0, 8).map(([name, value]) => ({ name, value }));
+        // Course breakdown (BSIE, BSECE, BSME)
+        const deptMap: Record<string, number> = {};
+        alumniDocs.forEach((a) => {
+          const label = a.course ?? a.department ?? "Unknown";
+          deptMap[label] = (deptMap[label] ?? 0) + 1;
+        });
+        const deptArr = Object.entries(deptMap).slice(0, 8).map(([name, value]) => ({ name, value }));
 
-      // Employment by course
-      const empMap: Record<string, { employed: number; total: number }> = {};
-      alumniDocs.forEach((a) => {
-        const dept = a.course?.replace("Bachelor of Science in ", "BS ") ?? a.department?.slice(0, 12) ?? "Other";
-        if (!empMap[dept]) empMap[dept] = { employed: 0, total: 0 };
-        empMap[dept].total++;
-        if (a.isEmployed === true) empMap[dept].employed++;
-      });
-      const empArr = Object.entries(empMap).slice(0, 6).map(([department, v]) => ({ department, ...v }));
+        // Employment by course
+        const empMap: Record<string, { employed: number; total: number }> = {};
+        alumniDocs.forEach((a) => {
+          const dept = a.course?.replace("Bachelor of Science in ", "BS ") ?? a.department?.slice(0, 12) ?? "Other";
+          if (!empMap[dept]) empMap[dept] = { employed: 0, total: 0 };
+          empMap[dept].total++;
+          if (a.isEmployed === true) empMap[dept].employed++;
+        });
+        const empArr = Object.entries(empMap).slice(0, 6).map(([department, v]) => ({ department, ...v }));
 
-      setStats({
-        alumni: alumniSnap.size,
-        jobs: jobsSnap.size,
-        events: eventsSnap.size,
-        employmentRate,
-        unemploymentRate,
-      });
-      setRecentAlumni(recentSnap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserDoc)));
-      setDeptData(deptArr);
-      setEmpData(empArr);
-      setLoading(false);
+        setStats({
+          alumni: alumniSnap.size,
+          jobs: jobsSnap.size,
+          events: eventsSnap.size,
+          employmentRate,
+          unemploymentRate,
+        });
+        setRecentAlumni(recentSnap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserDoc)));
+        setDeptData(deptArr);
+        setEmpData(empArr);
+      } catch (err) {
+        console.error("Admin dashboard failed to load:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);

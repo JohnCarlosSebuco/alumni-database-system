@@ -6,6 +6,7 @@
  */
 import { initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 
 const serviceAccount = {
   projectId: "alumni-database-system-8329f",
@@ -25,6 +26,10 @@ async function run() {
   const auth = getAuth();
   const user = await auth.getUserByEmail(email);
   await auth.setCustomUserClaims(user.uid, { role: "admin" });
+  await getFirestore()
+    .collection("users")
+    .doc(user.uid)
+    .set({ role: "admin" }, { merge: true });
   console.log(`✓ Set role=admin for ${email} (uid: ${user.uid})`);
   console.log("  The user must sign out and back in for the new claim to take effect.");
   process.exit(0);
