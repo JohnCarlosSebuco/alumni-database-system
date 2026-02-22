@@ -17,10 +17,9 @@ const departments = [
     name: "College of Engineering",
     code: "COE",
     courses: [
-      "Bachelor of Science in Civil Engineering",
-      "Bachelor of Science in Electrical Engineering",
-      "Bachelor of Science in Mechanical Engineering",
+      "Bachelor of Science in Industrial Engineering",
       "Bachelor of Science in Electronics Engineering",
+      "Bachelor of Science in Mechanical Engineering",
     ],
   },
   {

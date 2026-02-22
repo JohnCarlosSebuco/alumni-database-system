@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, Briefcase, Calendar, Bell } from "lucide-react";
+import { Users, Briefcase, Calendar, TrendingUp, TrendingDown } from "lucide-react";
 import {
   db, collection, query, where, getDocs, orderBy, limit,
 } from "@/lib/firebase/firestore";
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
 
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ alumni: 0, jobs: 0, events: 0, employed: 0 });
+  const [stats, setStats] = useState({ alumni: 0, jobs: 0, events: 0, employmentRate: 0, unemploymentRate: 0 });
   const [recentAlumni, setRecentAlumni] = useState<UserDoc[]>([]);
   const [deptData, setDeptData] = useState<{ name: string; value: number }[]>([]);
   const [empData, setEmpData] = useState<{ department: string; employed: number; total: number }[]>([]);
@@ -35,22 +35,26 @@ export default function AdminDashboardPage() {
       ]);
 
       const alumniDocs = alumniSnap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserDoc));
-      const employedCount = alumniDocs.filter((a) => a.profileComplete > 0).length;
+      const employedCount = alumniDocs.filter((a) => a.isEmployed === true).length;
+      const totalAlumni = alumniDocs.length;
+      const employmentRate = totalAlumni > 0 ? Math.round((employedCount / totalAlumni) * 100) : 0;
+      const unemploymentRate = totalAlumni > 0 ? 100 - employmentRate : 0;
 
-      // Dept breakdown
+      // Course breakdown (BSIE, BSECE, BSME)
       const deptMap: Record<string, number> = {};
       alumniDocs.forEach((a) => {
-        if (a.department) deptMap[a.department] = (deptMap[a.department] ?? 0) + 1;
+        const label = a.course ?? a.department ?? "Unknown";
+        deptMap[label] = (deptMap[label] ?? 0) + 1;
       });
       const deptArr = Object.entries(deptMap).slice(0, 8).map(([name, value]) => ({ name, value }));
 
-      // Employment by dept (simplified)
+      // Employment by course
       const empMap: Record<string, { employed: number; total: number }> = {};
       alumniDocs.forEach((a) => {
-        const dept = a.department?.slice(0, 12) ?? "Other";
+        const dept = a.course?.replace("Bachelor of Science in ", "BS ") ?? a.department?.slice(0, 12) ?? "Other";
         if (!empMap[dept]) empMap[dept] = { employed: 0, total: 0 };
         empMap[dept].total++;
-        if (a.profileComplete > 50) empMap[dept].employed++;
+        if (a.isEmployed === true) empMap[dept].employed++;
       });
       const empArr = Object.entries(empMap).slice(0, 6).map(([department, v]) => ({ department, ...v }));
 
@@ -58,7 +62,8 @@ export default function AdminDashboardPage() {
         alumni: alumniSnap.size,
         jobs: jobsSnap.size,
         events: eventsSnap.size,
-        employed: employedCount,
+        employmentRate,
+        unemploymentRate,
       });
       setRecentAlumni(recentSnap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserDoc)));
       setDeptData(deptArr);
@@ -75,11 +80,12 @@ export default function AdminDashboardPage() {
       <PageHeader title="Admin Dashboard" breadcrumbs={[{ label: "Admin" }, { label: "Dashboard" }]} />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <KPICard title="Total Alumni" value={stats.alumni} icon={<Users size={24} />} iconBg="bg-navy-100 text-navy-800" />
         <KPICard title="Active Jobs" value={stats.jobs} icon={<Briefcase size={24} />} iconBg="bg-blue-100 text-blue-700" />
         <KPICard title="Events" value={stats.events} icon={<Calendar size={24} />} iconBg="bg-purple-100 text-purple-700" />
-        <KPICard title="With Profiles" value={stats.employed} icon={<Bell size={24} />} iconBg="bg-gold-100 text-gold-600" />
+        <KPICard title="Employment Rate" value={stats.employmentRate} suffix="%" icon={<TrendingUp size={24} />} iconBg="bg-green-100 text-green-700" />
+        <KPICard title="Unemployment Rate" value={stats.unemploymentRate} suffix="%" icon={<TrendingDown size={24} />} iconBg="bg-red-100 text-red-600" />
       </div>
 
       {/* Charts */}

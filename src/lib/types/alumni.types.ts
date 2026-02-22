@@ -11,6 +11,7 @@ export interface UserDoc {
   isActive: boolean;
   // Alumni-only
   profileComplete: number; // 0-100
+  isEmployed?: boolean;
   batchYear: number | null;
   department: string | null;
   course: string | null;
@@ -87,6 +88,7 @@ export interface AlumniProfile {
   lastName: string;
   birthDate: string;
   gender: string;
+  civilStatus?: string;
   address: string;
   contactNumber: string;
   // Arrays

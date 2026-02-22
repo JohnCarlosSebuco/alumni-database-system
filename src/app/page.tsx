@@ -76,8 +76,8 @@ function Hero() {
 
 function StatsBar() {
   const stats = [
-    { value: "1,000+", label: "COE Alumni" },
-    { value: "4",      label: "Engineering Programs" },
+    { value: "1,611+", label: "COE Alumni" },
+    { value: "3",      label: "Engineering Programs" },
     { value: "200+",   label: "Job Postings" },
     { value: "50+",    label: "Events Held" },
   ];

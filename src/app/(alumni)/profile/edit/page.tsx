@@ -79,6 +79,7 @@ export default function EditProfilePage() {
     lastName: profile.lastName,
     birthDate: profile.birthDate,
     gender: profile.gender,
+    civilStatus: profile.civilStatus ?? "",
     address: profile.address,
     contactNumber: profile.contactNumber,
   } : undefined });
@@ -138,6 +139,7 @@ export default function EditProfilePage() {
         course: d2.course,
         displayName: `${d1.firstName} ${d1.lastName}`,
         profileComplete: 80,
+        isEmployed: d3.isEmployed,
         updatedAt: new Date().toISOString(),
       });
 
@@ -209,7 +211,16 @@ export default function EditProfilePage() {
                   { value: "Prefer not to say", label: "Prefer not to say" },
                 ]} error={form1.formState.errors.gender?.message} {...form1.register("gender")} />
               </div>
-              <Input label="Contact Number" placeholder="+63 9xx xxx xxxx" error={form1.formState.errors.contactNumber?.message} {...form1.register("contactNumber")} />
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Select label="Civil Status" options={[
+                  { value: "", label: "Select civil status" },
+                  { value: "Single", label: "Single" },
+                  { value: "Married", label: "Married" },
+                  { value: "Widowed", label: "Widowed" },
+                  { value: "Separated", label: "Separated" },
+                ]} error={form1.formState.errors.civilStatus?.message} {...form1.register("civilStatus")} />
+                <Input label="Contact Number" placeholder="+63 9xx xxx xxxx" error={form1.formState.errors.contactNumber?.message} {...form1.register("contactNumber")} />
+              </div>
               <Textarea label="Complete Address" rows={2} error={form1.formState.errors.address?.message} {...form1.register("address")} />
             </div>
           )}

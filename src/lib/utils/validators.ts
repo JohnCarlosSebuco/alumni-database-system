@@ -37,6 +37,7 @@ export const step1Schema = z.object({
   lastName:     z.string().min(1, "Required"),
   birthDate:    z.string().min(1, "Required"),
   gender:       z.string().min(1, "Required"),
+  civilStatus:  z.string().optional(),
   address:      z.string().min(1, "Required"),
   contactNumber: z.string().min(7, "Enter a valid contact number"),
 });

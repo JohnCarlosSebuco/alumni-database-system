@@ -19,6 +19,7 @@ export function PersonalInfoTab({ profile }: Props) {
       <InfoRow label="Full Name" value={[profile.firstName, profile.lastName].filter(Boolean).join(" ")} />
       <InfoRow label="Date of Birth" value={profile.birthDate ? formatDate(profile.birthDate) : undefined} />
       <InfoRow label="Gender" value={profile.gender} />
+      <InfoRow label="Civil Status" value={profile.civilStatus} />
       <InfoRow label="Contact Number" value={profile.contactNumber} />
       <InfoRow label="Address" value={profile.address} />
     </div>
