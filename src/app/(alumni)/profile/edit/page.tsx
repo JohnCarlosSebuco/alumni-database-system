@@ -74,31 +74,53 @@ export default function EditProfilePage() {
     }
   }, [profile]);
 
-  const form1 = useForm<Step1Input>({ resolver: zodResolver(step1Schema), defaultValues: profile ? {
-    firstName: profile.firstName,
-    lastName: profile.lastName,
-    birthDate: profile.birthDate,
-    gender: profile.gender,
-    civilStatus: profile.civilStatus ?? "",
-    address: profile.address,
-    contactNumber: profile.contactNumber,
-  } : undefined });
+  const form1 = useForm<Step1Input>({ resolver: zodResolver(step1Schema) });
+  const form2 = useForm<Step2Input>({ resolver: zodResolver(step2Schema) });
+  const form3 = useForm<Step3Input>({ resolver: zodResolver(step3Schema), defaultValues: { isEmployed: false } });
 
-  const form2 = useForm<Step2Input>({ resolver: zodResolver(step2Schema), defaultValues: userDoc ? {
-    batchYear: userDoc.batchYear ?? undefined,
-    department: userDoc.department ?? "",
-    course: userDoc.course ?? "",
-  } : undefined });
+  // Pre-fill form1 from existing profile, or from signup name if no profile yet
+  useEffect(() => {
+    if (profile) {
+      form1.reset({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        birthDate: profile.birthDate,
+        gender: profile.gender,
+        civilStatus: profile.civilStatus ?? "",
+        address: profile.address,
+        contactNumber: profile.contactNumber,
+      });
+    } else if (!loading && userDoc) {
+      const [firstName = "", ...rest] = (userDoc.displayName ?? "").split(" ");
+      form1.reset({ firstName, lastName: rest.join(" "), birthDate: "", gender: "", civilStatus: "", address: "", contactNumber: "" });
+    }
+  }, [profile, userDoc, loading]); // eslint-disable-line
 
-  const form3 = useForm<Step3Input>({ resolver: zodResolver(step3Schema), defaultValues: profile?.currentEmployment ? {
-    isEmployed: profile.currentEmployment.isEmployed,
-    employerName: profile.currentEmployment.employerName,
-    position: profile.currentEmployment.position,
-    industry: profile.currentEmployment.industry,
-    employmentType: profile.currentEmployment.employmentType,
-    startDate: profile.currentEmployment.startDate,
-    city: profile.currentEmployment.city,
-  } : { isEmployed: false } });
+  // Pre-fill form2 from signup data (batch year, department, course)
+  useEffect(() => {
+    if (userDoc) {
+      form2.reset({
+        batchYear: userDoc.batchYear ?? undefined,
+        department: userDoc.department ?? "",
+        course: userDoc.course ?? "",
+      });
+    }
+  }, [userDoc]); // eslint-disable-line
+
+  // Pre-fill form3 from existing profile
+  useEffect(() => {
+    if (profile?.currentEmployment) {
+      form3.reset({
+        isEmployed: profile.currentEmployment.isEmployed,
+        employerName: profile.currentEmployment.employerName,
+        position: profile.currentEmployment.position,
+        industry: profile.currentEmployment.industry,
+        employmentType: profile.currentEmployment.employmentType,
+        startDate: profile.currentEmployment.startDate,
+        city: profile.currentEmployment.city,
+      });
+    }
+  }, [profile]); // eslint-disable-line
 
   if (loading || !user || !userDoc) return <PageLoader />;
 
@@ -209,7 +231,7 @@ export default function EditProfilePage() {
                   { value: "Female", label: "Female" },
                   { value: "Non-binary", label: "Non-binary" },
                   { value: "Prefer not to say", label: "Prefer not to say" },
-                ]} error={form1.formState.errors.gender?.message} {...form1.register("gender")} />
+                ]} value={form1.watch("gender") ?? ""} error={form1.formState.errors.gender?.message} {...form1.register("gender")} />
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <Select label="Civil Status" options={[
@@ -218,7 +240,7 @@ export default function EditProfilePage() {
                   { value: "Married", label: "Married" },
                   { value: "Widowed", label: "Widowed" },
                   { value: "Separated", label: "Separated" },
-                ]} error={form1.formState.errors.civilStatus?.message} {...form1.register("civilStatus")} />
+                ]} value={form1.watch("civilStatus") ?? ""} error={form1.formState.errors.civilStatus?.message} {...form1.register("civilStatus")} />
                 <Input label="Contact Number" placeholder="+63 9xx xxx xxxx" error={form1.formState.errors.contactNumber?.message} {...form1.register("contactNumber")} />
               </div>
               <Textarea label="Complete Address" rows={2} error={form1.formState.errors.address?.message} {...form1.register("address")} />
@@ -233,7 +255,7 @@ export default function EditProfilePage() {
                   const y = new Date().getFullYear() - i;
                   return { value: String(y), label: String(y) };
                 })
-              } error={form2.formState.errors.batchYear?.message} {...form2.register("batchYear", { valueAsNumber: true })} />
+              } value={String(form2.watch("batchYear") ?? "")} error={form2.formState.errors.batchYear?.message} {...form2.register("batchYear", { valueAsNumber: true })} />
               <Input label="College / Department" error={form2.formState.errors.department?.message} {...form2.register("department")} />
               <Input label="Course / Program" error={form2.formState.errors.course?.message} {...form2.register("course")} />
             </div>
@@ -257,7 +279,7 @@ export default function EditProfilePage() {
                     { value: "Contract", label: "Contract" },
                     { value: "Freelance", label: "Freelance" },
                     { value: "Self-employed", label: "Self-employed" },
-                  ]} {...form3.register("employmentType")} />
+                  ]} value={form3.watch("employmentType") ?? ""} {...form3.register("employmentType")} />
                   <Input label="Start Date" type="date" {...form3.register("startDate")} />
                   <Input label="City" {...form3.register("city")} />
                 </div>
