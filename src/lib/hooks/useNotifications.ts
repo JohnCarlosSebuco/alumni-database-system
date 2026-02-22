@@ -38,9 +38,9 @@ export function useNotifications(maxItems = 20) {
         const notifs = snap.docs
           .map((d) => ({ id: d.id, ...d.data() } as Notification))
           .sort((a, b) => {
-            const ta = a.createdAt?.seconds ?? 0;
-            const tb = b.createdAt?.seconds ?? 0;
-            return tb - ta;
+            const ta = a.createdAt ?? "";
+            const tb = b.createdAt ?? "";
+            return tb < ta ? -1 : tb > ta ? 1 : 0;
           });
         setNotifications(notifs);
         setUnreadCount(notifs.filter((n) => !n.isRead).length);
