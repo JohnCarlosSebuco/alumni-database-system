@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/context/AuthContext";
 import { ToastProvider } from "@/components/ui/Toast";
+import { PageTransitionProvider } from "@/providers/PageTransitionProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,7 +34,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AuthProvider>
           <ToastProvider>
-            {children}
+            <PageTransitionProvider>
+              {children}
+            </PageTransitionProvider>
           </ToastProvider>
         </AuthProvider>
       </body>
