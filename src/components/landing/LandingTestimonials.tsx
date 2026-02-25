@@ -13,8 +13,8 @@ const testimonials = [
     quote:
       "I hadn't heard from my batch mates in years. AlumNayan made reconnecting feel effortless — it truly feels like the community never stopped.",
     name: "Juan dela Cruz",
-    detail: "BSCPE · Class of 2016",
-    role: "Software Engineer, Manila",
+    detail: "BSME · Class of 2016",
+    role: "Mechanical Engineer, Manila",
   },
   {
     quote:

@@ -1,6 +1,6 @@
 "use client";
 import { useInView } from "@/lib/hooks/useInView";
-import { Cpu, Radio, Settings2 } from "lucide-react";
+import { Wrench, Radio, Settings2 } from "lucide-react";
 
 const programs = [
   {
@@ -10,10 +10,10 @@ const programs = [
     icon: Radio,
   },
   {
-    abbr: "BSCPE",
-    full: "Computer Engineering",
-    desc: "Bridge hardware and software — build embedded systems, computer architecture, and intelligent devices for the modern world.",
-    icon: Cpu,
+    abbr: "BSME",
+    full: "Mechanical Engineering",
+    desc: "Design, analyze, and manufacture mechanical systems — from machines and thermal systems to robotics and energy technology.",
+    icon: Wrench,
   },
   {
     abbr: "BSIE",
