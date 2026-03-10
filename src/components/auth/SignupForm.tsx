@@ -6,10 +6,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver as zodResolver } from "@hookform/resolvers/standard-schema";
 import { Eye, EyeOff, Mail, User } from "lucide-react";
-import { signUp } from "@/lib/firebase/auth";
-import {
-  db, setDoc, userDocRef, departmentsRef, getDocs, serverTimestamp,
-} from "@/lib/firebase/firestore";
+import { signUp, sendVerificationEmail } from "@/lib/firebase/auth";
+import { departmentsRef, getDocs } from "@/lib/firebase/firestore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -63,6 +61,10 @@ export function SignupForm() {
         `${data.firstName} ${data.lastName}`
       );
 
+      // Send email verification before granting session access
+      // continueUrl brings them back to /verify-email which auto-redirects on detection
+      await sendVerificationEmail(user, `${window.location.origin}/verify-email`);
+
       // Set alumni custom claim via API route
       const idToken = await user.getIdToken();
       await fetch("/api/auth/set-role", {
@@ -74,33 +76,23 @@ export function SignupForm() {
       // Force-refresh token to include the new custom claim
       await user.getIdToken(true);
 
-      // Write Firestore user doc
-      await setDoc(userDocRef(user.uid), {
-        uid: user.uid,
-        email: data.email,
-        role: "alumni",
-        displayName: `${data.firstName} ${data.lastName}`,
-        photoURL: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isActive: true,
-        profileComplete: 0,
-        batchYear: data.batchYear,
-        department: data.department,
-        course: data.course,
-        studentId: data.studentId ?? "",
-        notifPrefs: { jobs: true, events: true },
-      }, { merge: true });
+      // Store profile data to be written to Firestore AFTER email is verified.
+      // This prevents unverified accounts from appearing in the alumni directory.
+      sessionStorage.setItem(
+        "pendingAlumniData",
+        JSON.stringify({
+          uid: user.uid,
+          email: data.email,
+          displayName: `${data.firstName} ${data.lastName}`,
+          batchYear: data.batchYear,
+          department: data.department,
+          course: data.course,
+          studentId: data.studentId ?? "",
+        })
+      );
 
-      // Create session cookie with the refreshed token
-      const freshToken = await user.getIdToken();
-      await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: freshToken }),
-      });
-
-      router.replace("/dashboard");
+      // Don't write Firestore doc or set session cookie until email is verified
+      router.replace("/verify-email");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
       if (msg.includes("email-already-in-use")) {

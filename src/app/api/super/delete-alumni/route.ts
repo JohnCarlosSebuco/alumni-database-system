@@ -14,7 +14,8 @@ export async function DELETE(req: Request) {
 
     const decoded = await admin.auth().verifySessionCookie(sessionCookie, true);
     const callerSnap = await admin.firestore().collection("users").doc(decoded.uid).get();
-    if (callerSnap.data()?.role !== "super_admin") {
+    const callerRole = callerSnap.data()?.role;
+    if (callerRole !== "admin" && callerRole !== "super_admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

@@ -54,6 +54,7 @@ export default function AlumniDashboardClient() {
 
   useEffect(() => {
     if (!user) return;
+    const uid = user.uid;
     async function checkSurveys() {
       const snap = await getDocs(
         query(surveysRef(), where("status", "==", "active"))
@@ -66,7 +67,7 @@ export default function AlumniDashboardClient() {
       );
       for (const survey of activeSurveys) {
         if (skipped.includes(survey.id)) continue;
-        const responseSnap = await getDoc(surveyResponseRef(survey.id, user.uid));
+        const responseSnap = await getDoc(surveyResponseRef(survey.id, uid));
         if (!responseSnap.exists()) {
           setPendingSurvey(survey);
           break;

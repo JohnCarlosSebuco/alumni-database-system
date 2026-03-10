@@ -5,6 +5,7 @@ import {
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   confirmPasswordReset,
+  sendEmailVerification,
   updateProfile,
   User,
 } from "firebase/auth";
@@ -35,6 +36,10 @@ export async function resetPassword(email: string) {
 
 export async function confirmReset(oobCode: string, newPassword: string) {
   return confirmPasswordReset(auth, oobCode, newPassword);
+}
+
+export async function sendVerificationEmail(user: User, continueUrl?: string) {
+  return sendEmailVerification(user, continueUrl ? { url: continueUrl } : undefined);
 }
 
 export type { User };

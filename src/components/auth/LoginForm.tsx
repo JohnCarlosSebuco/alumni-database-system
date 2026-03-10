@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver as zodResolver } from "@hookform/resolvers/standard-schema";
 import { Eye, EyeOff, Mail } from "lucide-react";
-import { signIn } from "@/lib/firebase/auth";
+import { signIn, sendVerificationEmail } from "@/lib/firebase/auth";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
@@ -29,6 +29,15 @@ export function LoginForm() {
     setLoading(true);
     try {
       const credential = await signIn(data.email, data.password);
+
+      // Block access if email is not verified
+      if (!credential.user.emailVerified) {
+        // Resend the verification email in case it expired
+        await sendVerificationEmail(credential.user, `${window.location.origin}/verify-email`).catch(() => {});
+        router.replace("/verify-email");
+        return;
+      }
+
       const idToken = await credential.user.getIdToken();
       await fetch("/api/auth/session", {
         method: "POST",
