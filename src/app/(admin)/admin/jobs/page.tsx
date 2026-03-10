@@ -1,28 +1,99 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Eye, Edit } from "lucide-react";
+import {
+  Plus,
+  Briefcase,
+  Users,
+  ChevronRight,
+  MapPin,
+  Clock,
+  CheckCircle2,
+  Clock3,
+  XCircle,
+  Wifi,
+} from "lucide-react";
 import { useJobs } from "@/lib/hooks/useJobs";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Briefcase } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatters";
+import { cn } from "@/lib/utils/cn";
 import type { JobStatus } from "@/lib/types/job.types";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-const statusBadge: Record<JobStatus, "success" | "warning" | "default"> = {
-  active: "success",
-  draft:  "warning",
-  closed: "default",
+type FilterKey = "all" | JobStatus;
+
+const statusConfig: Record<
+  JobStatus,
+  { label: string; classes: string; icon: React.ReactNode }
+> = {
+  active: {
+    label: "Active",
+    classes: "bg-green-50 text-green-700 border-green-200",
+    icon: <CheckCircle2 size={11} />,
+  },
+  draft: {
+    label: "Draft",
+    classes: "bg-amber-50 text-amber-700 border-amber-200",
+    icon: <Clock3 size={11} />,
+  },
+  closed: {
+    label: "Closed",
+    classes: "bg-gray-100 text-gray-500 border-gray-200",
+    icon: <XCircle size={11} />,
+  },
 };
+
+const typeColor: Record<string, string> = {
+  "Full-time":  "bg-blue-50   text-blue-700   border-blue-100",
+  "Part-time":  "bg-purple-50 text-purple-700  border-purple-100",
+  "Contract":   "bg-orange-50 text-orange-700  border-orange-100",
+  "Internship": "bg-teal-50   text-teal-700    border-teal-100",
+};
+
+function isDeadlineSoon(deadline: string) {
+  const days = (new Date(deadline).getTime() - Date.now()) / 86_400_000;
+  return days >= 0 && days <= 7;
+}
+
+function isDeadlinePast(deadline: string) {
+  return new Date(deadline).getTime() < Date.now();
+}
 
 export default function AdminJobsPage() {
   const { jobs, loading } = useJobs({ adminView: true });
+  const [filter, setFilter] = useState<FilterKey>("all");
+
+  const counts = useMemo(
+    () => ({
+      all:    jobs.length,
+      active: jobs.filter((j) => j.status === "active").length,
+      draft:  jobs.filter((j) => j.status === "draft").length,
+      closed: jobs.filter((j) => j.status === "closed").length,
+    }),
+    [jobs]
+  );
+
+  const visible = useMemo(
+    () => (filter === "all" ? jobs : jobs.filter((j) => j.status === filter)),
+    [jobs, filter]
+  );
+
+  const totalApplicants = useMemo(
+    () => jobs.reduce((s, j) => s + (j.applicantCount ?? 0), 0),
+    [jobs]
+  );
+
+  const filterTabs: { key: FilterKey; label: string; count: number }[] = [
+    { key: "all",    label: "All",    count: counts.all },
+    { key: "active", label: "Active", count: counts.active },
+    { key: "draft",  label: "Draft",  count: counts.draft },
+    { key: "closed", label: "Closed", count: counts.closed },
+  ];
 
   return (
     <div className="space-y-6">
@@ -31,10 +102,38 @@ export default function AdminJobsPage() {
         breadcrumbs={[{ label: "Admin" }, { label: "Jobs" }]}
         actions={
           <Link href="/admin/jobs/new">
-            <Button variant="primary" leftIcon={<Plus size={16} />}>New Job</Button>
+            <Button variant="primary" leftIcon={<Plus size={16} />}>
+              New Job
+            </Button>
           </Link>
         }
       />
+
+      {/* ── Stats strip ── */}
+      {!loading && jobs.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: "Total",       value: counts.all,       color: "bg-navy-50  text-navy-800",  dot: "bg-navy-400"  },
+            { label: "Active",      value: counts.active,    color: "bg-green-50 text-green-800", dot: "bg-green-500" },
+            { label: "Draft",       value: counts.draft,     color: "bg-amber-50 text-amber-800", dot: "bg-amber-400" },
+            { label: "Applicants",  value: totalApplicants,  color: "bg-blue-50  text-blue-800",  dot: "bg-blue-400"  },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-4 py-3",
+                s.color
+              )}
+            >
+              <span className={cn("h-2.5 w-2.5 rounded-full flex-shrink-0", s.dot)} />
+              <div>
+                <p className="text-xl font-bold leading-none">{s.value}</p>
+                <p className="text-xs mt-0.5 opacity-70">{s.label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <SkeletonTable rows={6} />
@@ -43,52 +142,172 @@ export default function AdminJobsPage() {
           icon={<Briefcase size={48} />}
           title="No job postings yet"
           description="Create your first job posting to start receiving applications."
-          action={<Link href="/admin/jobs/new"><Button variant="primary">Create Job</Button></Link>}
+          action={
+            <Link href="/admin/jobs/new">
+              <Button variant="primary">Create Job</Button>
+            </Link>
+          }
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Title</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Company</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">Applicants</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">Deadline</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {jobs.map((job) => (
-                <tr key={job.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-900">{job.title}</p>
-                    <p className="text-xs text-gray-500">{job.type} · {job.location}</p>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{job.company}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={statusBadge[job.status]}>{job.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 hidden lg:table-cell">{job.applicantCount}</td>
-                  <td className="px-4 py-3 text-gray-500 hidden lg:table-cell">{formatDate(job.deadline)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link href={`/admin/jobs/${job.id}/applicants`}>
-                        <button className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-navy-800 transition-colors" title="View applicants">
-                          <Eye size={15} />
-                        </button>
-                      </Link>
-                      <Link href={`/admin/jobs/${job.id}`}>
-                        <button className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-navy-800 transition-colors" title="Edit">
-                          <Edit size={15} />
-                        </button>
-                      </Link>
-                    </div>
-                  </td>
+        <div className="rounded-xl border border-gray-100 bg-white overflow-hidden">
+          {/* ── Filter tabs ── */}
+          <div className="flex items-center border-b border-gray-100 overflow-x-auto">
+            {filterTabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setFilter(tab.key)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
+                  filter === tab.key
+                    ? "border-navy-800 text-navy-800"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
+                )}
+              >
+                {tab.label}
+                <span
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none min-w-[18px]",
+                    filter === tab.key
+                      ? "bg-navy-800 text-white"
+                      : "bg-gray-100 text-gray-500"
+                  )}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* ── Table ── */}
+          {visible.length === 0 ? (
+            <div className="py-14 text-center">
+              <p className="text-sm text-gray-400">No {filter} jobs found.</p>
+            </div>
+          ) : (
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50/60">
+                  <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                    Job
+                  </th>
+                  <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden md:table-cell">
+                    Company
+                  </th>
+                  <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">
+                    Applicants
+                  </th>
+                  <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">
+                    Deadline
+                  </th>
+                  <th className="px-5 py-3 w-10" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {visible.map((job) => {
+                  const sc = statusConfig[job.status];
+                  const tc = typeColor[job.type] ?? "bg-gray-100 text-gray-600 border-gray-200";
+                  const soon = job.status === "active" && isDeadlineSoon(job.deadline);
+                  const past = isDeadlinePast(job.deadline);
+
+                  return (
+                    <tr key={job.id} className="group hover:bg-gray-50/80 transition-colors">
+                      {/* Title + meta */}
+                      <td className="px-5 py-4">
+                        <Link href={`/admin/jobs/${job.id}`} className="block">
+                          <p className="font-semibold text-gray-900 group-hover:text-navy-800 transition-colors">
+                            {job.title}
+                          </p>
+                          <div className="flex items-center flex-wrap gap-2 mt-1.5">
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium border",
+                                tc
+                              )}
+                            >
+                              {job.type}
+                            </span>
+                            <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                              {job.isRemote ? (
+                                <><Wifi size={10} /> Remote</>
+                              ) : (
+                                <><MapPin size={10} /> {job.location}</>
+                              )}
+                            </span>
+                            {job.industry && (
+                              <span className="text-[11px] text-gray-400">
+                                {job.industry}
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      </td>
+
+                      {/* Company */}
+                      <td className="px-5 py-4 hidden md:table-cell">
+                        <p className="text-sm font-medium text-gray-700">{job.company}</p>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-5 py-4">
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium border",
+                            sc.classes
+                          )}
+                        >
+                          {sc.icon}
+                          {sc.label}
+                        </span>
+                      </td>
+
+                      {/* Applicants */}
+                      <td className="px-5 py-4 hidden lg:table-cell">
+                        <Link
+                          href={`/admin/jobs/${job.id}/applicants`}
+                          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium bg-gray-50 border border-gray-200 text-gray-600 hover:bg-navy-50 hover:border-navy-200 hover:text-navy-800 transition-colors"
+                          title="View applicants"
+                        >
+                          <Users size={11} />
+                          {job.applicantCount ?? 0}
+                        </Link>
+                      </td>
+
+                      {/* Deadline */}
+                      <td className="px-5 py-4 hidden lg:table-cell">
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 text-xs",
+                            soon
+                              ? "text-red-600 font-semibold"
+                              : past && job.status === "active"
+                              ? "text-gray-400 line-through"
+                              : "text-gray-500"
+                          )}
+                        >
+                          {soon && <Clock size={11} className="text-red-500" />}
+                          {formatDate(job.deadline)}
+                        </span>
+                      </td>
+
+                      {/* Chevron */}
+                      <td className="px-5 py-4">
+                        <Link
+                          href={`/admin/jobs/${job.id}`}
+                          className="flex items-center justify-end text-gray-300 group-hover:text-navy-700 transition-colors"
+                        >
+                          <ChevronRight size={16} />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
     </div>
