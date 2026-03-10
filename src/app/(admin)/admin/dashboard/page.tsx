@@ -1,28 +1,100 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, Briefcase, Calendar, TrendingUp, TrendingDown, Target } from "lucide-react";
+import {
+  Users, Briefcase, Calendar, TrendingUp, TrendingDown,
+  Target, ArrowUpRight,
+} from "lucide-react";
+import { format } from "date-fns";
 import {
   db, collection, query, where, getDocs, orderBy, limit,
 } from "@/lib/firebase/firestore";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { KPICard } from "@/components/dashboard/KPICard";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { EmploymentChart } from "@/components/dashboard/EmploymentChart";
 import { DepartmentChart } from "@/components/dashboard/DepartmentChart";
 import { Avatar } from "@/components/ui/Avatar";
-import { Badge } from "@/components/ui/Badge";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatRelativeTime } from "@/lib/utils/formatters";
+import { cn } from "@/lib/utils/cn";
 import type { UserDoc } from "@/lib/types/alumni.types";
 import { computeOutcomeRates } from "@/lib/utils/courseAlignment";
 import type { OutcomeRates } from "@/lib/utils/courseAlignment";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+function useCountUp(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    const timer = setInterval(() => {
+      const p = Math.min((Date.now() - start) / duration, 1);
+      setCount(Math.floor(p * target));
+      if (p >= 1) clearInterval(timer);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return count;
+}
+
+interface MetricCardProps {
+  title: string;
+  value: number;
+  suffix?: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  borderColor: string;
+  description?: string;
+}
+
+function MetricCard({ title, value, suffix = "", icon, iconBg, borderColor, description }: MetricCardProps) {
+  const display = useCountUp(value);
+  return (
+    <div className={cn("flex flex-col gap-3 rounded-xl border-l-[3px] border border-gray-100 bg-white p-5 shadow-sm", borderColor)}>
+      <div className="flex items-start justify-between">
+        <p className="text-sm font-medium text-gray-500">{title}</p>
+        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0", iconBg)}>
+          {icon}
+        </div>
+      </div>
+      <div>
+        <p className="text-3xl font-bold tracking-tight text-gray-900">
+          {display.toLocaleString()}{suffix}
+        </p>
+        {description && (
+          <p className="mt-1 text-xs text-gray-400">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProgressBar({ value, color = "bg-navy-800" }: { value: number; color?: string }) {
+  return (
+    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+      <div
+        className={cn("h-full rounded-full transition-all duration-700", color)}
+        style={{ width: `${Math.min(value, 100)}%` }}
+      />
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
+  const { userDoc } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ alumni: 0, jobs: 0, events: 0, employmentRate: 0, unemploymentRate: 0 });
+  const [stats, setStats] = useState({
+    alumni: 0, jobs: 0, events: 0,
+    employmentRate: 0, unemploymentRate: 0,
+    employedCount: 0,
+  });
   const [outcomeRates, setOutcomeRates] = useState<OutcomeRates | null>(null);
   const [recentAlumni, setRecentAlumni] = useState<UserDoc[]>([]);
   const [deptData, setDeptData] = useState<{ name: string; value: number }[]>([]);
@@ -42,17 +114,13 @@ export default function AdminDashboardPage() {
         const employedCount = alumniDocs.filter((a) => a.isEmployed === true).length;
         const totalAlumni = alumniDocs.length;
         const employmentRate = totalAlumni > 0 ? Math.round((employedCount / totalAlumni) * 100) : 0;
-        const unemploymentRate = totalAlumni > 0 ? 100 - employmentRate : 0;
 
-        // Course breakdown (BSIE, BSECE, BSME)
         const deptMap: Record<string, number> = {};
         alumniDocs.forEach((a) => {
           const label = a.course ?? a.department ?? "Unknown";
           deptMap[label] = (deptMap[label] ?? 0) + 1;
         });
-        const deptArr = Object.entries(deptMap).slice(0, 8).map(([name, value]) => ({ name, value }));
 
-        // Employment by course
         const empMap: Record<string, { employed: number; total: number }> = {};
         alumniDocs.forEach((a) => {
           const dept = a.course?.replace("Bachelor of Science in ", "BS ") ?? a.department?.slice(0, 12) ?? "Other";
@@ -60,19 +128,19 @@ export default function AdminDashboardPage() {
           empMap[dept].total++;
           if (a.isEmployed === true) empMap[dept].employed++;
         });
-        const empArr = Object.entries(empMap).slice(0, 6).map(([department, v]) => ({ department, ...v }));
 
         setOutcomeRates(computeOutcomeRates(alumniDocs));
         setStats({
-          alumni: alumniSnap.size,
+          alumni: totalAlumni,
           jobs: jobsSnap.size,
           events: eventsSnap.size,
           employmentRate,
-          unemploymentRate,
+          unemploymentRate: totalAlumni > 0 ? 100 - employmentRate : 0,
+          employedCount,
         });
         setRecentAlumni(recentSnap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserDoc)));
-        setDeptData(deptArr);
-        setEmpData(empArr);
+        setDeptData(Object.entries(deptMap).slice(0, 8).map(([name, value]) => ({ name, value })));
+        setEmpData(Object.entries(empMap).slice(0, 6).map(([department, v]) => ({ department, ...v })));
       } catch (err) {
         console.error("Admin dashboard failed to load:", err);
       } finally {
@@ -84,92 +152,271 @@ export default function AdminDashboardPage() {
 
   if (loading) return <PageLoader />;
 
-  return (
-    <div className="space-y-8">
-      <PageHeader title="Admin Dashboard" breadcrumbs={[{ label: "Admin" }, { label: "Dashboard" }]} />
+  const firstName = userDoc?.displayName?.split(" ")[0] ?? "Admin";
+  const today = format(new Date(), "EEEE, MMMM d, yyyy");
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <KPICard title="Total Alumni" value={stats.alumni} icon={<Users size={24} />} iconBg="bg-navy-100 text-navy-800" />
-        <KPICard title="Active Jobs" value={stats.jobs} icon={<Briefcase size={24} />} iconBg="bg-blue-100 text-blue-700" />
-        <KPICard title="Events" value={stats.events} icon={<Calendar size={24} />} iconBg="bg-purple-100 text-purple-700" />
-        <KPICard title="Employment Rate" value={stats.employmentRate} suffix="%" icon={<TrendingUp size={24} />} iconBg="bg-green-100 text-green-700" />
-        <KPICard title="Unemployment Rate" value={stats.unemploymentRate} suffix="%" icon={<TrendingDown size={24} />} iconBg="bg-red-100 text-red-600" />
+  return (
+    <div className="space-y-7">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-gray-400">{getGreeting()}</p>
+          <h1 className="mt-0.5 text-2xl font-bold text-gray-900">{firstName}!</h1>
+          <p className="mt-1 text-sm text-gray-400">{today}</p>
+        </div>
+        <div className="hidden sm:flex flex-col items-end gap-1 text-right">
+          <span className="rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-semibold text-green-700">
+            System online
+          </span>
+          <span className="text-xs text-gray-400">{stats.alumni} registered alumni</span>
+        </div>
       </div>
 
-      {/* Course-Alignment Outcome KPIs */}
-      {outcomeRates && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Recent Graduate Placement</p>
-                <p className="mt-1 text-3xl font-bold text-gray-900">{outcomeRates.recentGraduatePlacementRate}%</p>
-                <p className="mt-1 text-xs text-gray-400">Course-aligned employment · last 2 batch years</p>
-                <p className="text-xs text-gray-400">{outcomeRates.recentAligned} of {outcomeRates.recentTotal} alumni</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-                <Target size={24} />
-              </div>
+      {/* ── KPI cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <MetricCard
+          title="Total Alumni"
+          value={stats.alumni}
+          icon={<Users size={18} />}
+          iconBg="bg-navy-100 text-navy-700"
+          borderColor="border-l-navy-700"
+          description="registered members"
+        />
+        <MetricCard
+          title="Active Jobs"
+          value={stats.jobs}
+          icon={<Briefcase size={18} />}
+          iconBg="bg-blue-100 text-blue-700"
+          borderColor="border-l-blue-500"
+          description="open positions"
+        />
+        <MetricCard
+          title="Events"
+          value={stats.events}
+          icon={<Calendar size={18} />}
+          iconBg="bg-purple-100 text-purple-700"
+          borderColor="border-l-purple-500"
+          description="total created"
+        />
+        <MetricCard
+          title="Employment Rate"
+          value={stats.employmentRate}
+          suffix="%"
+          icon={<TrendingUp size={18} />}
+          iconBg="bg-green-100 text-green-700"
+          borderColor="border-l-green-500"
+          description={`${stats.employedCount} employed`}
+        />
+        <MetricCard
+          title="Unemployment Rate"
+          value={stats.unemploymentRate}
+          suffix="%"
+          icon={<TrendingDown size={18} />}
+          iconBg="bg-red-100 text-red-600"
+          borderColor="border-l-red-400"
+          description={`${stats.alumni - stats.employedCount} unemployed`}
+        />
+      </div>
+
+      {/* ── Employment visual + course alignment ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {/* Employment breakdown */}
+        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Employment Overview
+              </p>
+              <p className="mt-0.5 text-base font-semibold text-gray-900">
+                {stats.alumni} Alumni Total
+              </p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-700">
+              <TrendingUp size={20} />
             </div>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Mid-Career Alignment Rate</p>
-                <p className="mt-1 text-3xl font-bold text-gray-900">{outcomeRates.midCareerAlignmentRate}%</p>
-                <p className="mt-1 text-xs text-gray-400">Course-aligned employment · 3–5 years out</p>
-                <p className="text-xs text-gray-400">{outcomeRates.midCareerAligned} of {outcomeRates.midCareerTotal} alumni</p>
+
+          <div className="space-y-3">
+            <div>
+              <div className="mb-1.5 flex items-center justify-between text-sm">
+                <span className="font-medium text-gray-700">Employed</span>
+                <span className="font-bold text-green-700">{stats.employmentRate}%</span>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-100 text-teal-600">
-                <Target size={24} />
+              <ProgressBar value={stats.employmentRate} color="bg-green-500" />
+              <p className="mt-1 text-xs text-gray-400">{stats.employedCount} alumni</p>
+            </div>
+            <div>
+              <div className="mb-1.5 flex items-center justify-between text-sm">
+                <span className="font-medium text-gray-700">Unemployed</span>
+                <span className="font-bold text-red-600">{stats.unemploymentRate}%</span>
               </div>
+              <ProgressBar value={stats.unemploymentRate} color="bg-red-400" />
+              <p className="mt-1 text-xs text-gray-400">
+                {stats.alumni - stats.employedCount} alumni
+              </p>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Charts */}
-      <div className="grid md:grid-cols-2 gap-6">
+        {/* Course alignment outcomes */}
+        {outcomeRates && (
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  Course-Aligned Employment
+                </p>
+                <p className="mt-0.5 text-base font-semibold text-gray-900">
+                  Outcome Rates
+                </p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                <Target size={20} />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Recent graduates */}
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Recent Graduate Placement</p>
+                    <p className="text-xs text-gray-400">Last 2 batch years</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gray-900">
+                      {outcomeRates.recentGraduatePlacementRate}%
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {outcomeRates.recentAligned} / {outcomeRates.recentTotal}
+                    </p>
+                  </div>
+                </div>
+                <ProgressBar value={outcomeRates.recentGraduatePlacementRate} color="bg-amber-500" />
+              </div>
+
+              {/* Mid-career */}
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Mid-Career Alignment</p>
+                    <p className="text-xs text-gray-400">3–5 years out</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gray-900">
+                      {outcomeRates.midCareerAlignmentRate}%
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {outcomeRates.midCareerAligned} / {outcomeRates.midCareerTotal}
+                    </p>
+                  </div>
+                </div>
+                <ProgressBar value={outcomeRates.midCareerAlignmentRate} color="bg-teal-500" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Charts ── */}
+      <div className="grid md:grid-cols-2 gap-5">
         <Card>
-          <CardHeader><h2 className="font-semibold text-gray-900">Alumni by Department</h2></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-gray-900">Alumni by Course</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Distribution across programs</p>
+              </div>
+            </div>
+          </CardHeader>
           <CardBody>
-            <DepartmentChart data={deptData.length ? deptData : [{ name: "No data", value: 1 }]} />
+            <DepartmentChart
+              data={deptData.length ? deptData : [{ name: "No data", value: 1 }]}
+            />
           </CardBody>
         </Card>
+
         <Card>
-          <CardHeader><h2 className="font-semibold text-gray-900">Employment by Dept</h2></CardHeader>
+          <CardHeader>
+            <div>
+              <h2 className="font-semibold text-gray-900">Employment by Course</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Employed vs total per program</p>
+            </div>
+          </CardHeader>
           <CardBody>
-            <EmploymentChart data={empData.length ? empData : [{ department: "No data", employed: 0, total: 0 }]} />
+            <EmploymentChart
+              data={
+                empData.length
+                  ? empData
+                  : [{ department: "No data", employed: 0, total: 0 }]
+              }
+            />
           </CardBody>
         </Card>
       </div>
 
-      {/* Recent Alumni */}
+      {/* ── Recent sign-ups ── */}
       <Card>
         <CardHeader>
-          <h2 className="font-semibold text-gray-900">Recent Sign-ups</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold text-gray-900">Recent Sign-ups</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Newest alumni registrations</p>
+            </div>
+            <a
+              href="/admin/alumni"
+              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-navy-800 hover:bg-navy-50 transition-colors"
+            >
+              View all <ArrowUpRight size={13} />
+            </a>
+          </div>
         </CardHeader>
         <CardBody className="p-0">
-          <div className="divide-y divide-gray-100">
-            {recentAlumni.length === 0 ? (
-              <p className="px-6 py-8 text-sm text-gray-500 text-center">No alumni yet.</p>
-            ) : recentAlumni.map((a) => (
-              <div key={a.uid} className="flex items-center gap-4 px-6 py-4">
-                <Avatar src={a.photoURL} name={a.displayName} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{a.displayName}</p>
-                  <p className="text-xs text-gray-500 truncate">{a.department} · Batch {a.batchYear}</p>
+          {recentAlumni.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-2">
+              <Users size={32} className="text-gray-200" />
+              <p className="text-sm text-gray-400">No alumni registered yet.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {recentAlumni.map((a) => (
+                <div key={a.uid} className="flex items-center gap-4 px-6 py-4">
+                  <Avatar src={a.photoURL} name={a.displayName} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {a.displayName}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate mt-0.5">
+                      {a.course ?? a.department ?? "—"}
+                      {a.batchYear ? ` · Batch ${a.batchYear}` : ""}
+                    </p>
+                    {/* Profile completion bar */}
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div className="h-1 w-24 overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all duration-500",
+                            (a.profileComplete ?? 0) >= 80
+                              ? "bg-green-500"
+                              : (a.profileComplete ?? 0) >= 40
+                              ? "bg-amber-400"
+                              : "bg-red-400"
+                          )}
+                          style={{ width: `${a.profileComplete ?? 0}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-semibold text-gray-400 shrink-0">
+                        {a.profileComplete ?? 0}%
+                      </span>
+                    </div>
+                  </div>
+                  <span className="flex-shrink-0 text-xs text-gray-400">
+                    {formatRelativeTime(a.createdAt)}
+                  </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={a.profileComplete > 50 ? "success" : "warning"}>
-                    {a.profileComplete}%
-                  </Badge>
-                  <span className="text-xs text-gray-400">{formatRelativeTime(a.createdAt)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardBody>
       </Card>
     </div>
