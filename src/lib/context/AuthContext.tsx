@@ -36,9 +36,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    const unsubDoc = onSnapshot(userDocRef(user.uid), (snap) => {
+    const unsubDoc = onSnapshot(userDocRef(user.uid), async (snap) => {
       if (snap.exists()) {
-        setUserDoc({ id: snap.id, ...snap.data() } as unknown as UserDoc);
+        const doc = { uid: snap.id, ...snap.data() } as UserDoc;
+        setUserDoc(doc);
+
+        // If the role in the __role cookie is stale, refresh the session cookie
+        // so middleware allows/blocks the correct routes without a re-login.
+        const cookieRole = document.cookie
+          .split("; ")
+          .find((c) => c.startsWith("__role="))
+          ?.split("=")[1];
+        if (cookieRole !== doc.role) {
+          try {
+            const idToken = await user.getIdToken(true);
+            await fetch("/api/auth/session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ idToken }),
+            });
+          } catch {
+            // non-critical — user can still re-login if needed
+          }
+        }
       } else {
         setUserDoc(null);
       }

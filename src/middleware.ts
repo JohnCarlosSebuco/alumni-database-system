@@ -30,7 +30,11 @@ export function middleware(request: NextRequest) {
   }
 
   // Role-based access
-  if (pathname.startsWith(ADMIN_PREFIX) && role !== "admin") {
+  const isAdminOrAbove = role === "admin" || role === "super_admin";
+  if (pathname.startsWith("/admin/super") && role !== "super_admin") {
+    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+  }
+  if (pathname.startsWith(ADMIN_PREFIX) && !isAdminOrAbove) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

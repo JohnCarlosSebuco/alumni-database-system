@@ -12,12 +12,16 @@ service cloud.firestore {
       return isAuth() && request.auth.uid == uid;
     }
 
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
     function isAdmin() {
-      return isAuth() && request.auth.token.role == 'admin';
+      return isAuth() && userRole() in ['admin', 'super_admin'];
     }
 
     function isAlumni() {
-      return isAuth() && request.auth.token.role == 'alumni';
+      return isAuth() && userRole() == 'alumni';
     }
 
     // ── Users ──────────────────────────────────────────────────────

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, User, Briefcase, Calendar, Bell,
   Users, BarChart3, ChevronLeft,
-  ChevronRight,
+  ChevronRight, ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -39,10 +39,15 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
+const superAdminNav: NavItem[] = [
+  { label: "Super Panel", href: "/admin/super", icon: <ShieldCheck size={18} /> },
+];
+
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { userDoc } = useAuth();
   const pathname = usePathname();
-  const isAdmin = userDoc?.role === "admin";
+  const isAdmin = userDoc?.role === "admin" || userDoc?.role === "super_admin";
+  const isSuperAdmin = userDoc?.role === "super_admin";
   const navItems = isAdmin ? adminNav : alumniNav;
 
   return (
@@ -89,6 +94,35 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </Link>
           );
         })}
+
+        {isSuperAdmin && (
+          <>
+            {!collapsed && (
+              <p className="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-widest text-navy-400">
+                Super Admin
+              </p>
+            )}
+            {superAdminNav.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + "/");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={collapsed ? item.label : undefined}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-gold-500/20 text-gold-400"
+                      : "text-gold-400/70 hover:bg-gold-500/20 hover:text-gold-400"
+                  )}
+                >
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </Link>
+              );
+            })}
+          </>
+        )}
       </nav>
 
       {/* Collapse toggle */}

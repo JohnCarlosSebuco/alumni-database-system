@@ -1,4 +1,4 @@
-export type UserRole = "alumni" | "admin";
+export type UserRole = "alumni" | "admin" | "super_admin";
 
 export interface UserDoc {
   uid: string;
@@ -16,6 +16,8 @@ export interface UserDoc {
   department: string | null;
   course: string | null;
   notifPrefs: { jobs: boolean; events: boolean };
+  studentId?: string;
+  currentPosition?: string; // denormalized from profile for dashboard queries
 }
 
 export interface Education {

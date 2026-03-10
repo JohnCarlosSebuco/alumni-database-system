@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     if (!idToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const decoded = await admin.auth().verifyIdToken(idToken);
-    if (decoded.role !== "admin") {
+    if (decoded.role !== "admin" && decoded.role !== "super_admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

@@ -9,19 +9,14 @@ export async function POST(req: Request) {
 
     // Verify the token and get the decoded claims
     const decoded = await admin.auth().verifyIdToken(idToken);
-    const role = (decoded.role as string) ?? "alumni";
+    const uid = decoded.uid;
 
-    // Sync Firestore user doc role to match the Auth custom claim
-    await admin
-      .firestore()
-      .collection("users")
-      .doc(decoded.uid)
-      .set({ role, updatedAt: new Date().toISOString() }, { merge: true });
+    // Read role from Firestore so manual role changes take effect on next login
+    const userSnap = await admin.firestore().collection("users").doc(uid).get();
+    const role = (userSnap.data()?.role as string) ?? (decoded.role as string) ?? "alumni";
 
     // Create a Firebase session cookie (valid 5 days)
-    const sessionCookie = await admin
-      .auth()
-      .createSessionCookie(idToken, { expiresIn: FIVE_DAYS_MS });
+    const sessionCookie = await admin.auth().createSessionCookie(idToken, { expiresIn: FIVE_DAYS_MS });
 
     const res = NextResponse.json({ status: "ok" });
     const cookieOpts = {
