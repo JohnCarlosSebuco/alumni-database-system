@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, User, Briefcase, Calendar, Bell,
   Users, BarChart3, ChevronLeft,
-  ChevronRight, ShieldCheck,
+  ChevronRight, ShieldCheck, ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -31,6 +31,7 @@ const adminNav: NavItem[] = [
   { label: "Alumni",         href: "/admin/alumni",     icon: <Users size={18} /> },
   { label: "Jobs",           href: "/admin/jobs",       icon: <Briefcase size={18} /> },
   { label: "Events",         href: "/admin/events",     icon: <Calendar size={18} /> },
+  { label: "Surveys",        href: "/admin/surveys",    icon: <ClipboardList size={18} /> },
   { label: "Reports",        href: "/admin/reports",    icon: <BarChart3 size={18} /> },
 ];
 

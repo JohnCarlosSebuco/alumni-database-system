@@ -115,3 +115,19 @@ export function notifStatusDoc(uid: string, notifId: string) {
 export function departmentsRef() {
   return collection(db, "departments");
 }
+
+export function surveysRef() {
+  return collection(db, "surveys");
+}
+
+export function surveyRef(id: string) {
+  return doc(db, "surveys", id);
+}
+
+export function surveyResponsesRef(id: string) {
+  return collection(db, "surveys", id, "responses");
+}
+
+export function surveyResponseRef(id: string, uid: string) {
+  return doc(db, "surveys", id, "responses", uid);
+}

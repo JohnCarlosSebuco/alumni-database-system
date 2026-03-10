@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Briefcase, Calendar, User, ChevronRight } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -12,6 +12,16 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatDate } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
+import {
+  getDocs,
+  getDoc,
+  query,
+  where,
+  surveysRef,
+  surveyResponseRef,
+} from "@/lib/firebase/firestore";
+import { SurveyModal } from "@/components/surveys/SurveyModal";
+import type { Survey } from "@/lib/types/survey.types";
 
 function ProfileCompletionRing({ percent }: { percent: number }) {
   const r = 36;
@@ -35,10 +45,35 @@ function ProfileCompletionRing({ percent }: { percent: number }) {
 }
 
 export default function AlumniDashboardClient() {
-  const { userDoc } = useAuth();
+  const { user, userDoc } = useAuth();
   const { jobs, loading: jobsLoading } = useJobs();
   const { events, loading: eventsLoading } = useEvents();
   const { unreadCount } = useNotifications();
+  const [pendingSurvey, setPendingSurvey] = useState<Survey | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    async function checkSurveys() {
+      const snap = await getDocs(
+        query(surveysRef(), where("status", "==", "active"))
+      );
+      const activeSurveys = snap.docs.map(
+        (d) => ({ id: d.id, ...d.data() } as Survey)
+      );
+      const skipped: string[] = JSON.parse(
+        sessionStorage.getItem("skippedSurveys") ?? "[]"
+      );
+      for (const survey of activeSurveys) {
+        if (skipped.includes(survey.id)) continue;
+        const responseSnap = await getDoc(surveyResponseRef(survey.id, user.uid));
+        if (!responseSnap.exists()) {
+          setPendingSurvey(survey);
+          break;
+        }
+      }
+    }
+    checkSurveys();
+  }, [user]);
 
   const recentJobs = jobs.slice(0, 3);
   const recentEvents = events.slice(0, 3);
@@ -46,6 +81,13 @@ export default function AlumniDashboardClient() {
 
   return (
     <div className="space-y-8">
+      {pendingSurvey && (
+        <SurveyModal
+          survey={pendingSurvey}
+          onClose={() => setPendingSurvey(null)}
+          onComplete={() => setPendingSurvey(null)}
+        />
+      )}
       <PageHeader
         title={`Welcome back, ${userDoc?.displayName?.split(" ")[0] ?? "Alumni"}!`}
         breadcrumbs={[{ label: "Dashboard" }]}
