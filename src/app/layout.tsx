@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   description:
     "AlumNayan is the exclusive alumni management platform of the SLSU College of Engineering — connecting COE graduates, posting opportunities, and celebrating achievement.",
   keywords: ["alumni", "SLSU", "COE", "College of Engineering", "Southern Luzon State University", "engineering graduates", "networking"],
+  icons: {
+    icon: "/engineering-logo-nobg.png",
+    shortcut: "/engineering-logo-nobg.png",
+    apple: "/engineering-logo-nobg.png",
+  },
   openGraph: {
     title: "AlumNayan",
     description: "Connect. Grow. Give Back.",
