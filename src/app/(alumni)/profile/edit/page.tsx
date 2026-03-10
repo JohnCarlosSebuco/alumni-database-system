@@ -22,7 +22,7 @@ import { useToast } from "@/components/ui/Toast";
 import { PageLoader } from "@/components/ui/Spinner";
 import { step1Schema, step2Schema, step3Schema, type Step1Input, type Step2Input, type Step3Input } from "@/lib/utils/validators";
 import { ChevronRight, ChevronLeft, Camera, Plus, Trash2 } from "lucide-react";
-import type { EmploymentHistory, Education } from "@/lib/types/alumni.types";
+import type { EmploymentHistory, Education, License, Award, Research, CommunityExtension } from "@/lib/types/alumni.types";
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +31,11 @@ const STEPS = [
   "Academic Background",
   "Current Employment",
   "Education & History",
-  "Additional Info",
+  "Licenses & Certs",
+  "Awards & Recognition",
+  "Research & Projects",
+  "Community Extension",
+  "Review & Save",
 ];
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
@@ -66,11 +70,19 @@ export default function EditProfilePage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [education, setEducation] = useState<Education[]>([]);
   const [employmentHistory, setEmploymentHistory] = useState<EmploymentHistory[]>([]);
+  const [licenses, setLicenses] = useState<License[]>([]);
+  const [awards, setAwards] = useState<Award[]>([]);
+  const [research, setResearch] = useState<Research[]>([]);
+  const [communityExtension, setCommunityExtension] = useState<CommunityExtension[]>([]);
 
   useEffect(() => {
     if (profile) {
       setEducation(profile.education ?? []);
       setEmploymentHistory(profile.employmentHistory ?? []);
+      setLicenses(profile.licenses ?? []);
+      setAwards(profile.awards ?? []);
+      setResearch(profile.research ?? []);
+      setCommunityExtension(profile.communityExtension ?? []);
     }
   }, [profile]);
 
@@ -149,10 +161,10 @@ export default function EditProfilePage() {
         currentEmployment: d3,
         education,
         employmentHistory,
-        licenses: profile?.licenses ?? [],
-        awards: profile?.awards ?? [],
-        research: profile?.research ?? [],
-        communityExtension: profile?.communityExtension ?? [],
+        licenses,
+        awards,
+        research,
+        communityExtension,
       }, { merge: true });
 
       await updateDoc(userDocRef(user.uid), {
@@ -162,6 +174,7 @@ export default function EditProfilePage() {
         displayName: `${d1.firstName} ${d1.lastName}`,
         profileComplete: 80,
         isEmployed: d3.isEmployed,
+        currentPosition: d3.isEmployed ? (d3.position ?? "") : "",
         updatedAt: new Date().toISOString(),
       });
 
@@ -185,6 +198,26 @@ export default function EditProfilePage() {
   }]);
 
   const removeHistory = (id: string) => setEmploymentHistory((prev) => prev.filter((h) => h.id !== id));
+
+  const addLicense = () => setLicenses((prev) => [...prev, {
+    id: nanoid(), name: "", issuingBody: "", licenseNumber: "", dateIssued: "", fileURL: "",
+  }]);
+  const removeLicense = (id: string) => setLicenses((prev) => prev.filter((l) => l.id !== id));
+
+  const addAward = () => setAwards((prev) => [...prev, {
+    id: nanoid(), title: "", grantedBy: "", year: new Date().getFullYear(), description: "",
+  }]);
+  const removeAward = (id: string) => setAwards((prev) => prev.filter((a) => a.id !== id));
+
+  const addResearch = () => setResearch((prev) => [...prev, {
+    id: nanoid(), title: "", coAuthors: "", publishedIn: "", year: new Date().getFullYear(), doiOrLink: "",
+  }]);
+  const removeResearch = (id: string) => setResearch((prev) => prev.filter((r) => r.id !== id));
+
+  const addCommunity = () => setCommunityExtension((prev) => [...prev, {
+    id: nanoid(), programName: "", organization: "", role: "", startDate: "", endDate: "",
+  }]);
+  const removeCommunity = (id: string) => setCommunityExtension((prev) => prev.filter((c) => c.id !== id));
 
   return (
     <div className="space-y-6">
@@ -244,6 +277,14 @@ export default function EditProfilePage() {
                 <Input label="Contact Number" placeholder="+63 9xx xxx xxxx" error={form1.formState.errors.contactNumber?.message} {...form1.register("contactNumber")} />
               </div>
               <Textarea label="Complete Address" rows={2} error={form1.formState.errors.address?.message} {...form1.register("address")} />
+              {userDoc.studentId && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700">Student / Alumni ID No.</label>
+                  <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 h-[38px]">
+                    {userDoc.studentId}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -348,8 +389,127 @@ export default function EditProfilePage() {
             </div>
           )}
 
-          {/* Step 4 — Review & Save */}
+          {/* Step 4 — Licenses & Certifications */}
           {step === 4 && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-900">Licenses & Certifications</h3>
+                <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addLicense}>Add</Button>
+              </div>
+              <div className="space-y-4">
+                {licenses.map((l, idx) => (
+                  <div key={l.id} className="rounded-xl border border-gray-200 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-600">License #{idx + 1}</span>
+                      <button onClick={() => removeLicense(l.id)} className="text-error hover:text-red-700"><Trash2 size={16} /></button>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Input label="License / Certification Name" value={l.name} onChange={(e) => setLicenses((prev) => prev.map((x) => x.id === l.id ? { ...x, name: e.target.value } : x))} />
+                      <Input label="Issuing Body" value={l.issuingBody} onChange={(e) => setLicenses((prev) => prev.map((x) => x.id === l.id ? { ...x, issuingBody: e.target.value } : x))} />
+                      <Input label="License Number" value={l.licenseNumber} onChange={(e) => setLicenses((prev) => prev.map((x) => x.id === l.id ? { ...x, licenseNumber: e.target.value } : x))} />
+                      <Input label="Date Issued" type="date" value={l.dateIssued} onChange={(e) => setLicenses((prev) => prev.map((x) => x.id === l.id ? { ...x, dateIssued: e.target.value } : x))} />
+                    </div>
+                  </div>
+                ))}
+                {licenses.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">No licenses yet. Click Add to create one.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 5 — Awards & Recognition */}
+          {step === 5 && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-900">Awards & Recognition</h3>
+                <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addAward}>Add</Button>
+              </div>
+              <div className="space-y-4">
+                {awards.map((a, idx) => (
+                  <div key={a.id} className="rounded-xl border border-gray-200 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-600">Award #{idx + 1}</span>
+                      <button onClick={() => removeAward(a.id)} className="text-error hover:text-red-700"><Trash2 size={16} /></button>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Input label="Award Title" value={a.title} onChange={(e) => setAwards((prev) => prev.map((x) => x.id === a.id ? { ...x, title: e.target.value } : x))} />
+                      <Input label="Granted By" value={a.grantedBy} onChange={(e) => setAwards((prev) => prev.map((x) => x.id === a.id ? { ...x, grantedBy: e.target.value } : x))} />
+                      <Input label="Year" type="number" value={a.year} onChange={(e) => setAwards((prev) => prev.map((x) => x.id === a.id ? { ...x, year: Number(e.target.value) } : x))} />
+                    </div>
+                    <Textarea label="Description" rows={2} value={a.description} onChange={(e) => setAwards((prev) => prev.map((x) => x.id === a.id ? { ...x, description: e.target.value } : x))} />
+                  </div>
+                ))}
+                {awards.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">No awards yet. Click Add to create one.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 6 — Research & Projects */}
+          {step === 6 && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-900">Research & Projects</h3>
+                <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addResearch}>Add</Button>
+              </div>
+              <div className="space-y-4">
+                {research.map((r, idx) => (
+                  <div key={r.id} className="rounded-xl border border-gray-200 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-600">Research #{idx + 1}</span>
+                      <button onClick={() => removeResearch(r.id)} className="text-error hover:text-red-700"><Trash2 size={16} /></button>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Input label="Title" value={r.title} onChange={(e) => setResearch((prev) => prev.map((x) => x.id === r.id ? { ...x, title: e.target.value } : x))} className="sm:col-span-2" />
+                      <Input label="Co-Authors" value={r.coAuthors} onChange={(e) => setResearch((prev) => prev.map((x) => x.id === r.id ? { ...x, coAuthors: e.target.value } : x))} />
+                      <Input label="Published In" value={r.publishedIn} onChange={(e) => setResearch((prev) => prev.map((x) => x.id === r.id ? { ...x, publishedIn: e.target.value } : x))} />
+                      <Input label="Year" type="number" value={r.year} onChange={(e) => setResearch((prev) => prev.map((x) => x.id === r.id ? { ...x, year: Number(e.target.value) } : x))} />
+                      <Input label="DOI / Link" value={r.doiOrLink} onChange={(e) => setResearch((prev) => prev.map((x) => x.id === r.id ? { ...x, doiOrLink: e.target.value } : x))} />
+                    </div>
+                  </div>
+                ))}
+                {research.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">No research entries yet. Click Add to create one.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 7 — Community Extension */}
+          {step === 7 && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-900">Community Extension</h3>
+                <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addCommunity}>Add</Button>
+              </div>
+              <div className="space-y-4">
+                {communityExtension.map((c, idx) => (
+                  <div key={c.id} className="rounded-xl border border-gray-200 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-600">Activity #{idx + 1}</span>
+                      <button onClick={() => removeCommunity(c.id)} className="text-error hover:text-red-700"><Trash2 size={16} /></button>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Input label="Program Name" value={c.programName} onChange={(e) => setCommunityExtension((prev) => prev.map((x) => x.id === c.id ? { ...x, programName: e.target.value } : x))} />
+                      <Input label="Organization" value={c.organization} onChange={(e) => setCommunityExtension((prev) => prev.map((x) => x.id === c.id ? { ...x, organization: e.target.value } : x))} />
+                      <Input label="Your Role" value={c.role} onChange={(e) => setCommunityExtension((prev) => prev.map((x) => x.id === c.id ? { ...x, role: e.target.value } : x))} />
+                      <div />
+                      <Input label="Start Date" type="date" value={c.startDate} onChange={(e) => setCommunityExtension((prev) => prev.map((x) => x.id === c.id ? { ...x, startDate: e.target.value } : x))} />
+                      <Input label="End Date" type="date" value={c.endDate} onChange={(e) => setCommunityExtension((prev) => prev.map((x) => x.id === c.id ? { ...x, endDate: e.target.value } : x))} />
+                    </div>
+                  </div>
+                ))}
+                {communityExtension.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">No community extension activities yet. Click Add to create one.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 8 — Review & Save */}
+          {step === 8 && (
             <div className="space-y-4 text-center py-8">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mx-auto">
                 <span className="text-3xl">✓</span>

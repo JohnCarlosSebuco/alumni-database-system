@@ -152,16 +152,28 @@ export default function AlumniDashboardClient() {
             ) : (
               recentEvents.map((event) => (
                 <Link key={event.id} href={`/events/${event.id}`}>
-                  <div className="flex items-start gap-3 rounded-lg p-3 hover:bg-gray-50 transition-colors">
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100">
-                      <Calendar size={16} className="text-purple-700" />
+                  <div className="flex items-start gap-3 rounded-xl p-3 hover:bg-gray-50 transition-colors">
+                    {/* Thumbnail: banner image or fallback icon */}
+                    <div className="relative flex-shrink-0 h-14 w-20 rounded-lg overflow-hidden bg-purple-100">
+                      {event.bannerURL ? (
+                        <img
+                          src={event.bannerURL}
+                          alt={event.title}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Calendar size={18} className="text-purple-400" />
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
-                      <p className="text-xs text-gray-500">{formatDate(event.startDate)}</p>
+                      <p className="text-sm font-medium text-gray-900 line-clamp-1">{event.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{formatDate(event.startDate)}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{event.isVirtual ? "Online" : event.location}</p>
                     </div>
                     {event.isVirtual && (
-                      <Badge variant="navy" className="flex-shrink-0 text-[10px]">Virtual</Badge>
+                      <Badge variant="navy" className="flex-shrink-0 text-[10px] mt-1">Virtual</Badge>
                     )}
                   </div>
                 </Link>

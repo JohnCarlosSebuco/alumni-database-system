@@ -18,21 +18,22 @@ async function getActiveJobs(): Promise<JobPreview[]> {
       .firestore()
       .collection("jobs")
       .where("status", "==", "active")
-      .orderBy("createdAt", "desc")
-      .limit(3)
       .get();
-    return snap.docs.map((d) => {
-      const data = d.data();
-      return {
-        id:        d.id,
-        title:     data.title     ?? "",
-        company:   data.company   ?? "",
-        location:  data.location  ?? "",
-        type:      data.type      ?? "",
-        isRemote:  data.isRemote  ?? false,
-        createdAt: data.createdAt ?? new Date().toISOString(),
-      };
-    });
+    return snap.docs
+      .map((d) => {
+        const data = d.data();
+        return {
+          id:        d.id,
+          title:     data.title     ?? "",
+          company:   data.company   ?? "",
+          location:  data.location  ?? "",
+          type:      data.type      ?? "",
+          isRemote:  data.isRemote  ?? false,
+          createdAt: data.createdAt ?? new Date().toISOString(),
+        };
+      })
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 3);
   } catch {
     return [];
   }
@@ -44,21 +45,23 @@ async function getUpcomingEvents(): Promise<EventPreview[]> {
       .firestore()
       .collection("events")
       .where("status", "==", "published")
-      .orderBy("startDate", "asc")
-      .limit(3)
       .get();
-    return snap.docs.map((d) => {
-      const data = d.data();
-      return {
-        id:        d.id,
-        title:     data.title     ?? "",
-        type:      data.type      ?? "",
-        startDate: data.startDate ?? new Date().toISOString(),
-        location:  data.location  ?? "",
-        isVirtual: data.isVirtual ?? false,
-        rsvpCount: data.rsvpCount ?? 0,
-      };
-    });
+    return snap.docs
+      .map((d) => {
+        const data = d.data();
+        return {
+          id:        d.id,
+          title:     data.title     ?? "",
+          type:      data.type      ?? "",
+          startDate: data.startDate ?? new Date().toISOString(),
+          location:  data.location  ?? "",
+          isVirtual: data.isVirtual ?? false,
+          rsvpCount: data.rsvpCount ?? 0,
+          bannerURL: data.bannerURL ?? "",
+        };
+      })
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+      .slice(0, 3);
   } catch {
     return [];
   }

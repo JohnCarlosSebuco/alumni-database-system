@@ -88,6 +88,7 @@ export function SignupForm() {
         batchYear: data.batchYear,
         department: data.department,
         course: data.course,
+        studentId: data.studentId ?? "",
         notifPrefs: { jobs: true, events: true },
       }, { merge: true });
 
@@ -136,6 +137,14 @@ export function SignupForm() {
           {...register("lastName")}
         />
       </div>
+
+      {/* Student ID */}
+      <Input
+        label="Student ID / Alumni ID No."
+        placeholder="e.g. CEN25-0010"
+        error={errors.studentId?.message}
+        {...register("studentId")}
+      />
 
       {/* Email */}
       <Input

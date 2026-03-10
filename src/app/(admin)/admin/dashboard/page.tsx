@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, Briefcase, Calendar, TrendingUp, TrendingDown } from "lucide-react";
+import { Users, Briefcase, Calendar, TrendingUp, TrendingDown, Target } from "lucide-react";
 import {
   db, collection, query, where, getDocs, orderBy, limit,
 } from "@/lib/firebase/firestore";
@@ -15,12 +15,15 @@ import { Badge } from "@/components/ui/Badge";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatRelativeTime } from "@/lib/utils/formatters";
 import type { UserDoc } from "@/lib/types/alumni.types";
+import { computeOutcomeRates } from "@/lib/utils/courseAlignment";
+import type { OutcomeRates } from "@/lib/utils/courseAlignment";
 
 export const dynamic = 'force-dynamic';
 
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ alumni: 0, jobs: 0, events: 0, employmentRate: 0, unemploymentRate: 0 });
+  const [outcomeRates, setOutcomeRates] = useState<OutcomeRates | null>(null);
   const [recentAlumni, setRecentAlumni] = useState<UserDoc[]>([]);
   const [deptData, setDeptData] = useState<{ name: string; value: number }[]>([]);
   const [empData, setEmpData] = useState<{ department: string; employed: number; total: number }[]>([]);
@@ -59,6 +62,7 @@ export default function AdminDashboardPage() {
         });
         const empArr = Object.entries(empMap).slice(0, 6).map(([department, v]) => ({ department, ...v }));
 
+        setOutcomeRates(computeOutcomeRates(alumniDocs));
         setStats({
           alumni: alumniSnap.size,
           jobs: jobsSnap.size,
@@ -92,6 +96,38 @@ export default function AdminDashboardPage() {
         <KPICard title="Employment Rate" value={stats.employmentRate} suffix="%" icon={<TrendingUp size={24} />} iconBg="bg-green-100 text-green-700" />
         <KPICard title="Unemployment Rate" value={stats.unemploymentRate} suffix="%" icon={<TrendingDown size={24} />} iconBg="bg-red-100 text-red-600" />
       </div>
+
+      {/* Course-Alignment Outcome KPIs */}
+      {outcomeRates && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Recent Graduate Placement</p>
+                <p className="mt-1 text-3xl font-bold text-gray-900">{outcomeRates.recentGraduatePlacementRate}%</p>
+                <p className="mt-1 text-xs text-gray-400">Course-aligned employment · last 2 batch years</p>
+                <p className="text-xs text-gray-400">{outcomeRates.recentAligned} of {outcomeRates.recentTotal} alumni</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                <Target size={24} />
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Mid-Career Alignment Rate</p>
+                <p className="mt-1 text-3xl font-bold text-gray-900">{outcomeRates.midCareerAlignmentRate}%</p>
+                <p className="mt-1 text-xs text-gray-400">Course-aligned employment · 3–5 years out</p>
+                <p className="text-xs text-gray-400">{outcomeRates.midCareerAligned} of {outcomeRates.midCareerTotal} alumni</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-100 text-teal-600">
+                <Target size={24} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Charts */}
       <div className="grid md:grid-cols-2 gap-6">

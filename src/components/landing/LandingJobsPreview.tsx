@@ -79,9 +79,10 @@ export function LandingJobsPreview({ jobs }: Props) {
           {/* ── Right: job cards ── */}
           <div ref={rightRef} className="space-y-4">
             {jobs.map((job, i) => (
-                <div
+                <Link
                   key={job.id}
-                  className={`group relative rounded-3xl border border-gray-100 bg-gray-50/80 p-6
+                  href="/signup"
+                  className={`group relative block rounded-3xl border border-gray-100 bg-gray-50/80 p-6
                     hover:bg-white hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(59,0,16,0.07)] hover:border-transparent
                     transition-all duration-300 ease-out
                     ${rightIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
@@ -95,17 +96,14 @@ export function LandingJobsPreview({ jobs }: Props) {
                       <h3 className="text-base font-semibold text-gray-900 truncate mb-1">{job.title}</h3>
                       <p className="text-sm text-gray-500 mb-3">{job.company}</p>
                       <div className="flex flex-wrap items-center gap-2">
-                        {/* Type badge */}
                         <span className="inline-flex items-center rounded-full bg-navy-100 px-2.5 py-0.5 text-[11px] font-semibold text-navy-700 uppercase tracking-wide">
                           {TYPE_LABELS[job.type] ?? job.type}
                         </span>
-                        {/* Remote badge */}
                         {job.isRemote && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-gold-100 px-2.5 py-0.5 text-[11px] font-semibold text-gold-700">
                             <Wifi size={10} /> Remote
                           </span>
                         )}
-                        {/* Location */}
                         {!job.isRemote && job.location && (
                           <span className="inline-flex items-center gap-1 text-[11px] text-gray-400">
                             <MapPin size={11} /> {job.location}
@@ -113,18 +111,13 @@ export function LandingJobsPreview({ jobs }: Props) {
                         )}
                       </div>
                     </div>
-                    {/* Locked apply CTA */}
-                    <Link
-                      href="/signup"
-                      className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3.5 py-2 text-xs font-medium text-gray-500 hover:border-navy-300 hover:text-navy-700 transition-colors duration-200"
-                    >
+                    <span className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3.5 py-2 text-xs font-medium text-gray-500 group-hover:border-navy-300 group-hover:text-navy-700 transition-colors duration-200">
                       <Lock size={11} /> Apply
-                    </Link>
+                    </span>
                   </div>
 
-                  {/* Posted time */}
                   <p className="mt-3 text-[11px] text-gray-400">{timeAgo(job.createdAt)}</p>
-                </div>
+                </Link>
             ))}
 
             {/* Sign-up nudge */}

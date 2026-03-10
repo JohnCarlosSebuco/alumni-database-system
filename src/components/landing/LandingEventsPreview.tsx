@@ -11,6 +11,7 @@ export interface EventPreview {
   location: string;
   isVirtual: boolean;
   rsvpCount: number;
+  bannerURL?: string;
 }
 
 interface Props {
@@ -90,9 +91,10 @@ export function LandingEventsPreview({ events }: Props) {
         {/* Cards */}
         <div ref={gridRef} className="grid md:grid-cols-3 gap-5">
           {events.map((ev, i) => (
-              <div
+              <Link
                 key={ev.id}
-                className={`group relative flex flex-col rounded-3xl p-7 overflow-hidden
+                href="/signup"
+                className={`group relative flex flex-col rounded-3xl overflow-hidden
                   hover:-translate-y-1 transition-all duration-300 ease-out
                   ${gridIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                 style={{
@@ -103,55 +105,80 @@ export function LandingEventsPreview({ events }: Props) {
                 }}
               >
                 {/* Top gold line on hover */}
-                <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-gold-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-gold-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
 
-                {/* Date block + type badge row */}
-                <div className="flex items-start justify-between mb-6">
-                  {/* Calendar date block */}
-                  <div className="flex flex-col items-center justify-center rounded-2xl bg-gold-500/10 border border-gold-500/20 w-14 h-14">
-                    <span className="text-[10px] font-bold text-gold-400 uppercase tracking-widest leading-none">
-                      {formatMonth(ev.startDate)}
-                    </span>
-                    <span className="text-2xl font-bold text-white leading-none mt-0.5">
-                      {formatDay(ev.startDate)}
+                {/* Banner image (when present) */}
+                {ev.bannerURL ? (
+                  <div className="relative h-44 w-full overflow-hidden flex-shrink-0">
+                    <img
+                      src={ev.bannerURL}
+                      alt={ev.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#3B0010]/80 via-[#3B0010]/20 to-transparent" />
+                    {/* Date block overlaid on image */}
+                    <div className="absolute bottom-3 left-4 flex flex-col items-center justify-center rounded-xl bg-black/50 border border-gold-500/30 backdrop-blur-sm w-12 h-12">
+                      <span className="text-[9px] font-bold text-gold-400 uppercase tracking-widest leading-none">
+                        {formatMonth(ev.startDate)}
+                      </span>
+                      <span className="text-xl font-bold text-white leading-none mt-0.5">
+                        {formatDay(ev.startDate)}
+                      </span>
+                    </div>
+                    {/* Type badge overlaid on image */}
+                    <span className={`absolute bottom-3 right-4 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider capitalize ${TYPE_COLORS[ev.type.toLowerCase()] ?? "bg-white/10 text-navy-200"}`}>
+                      {ev.type}
                     </span>
                   </div>
+                ) : (
+                  /* No banner — keep original date + badge row */
+                  <div className="px-7 pt-7">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex flex-col items-center justify-center rounded-2xl bg-gold-500/10 border border-gold-500/20 w-14 h-14">
+                        <span className="text-[10px] font-bold text-gold-400 uppercase tracking-widest leading-none">
+                          {formatMonth(ev.startDate)}
+                        </span>
+                        <span className="text-2xl font-bold text-white leading-none mt-0.5">
+                          {formatDay(ev.startDate)}
+                        </span>
+                      </div>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider capitalize ${TYPE_COLORS[ev.type.toLowerCase()] ?? "bg-white/10 text-navy-200"}`}>
+                        {ev.type}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
-                  {/* Type badge */}
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider capitalize ${TYPE_COLORS[ev.type] ?? "bg-white/10 text-navy-200"}`}>
-                    {ev.type}
-                  </span>
+                {/* Card body */}
+                <div className={`flex flex-col flex-1 px-7 pb-7 ${ev.bannerURL ? "pt-4" : "pt-0"}`}>
+                  {/* Title */}
+                  <h3 className="text-base font-semibold text-white leading-snug mb-3 flex-1">
+                    {ev.title}
+                  </h3>
+
+                  {/* Location */}
+                  <div className="flex items-center gap-1.5 text-xs text-navy-400 mb-5">
+                    {ev.isVirtual
+                      ? <><Video size={12} className="text-navy-500" /> Online</>
+                      : <><MapPin size={12} className="text-navy-500" /> {ev.location}</>
+                    }
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-px bg-white/[0.07] mb-5" />
+
+                  {/* RSVP row */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-navy-500">
+                      {ev.rsvpCount > 0 ? `${ev.rsvpCount} going` : "Be the first to RSVP"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-gold-400 group-hover:text-gold-300 transition-colors duration-200">
+                      <Lock size={10} /> RSVP
+                    </span>
+                  </div>
                 </div>
-
-                {/* Title */}
-                <h3 className="text-base font-semibold text-white leading-snug mb-3 flex-1">
-                  {ev.title}
-                </h3>
-
-                {/* Location */}
-                <div className="flex items-center gap-1.5 text-xs text-navy-400 mb-5">
-                  {ev.isVirtual
-                    ? <><Video size={12} className="text-navy-500" /> Online</>
-                    : <><MapPin size={12} className="text-navy-500" /> {ev.location}</>
-                  }
-                </div>
-
-                {/* Divider */}
-                <div className="h-px bg-white/[0.07] mb-5" />
-
-                {/* RSVP row */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-navy-500">
-                    {ev.rsvpCount > 0 ? `${ev.rsvpCount} going` : "Be the first to RSVP"}
-                  </span>
-                  <Link
-                    href="/signup"
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-gold-400 hover:text-gold-300 transition-colors duration-200"
-                  >
-                    <Lock size={10} /> RSVP
-                  </Link>
-                </div>
-              </div>
+              </Link>
           ))}
         </div>
 

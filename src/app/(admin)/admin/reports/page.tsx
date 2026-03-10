@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { FileDown, Table } from "lucide-react";
+import { FileDown, Table, Printer } from "lucide-react";
 import {
   db, collection, query, where, getDocs,
 } from "@/lib/firebase/firestore";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate, batchYearLabel } from "@/lib/utils/formatters";
+import { computeOutcomeRates } from "@/lib/utils/courseAlignment";
 import type { UserDoc } from "@/lib/types/alumni.types";
 
 export const dynamic = 'force-dynamic';
@@ -49,6 +50,8 @@ export default function ReportsPage() {
       unemploymentRate: Math.round((unemployed / results.length) * 100),
     };
   }, [results]);
+
+  const outcomeRates = useMemo(() => computeOutcomeRates(results), [results]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -101,8 +104,10 @@ export default function ReportsPage() {
     doc.setFontSize(10);
     doc.text(`Generated: ${new Date().toLocaleDateString("en-PH")} · Total: ${results.length} alumni`, 14, 28);
     doc.text(`Employment Rate: ${employmentStats.employmentRate}%  ·  Unemployment Rate: ${employmentStats.unemploymentRate}%`, 14, 35);
+    doc.text(`Recent Graduate Course-Aligned Placement: ${outcomeRates.recentGraduatePlacementRate}% (${outcomeRates.recentAligned}/${outcomeRates.recentTotal})`, 14, 42);
+    doc.text(`Mid-Career Course-Aligned Rate (3–5 yrs): ${outcomeRates.midCareerAlignmentRate}% (${outcomeRates.midCareerAligned}/${outcomeRates.midCareerTotal})`, 14, 49);
 
-    let y = 46;
+    let y = 58;
     doc.setFontSize(9);
     results.forEach((a, i) => {
       if (y > 270) {
@@ -152,7 +157,7 @@ export default function ReportsPage() {
       {generated && (
         <>
           {/* Employment Stats Summary */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
               <p className="text-2xl font-bold text-gray-900">{results.length}</p>
               <p className="text-xs text-gray-500 mt-1">Total Alumni</p>
@@ -168,6 +173,16 @@ export default function ReportsPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
               <p className="text-2xl font-bold text-red-500">{employmentStats.unemploymentRate}%</p>
               <p className="text-xs text-gray-500 mt-1">Unemployment Rate</p>
+            </div>
+            <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-center">
+              <p className="text-2xl font-bold text-amber-700">{outcomeRates.recentGraduatePlacementRate}%</p>
+              <p className="text-xs text-gray-500 mt-1">Recent Graduate Placement</p>
+              <p className="text-[10px] text-gray-400">Course-aligned · last 2 yrs</p>
+            </div>
+            <div className="rounded-xl border border-teal-100 bg-teal-50 p-4 text-center">
+              <p className="text-2xl font-bold text-teal-700">{outcomeRates.midCareerAlignmentRate}%</p>
+              <p className="text-xs text-gray-500 mt-1">Mid-Career Alignment</p>
+              <p className="text-[10px] text-gray-400">Course-aligned · 3–5 yrs</p>
             </div>
           </div>
 
@@ -194,6 +209,14 @@ export default function ReportsPage() {
                   onClick={exportPDF}
                 >
                   Export PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<Printer size={14} />}
+                  onClick={() => window.print()}
+                >
+                  Print
                 </Button>
               </div>
             </div>
