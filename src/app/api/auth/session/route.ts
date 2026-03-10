@@ -29,7 +29,8 @@ export async function POST(req: Request) {
     res.cookies.set("__session", sessionCookie, cookieOpts);
     res.cookies.set("__role", role, { ...cookieOpts, httpOnly: false });
     return res;
-  } catch {
+  } catch (err) {
+    console.error("[/api/auth/session] error:", err);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }
