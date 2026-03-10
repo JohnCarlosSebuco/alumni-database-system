@@ -34,7 +34,12 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  // Not authenticated
+  // Allow unauthenticated access to public routes
+  if (PUBLIC_ROUTES.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Not authenticated — redirect to login
   if (!session) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
