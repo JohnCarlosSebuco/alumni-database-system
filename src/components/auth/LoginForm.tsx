@@ -39,12 +39,15 @@ export function LoginForm() {
       }
 
       const idToken = await credential.user.getIdToken();
-      await fetch("/api/auth/session", {
+      const sessionRes = await fetch("/api/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
-      const next = searchParams.get("next") ?? "/dashboard";
+      const sessionData = await sessionRes.json();
+      const role = sessionData.role as string | undefined;
+      const isAdminOrAbove = role === "admin" || role === "super_admin";
+      const next = searchParams.get("next") ?? (isAdminOrAbove ? "/admin/dashboard" : "/dashboard");
       router.replace(next);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Invalid email or password.";
@@ -96,6 +99,13 @@ export function LoginForm() {
         Not yet registered?{" "}
         <Link href="/signup" className="font-semibold text-navy-800 hover:text-navy-600">
           Create an account
+        </Link>
+      </p>
+
+      <p className="text-center text-sm text-gray-600">
+        Have a pre-created account?{" "}
+        <Link href="/claim" className="font-semibold text-navy-800 hover:text-navy-600">
+          Claim your account →
         </Link>
       </p>
     </form>

@@ -38,6 +38,16 @@ export interface AlumniForOutcome {
   course: string | null;
   isEmployed?: boolean;
   currentPosition?: string;
+  // Explicit survey answer — preferred over keyword inference when present
+  courseAligned?: boolean;
+}
+
+function isAligned(a: AlumniForOutcome): boolean {
+  if (!a.isEmployed) return false;
+  // Prefer the direct survey answer when available
+  if (typeof a.courseAligned === "boolean") return a.courseAligned;
+  // Fall back to keyword matching for alumni who answered before this field existed
+  return isCourseAligned(a.currentPosition ?? "", a.course);
 }
 
 export function computeOutcomeRates(alumni: AlumniForOutcome[]): OutcomeRates {
@@ -50,12 +60,8 @@ export function computeOutcomeRates(alumni: AlumniForOutcome[]): OutcomeRates {
     (a) => a.batchYear != null && a.batchYear >= currentYear - 5 && a.batchYear <= currentYear - 3
   );
 
-  const recentAligned = recent.filter(
-    (a) => a.isEmployed && isCourseAligned(a.currentPosition ?? "", a.course)
-  ).length;
-  const midCareerAligned = midCareer.filter(
-    (a) => a.isEmployed && isCourseAligned(a.currentPosition ?? "", a.course)
-  ).length;
+  const recentAligned    = recent.filter(isAligned).length;
+  const midCareerAligned = midCareer.filter(isAligned).length;
 
   return {
     recentGraduatePlacementRate: recent.length > 0 ? Math.round((recentAligned / recent.length) * 100) : 0,

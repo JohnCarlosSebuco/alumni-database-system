@@ -43,7 +43,9 @@ export async function PATCH(
     const { uid } = await params;
     if (!uid) return NextResponse.json({ error: "Missing uid" }, { status: 400 });
 
-    const { firstName, lastName, email, batchYear, course, studentId, isActive, emailVerified } =
+    const { firstName, lastName, email, batchYear, course, studentId, isActive, emailVerified,
+            middleName, sex, birthday, contactNumber, civilStatus,
+            locality, currentPosition, currentCompany, honors, isEmployed } =
       (await req.json()) as {
         firstName?: string;
         lastName?: string;
@@ -53,6 +55,16 @@ export async function PATCH(
         studentId?: string;
         isActive?: boolean;
         emailVerified?: boolean;
+        middleName?: string;
+        sex?: string;
+        birthday?: string;
+        contactNumber?: string;
+        civilStatus?: string;
+        locality?: string;
+        currentPosition?: string;
+        currentCompany?: string;
+        honors?: string;
+        isEmployed?: boolean;
       };
 
     const displayName =
@@ -77,6 +89,16 @@ export async function PATCH(
     if (course !== undefined) firestoreUpdate.course = course ?? null;
     if (studentId !== undefined) firestoreUpdate.studentId = studentId.trim();
     if (isActive !== undefined) firestoreUpdate.isActive = isActive;
+    if (middleName    !== undefined) firestoreUpdate.middleName    = middleName;
+    if (sex           !== undefined) firestoreUpdate.sex           = sex;
+    if (birthday      !== undefined) firestoreUpdate.birthday      = birthday;
+    if (contactNumber !== undefined) firestoreUpdate.contactNumber = contactNumber;
+    if (civilStatus   !== undefined) firestoreUpdate.civilStatus   = civilStatus;
+    if (locality      !== undefined) firestoreUpdate.locality      = locality;
+    if (currentPosition !== undefined) firestoreUpdate.currentPosition = currentPosition;
+    if (currentCompany  !== undefined) firestoreUpdate.currentCompany  = currentCompany;
+    if (honors          !== undefined) firestoreUpdate.honors          = honors;
+    if (isEmployed      !== undefined) firestoreUpdate.isEmployed      = isEmployed;
 
     await admin.firestore().collection("users").doc(uid).update(firestoreUpdate);
 

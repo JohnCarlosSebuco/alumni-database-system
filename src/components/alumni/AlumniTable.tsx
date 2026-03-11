@@ -113,6 +113,11 @@ export function AlumniTable({
                           Inactive
                         </span>
                       )}
+                      {a.importedByAdmin && a.isClaimed === false && (
+                        <span className="flex-shrink-0 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                          Unclaimed
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-gray-400 truncate mt-0.5">{a.email}</p>
                   </div>

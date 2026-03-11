@@ -117,13 +117,13 @@ export default function AdminDashboardPage() {
 
         const deptMap: Record<string, number> = {};
         alumniDocs.forEach((a) => {
-          const label = a.course ?? a.department ?? "Unknown";
+          const label = a.course ?? "Unknown";
           deptMap[label] = (deptMap[label] ?? 0) + 1;
         });
 
         const empMap: Record<string, { employed: number; total: number }> = {};
         alumniDocs.forEach((a) => {
-          const dept = a.course?.replace("Bachelor of Science in ", "BS ") ?? a.department?.slice(0, 12) ?? "Other";
+          const dept = a.course?.replace("Bachelor of Science in ", "BS ") ?? "Other";
           if (!empMap[dept]) empMap[dept] = { employed: 0, total: 0 };
           empMap[dept].total++;
           if (a.isEmployed === true) empMap[dept].employed++;

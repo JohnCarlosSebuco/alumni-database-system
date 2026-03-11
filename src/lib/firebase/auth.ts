@@ -1,6 +1,7 @@
 import {
   getAuth,
   signInWithEmailAndPassword,
+  signInWithCustomToken,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
@@ -40,6 +41,10 @@ export async function confirmReset(oobCode: string, newPassword: string) {
 
 export async function sendVerificationEmail(user: User, continueUrl?: string) {
   return sendEmailVerification(user, continueUrl ? { url: continueUrl } : undefined);
+}
+
+export async function claimSignIn(customToken: string) {
+  return signInWithCustomToken(auth, customToken);
 }
 
 export type { User };

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Plus, Mail, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Search, Plus, Mail, ShieldCheck, ShieldAlert, Send, FileSpreadsheet } from "lucide-react";
 import { useAlumni } from "@/lib/hooks/useAlumni";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -14,6 +14,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { resetPassword } from "@/lib/firebase/auth";
 import type { UserDoc } from "@/lib/types/alumni.types";
+import { ImportAlumniModal } from "@/components/admin/ImportAlumniModal";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,11 @@ const EMPLOYMENT_OPTIONS = [
   { value: "", label: "All statuses" },
   { value: "employed",   label: "Employed" },
   { value: "unemployed", label: "Unemployed" },
+];
+const CLAIM_OPTIONS = [
+  { value: "",          label: "All accounts" },
+  { value: "unclaimed", label: "Unclaimed" },
+  { value: "claimed",   label: "Claimed" },
 ];
 const FORM_BATCH_YEARS = Array.from({ length: CURRENT_YEAR - 1979 }, (_, i) => {
   const y = CURRENT_YEAR - i;
@@ -185,6 +191,7 @@ export default function AdminAlumniPage() {
   const [course, setCourse]           = useState("");
   const [batchYear, setBatchYear]     = useState("");
   const [employment, setEmployment]   = useState("");
+  const [claimStatus, setClaimStatus] = useState("");
 
   // Local alumni list (prepend newly added)
   const [extras, setExtras] = useState<UserDoc[]>([]);
@@ -193,7 +200,7 @@ export default function AdminAlumniPage() {
   // uids removed optimistically after delete
   const [deletedUids, setDeletedUids] = useState<Set<string>>(new Set());
 
-  const { alumni, loading, hasMore, loadMore } = useAlumni({
+  const { alumni, loading, error: alumniError, reload: reloadAlumni } = useAlumni({
     batchYear: batchYear ? Number(batchYear) : undefined,
   });
 
@@ -208,8 +215,17 @@ export default function AdminAlumniPage() {
     if (course && a.course !== course) return false;
     if (employment === "employed"   && a.isEmployed !== true)  return false;
     if (employment === "unemployed" && a.isEmployed !== false) return false;
+    if (claimStatus === "unclaimed" && !(a.importedByAdmin === true && a.isClaimed === false)) return false;
+    if (claimStatus === "claimed"   && a.isClaimed !== true) return false;
     return true;
   });
+
+  // ── Import modal ───────────────────────────────────────────────────────────
+  const [showImport, setShowImport] = useState(false);
+
+  function handleImportSuccess(count: number) {
+    success(`${count} alumni imported. Refresh the page to see them in the list.`);
+  }
 
   // ── Add modal ──────────────────────────────────────────────────────────────
   const [showAdd,   setShowAdd]   = useState(false);
@@ -333,6 +349,49 @@ export default function AdminAlumniPage() {
     }
   }
 
+  // ── Resend per-user ────────────────────────────────────────────────────────
+  const [resendLoading, setResendLoading] = useState(false);
+
+  async function handleResendEmail() {
+    if (!editTarget) return;
+    setResendLoading(true);
+    try {
+      const res = await fetch(`/api/admin/alumni/${editTarget.uid}/resend`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error ?? "Failed to send email");
+      }
+      success(`Password reset email sent to ${editTarget.email}.`);
+    } catch (e) {
+      toastError((e as Error).message);
+    } finally {
+      setResendLoading(false);
+    }
+  }
+
+  // ── Resend all unclaimed ───────────────────────────────────────────────────
+  const [resendAllLoading, setResendAllLoading] = useState(false);
+
+  async function handleResendAll() {
+    setResendAllLoading(true);
+    try {
+      const res = await fetch("/api/admin/alumni/resend-all", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      success(`Sent to ${data.sent} unclaimed account${data.sent !== 1 ? "s" : ""}.${data.failed ? ` (${data.failed} failed)` : ""}`);
+    } catch (e) {
+      toastError((e as Error).message);
+    } finally {
+      setResendAllLoading(false);
+    }
+  }
+
   // ── Delete confirm ─────────────────────────────────────────────────────────
   const [deleteTarget,  setDeleteTarget]  = useState<UserDoc | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -363,7 +422,6 @@ export default function AdminAlumniPage() {
   }
 
   const isAdmin = callerDoc?.role === "admin" || callerDoc?.role === "super_admin";
-  const hasClientFilters = !!(search || course || employment);
 
   return (
     <div className="space-y-6">
@@ -372,13 +430,30 @@ export default function AdminAlumniPage() {
         breadcrumbs={[{ label: "Admin" }, { label: "Alumni" }]}
         actions={
           isAdmin ? (
-            <Button
-              variant="primary"
-              leftIcon={<Plus size={16} />}
-              onClick={() => { setAddForm(EMPTY); setAddErrors({}); setShowAdd(true); }}
-            >
-              Add Alumni
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                leftIcon={<Send size={16} />}
+                loading={resendAllLoading}
+                onClick={handleResendAll}
+              >
+                Resend Setup Emails
+              </Button>
+              <Button
+                variant="ghost"
+                leftIcon={<FileSpreadsheet size={16} />}
+                onClick={() => setShowImport(true)}
+              >
+                Import XLSX
+              </Button>
+              <Button
+                variant="primary"
+                leftIcon={<Plus size={16} />}
+                onClick={() => { setAddForm(EMPTY); setAddErrors({}); setShowAdd(true); }}
+              >
+                Add Alumni
+              </Button>
+            </div>
           ) : undefined
         }
       />
@@ -398,16 +473,32 @@ export default function AdminAlumniPage() {
           onChange={(e) => setBatchYear(e.target.value)} className="max-w-[140px]" />
         <Select options={EMPLOYMENT_OPTIONS} value={employment}
           onChange={(e) => setEmployment(e.target.value)} className="max-w-[160px]" />
+        <Select options={CLAIM_OPTIONS} value={claimStatus}
+          onChange={(e) => setClaimStatus(e.target.value)} className="max-w-[160px]" />
         <span className="text-sm text-gray-500">{filtered.length} alumni</span>
       </div>
+
+      {alumniError && (
+        <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center justify-between">
+          {alumniError}
+          <button type="button" onClick={reloadAlumni} className="text-red-700 underline text-xs ml-4 flex-shrink-0">
+            Retry
+          </button>
+        </div>
+      )}
 
       <AlumniTable
         alumni={filtered}
         loading={loading}
-        hasMore={hasMore && !hasClientFilters && !batchYear}
-        onLoadMore={loadMore}
         onEdit={isAdmin ? openEdit : undefined}
         onDelete={isAdmin ? setDeleteTarget : undefined}
+      />
+
+      {/* ── Import Modal ── */}
+      <ImportAlumniModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        onSuccess={handleImportSuccess}
       />
 
       {/* ── Add Modal ── */}
@@ -472,6 +563,25 @@ export default function AdminAlumniPage() {
                 <span className="flex-shrink-0 text-xs font-medium text-green-600">Verified ✓</span>
               )}
             </div>
+          </div>
+
+          {/* Send password reset email */}
+          <div className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Password reset email</p>
+              <p className="text-xs text-gray-400">Send a link so the alumni can set or change their password.</p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              leftIcon={<Mail size={13} />}
+              loading={resendLoading}
+              onClick={handleResendEmail}
+              className="flex-shrink-0"
+            >
+              Send Reset Email
+            </Button>
           </div>
 
           <div className="flex justify-end gap-3 pt-1">

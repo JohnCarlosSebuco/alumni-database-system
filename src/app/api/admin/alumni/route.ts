@@ -21,7 +21,9 @@ export async function POST(req: Request) {
     const caller = await verifyAdminCaller(req);
     if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { firstName, lastName, email, batchYear, course, studentId } =
+    const { firstName, lastName, email, batchYear, course, studentId,
+            middleName, sex, birthday, contactNumber, civilStatus,
+            locality, currentPosition, currentCompany, honors, isEmployed } =
       (await req.json()) as {
         firstName: string;
         lastName: string;
@@ -29,6 +31,16 @@ export async function POST(req: Request) {
         batchYear?: string | number;
         course?: string;
         studentId?: string;
+        middleName?: string;
+        sex?: string;
+        birthday?: string;
+        contactNumber?: string;
+        civilStatus?: string;
+        locality?: string;
+        currentPosition?: string;
+        currentCompany?: string;
+        honors?: string;
+        isEmployed?: boolean;
       };
 
     if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
@@ -64,6 +76,16 @@ export async function POST(req: Request) {
       course: course ?? null,
       studentId: studentId?.trim() ?? "",
       notifPrefs: { jobs: true, events: true },
+      ...(middleName     && { middleName }),
+      ...(sex            && { sex }),
+      ...(birthday       && { birthday }),
+      ...(contactNumber  && { contactNumber }),
+      ...(civilStatus    && { civilStatus }),
+      ...(locality       && { locality }),
+      ...(currentPosition && { currentPosition }),
+      ...(currentCompany  && { currentCompany }),
+      ...(honors          && { honors }),
+      ...(isEmployed !== undefined && { isEmployed }),
     };
 
     await admin.firestore().collection("users").doc(userRecord.uid).set(userDoc);

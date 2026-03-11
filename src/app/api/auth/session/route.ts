@@ -15,10 +15,19 @@ export async function POST(req: Request) {
     const userSnap = await admin.firestore().collection("users").doc(uid).get();
     const role = (userSnap.data()?.role as string) ?? (decoded.role as string) ?? "alumni";
 
+    // Mark imported accounts as claimed on first login
+    const docData = userSnap.data();
+    if (docData?.importedByAdmin === true && docData?.isClaimed === false) {
+      await admin.firestore().collection("users").doc(uid).update({
+        isClaimed: true,
+        claimedAt: new Date().toISOString(),
+      });
+    }
+
     // Create a Firebase session cookie (valid 5 days)
     const sessionCookie = await admin.auth().createSessionCookie(idToken, { expiresIn: FIVE_DAYS_MS });
 
-    const res = NextResponse.json({ status: "ok" });
+    const res = NextResponse.json({ status: "ok", role });
     const cookieOpts = {
       maxAge: FIVE_DAYS_MS / 1000,
       httpOnly: true,

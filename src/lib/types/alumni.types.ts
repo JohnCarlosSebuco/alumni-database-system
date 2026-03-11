@@ -18,6 +18,22 @@ export interface UserDoc {
   notifPrefs: { jobs: boolean; events: boolean };
   studentId?: string;
   currentPosition?: string; // denormalized from profile for dashboard queries
+  // Extended fields from import
+  middleName?: string;
+  sex?: string;
+  birthday?: string;
+  contactNumber?: string;
+  civilStatus?: string;
+  locality?: string;
+  currentCompany?: string;
+  honors?: string;
+  employmentStatus?: string;
+  // Course alignment — explicit answer from survey, overrides keyword inference
+  courseAligned?: boolean;
+  // Import / claim tracking
+  importedByAdmin?: boolean;
+  isClaimed?: boolean;
+  claimedAt?: string;
 }
 
 export interface Education {

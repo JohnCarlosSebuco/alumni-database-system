@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
 const AUTH_ROUTES = ["/", "/login", "/signup", "/forgot-password", "/reset-password"];
 
 // Public routes that do not require authentication
-const PUBLIC_ROUTES = [...AUTH_ROUTES, "/verify-email"];
+const PUBLIC_ROUTES = [...AUTH_ROUTES, "/verify-email", "/claim"];
 
 // Admin-only route prefix
 const ADMIN_PREFIX = "/admin";
