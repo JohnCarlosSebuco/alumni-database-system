@@ -19,6 +19,15 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["firebase-admin", "xlsx"],
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : [config.externals]),
+        "xlsx",
+      ];
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
