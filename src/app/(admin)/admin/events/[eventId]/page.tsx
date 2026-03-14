@@ -40,7 +40,11 @@ export default function EditEventPage() {
       if (bannerFile) {
         bannerURL = await uploadEventBanner(eventId, bannerFile);
       }
-      await updateDoc(eventRef(eventId), { ...data, bannerURL, updatedAt: new Date().toISOString() });
+      const payload = Object.fromEntries(
+        Object.entries({ ...data, bannerURL, updatedAt: new Date().toISOString() })
+          .filter(([, v]) => v !== undefined)
+      );
+      await updateDoc(eventRef(eventId), payload);
 
       if (data.status === "published" && event?.status !== "published" && user) {
         const idToken = await user.getIdToken();

@@ -82,8 +82,8 @@ export default function EventDetailPage() {
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
           {event.bannerURL && (
-            <div className="rounded-2xl overflow-hidden h-48 bg-gray-100">
-              <img src={event.bannerURL} alt={event.title} className="w-full h-full object-cover" />
+            <div className="rounded-2xl overflow-hidden bg-gray-100">
+              <img src={event.bannerURL} alt={event.title} className="w-full object-contain" />
             </div>
           )}
           <Card>

@@ -22,14 +22,17 @@ export default function NewEventPage() {
   const handleSubmit = async (data: EventFormInput, bannerFile: File | null) => {
     setLoading(true);
     try {
-      const docRef = await addDoc(eventsRef(), {
-        ...data,
-        bannerURL: "",
-        rsvpCount: 0,
-        createdBy: user?.uid ?? "",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      const payload = Object.fromEntries(
+        Object.entries({
+          ...data,
+          bannerURL: "",
+          rsvpCount: 0,
+          createdBy: user?.uid ?? "",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }).filter(([, v]) => v !== undefined)
+      );
+      const docRef = await addDoc(eventsRef(), payload);
 
       if (bannerFile) {
         const { updateDoc, eventRef } = await import("@/lib/firebase/firestore");
