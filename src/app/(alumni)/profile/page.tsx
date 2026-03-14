@@ -35,11 +35,12 @@ const TABS = [
 ];
 
 export default function ProfilePage() {
-  const { userDoc } = useAuth();
-  const { profile, loading } = useProfile();
+  const { userDoc, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
   const [activeTab, setActiveTab] = useState("personal");
 
-  if (loading || !userDoc) return <PageLoader />;
+  if (authLoading || profileLoading) return <PageLoader />;
+  if (!userDoc) return <p className="p-8 text-gray-500">Unable to load your account. Please sign out and sign in again.</p>;
 
   return (
     <div className="space-y-6">
