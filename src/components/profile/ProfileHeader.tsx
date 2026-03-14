@@ -56,9 +56,9 @@ export function ProfileHeader({ userDoc, profile, editable }: ProfileHeaderProps
               </Badge>
             )}
             <Badge
-              variant={profile?.currentEmployment?.isEmployed ? "success" : "warning"}
+              variant={(profile?.currentEmployment?.isEmployed ?? userDoc.isEmployed) ? "success" : "warning"}
             >
-              {profile?.currentEmployment?.isEmployed ? "Employed" : "Seeking Opportunities"}
+              {(profile?.currentEmployment?.isEmployed ?? userDoc.isEmployed) ? "Employed" : "Seeking Opportunities"}
             </Badge>
           </div>
         </div>
