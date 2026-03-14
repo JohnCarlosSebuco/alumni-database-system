@@ -78,7 +78,7 @@ export function SignupForm() {
 
       // Store profile data to be written to Firestore AFTER email is verified.
       // This prevents unverified accounts from appearing in the alumni directory.
-      sessionStorage.setItem(
+      localStorage.setItem(
         "pendingAlumniData",
         JSON.stringify({
           uid: user.uid,

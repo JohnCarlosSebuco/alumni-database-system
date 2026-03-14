@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
     const existing = await getDoc(userDocRef(user.uid));
     if (existing.exists()) return; // already written (e.g. admin-created account)
 
-    const raw = sessionStorage.getItem("pendingAlumniData");
+    const raw = localStorage.getItem("pendingAlumniData");
     const pending = raw ? JSON.parse(raw) : {};
 
     // Only use sessionStorage data if it matches the current user
@@ -85,7 +85,7 @@ export default function VerifyEmailPage() {
       { merge: true }
     );
 
-    if (isMatch) sessionStorage.removeItem("pendingAlumniData");
+    if (isMatch) localStorage.removeItem("pendingAlumniData");
   }
 
   async function handleAlreadyVerified(user: User) {
