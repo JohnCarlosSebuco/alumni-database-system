@@ -104,7 +104,15 @@ export default function EditProfilePage() {
       });
     } else if (!loading && userDoc) {
       const [firstName = "", ...rest] = (userDoc.displayName ?? "").split(" ");
-      form1.reset({ firstName, lastName: rest.join(" "), birthDate: "", gender: "", civilStatus: "", address: "", contactNumber: "" });
+      form1.reset({
+        firstName,
+        lastName:      rest.join(" "),
+        birthDate:     userDoc.birthday      ?? "",
+        gender:        userDoc.sex           ?? "",
+        civilStatus:   userDoc.civilStatus   ?? "",
+        contactNumber: userDoc.contactNumber ?? "",
+        address:       userDoc.locality      ?? "",
+      });
     }
   }, [profile, userDoc, loading]); // eslint-disable-line
 
@@ -119,20 +127,30 @@ export default function EditProfilePage() {
     }
   }, [userDoc]); // eslint-disable-line
 
-  // Pre-fill form3 from existing profile
+  // Pre-fill form3 from existing profile, or from userDoc for imported alumni with no profile
   useEffect(() => {
     if (profile?.currentEmployment) {
       form3.reset({
-        isEmployed: profile.currentEmployment.isEmployed,
-        employerName: profile.currentEmployment.employerName,
-        position: profile.currentEmployment.position,
-        industry: profile.currentEmployment.industry,
+        isEmployed:     profile.currentEmployment.isEmployed,
+        employerName:   profile.currentEmployment.employerName,
+        position:       profile.currentEmployment.position,
+        industry:       profile.currentEmployment.industry,
         employmentType: profile.currentEmployment.employmentType,
-        startDate: profile.currentEmployment.startDate,
-        city: profile.currentEmployment.city,
+        startDate:      profile.currentEmployment.startDate,
+        city:           profile.currentEmployment.city,
+      });
+    } else if (!loading && !profile && userDoc) {
+      form3.reset({
+        isEmployed:     userDoc.isEmployed      ?? false,
+        employerName:   userDoc.currentCompany  ?? "",
+        position:       userDoc.currentPosition ?? "",
+        industry:       "",
+        employmentType: "",
+        startDate:      "",
+        city:           "",
       });
     }
-  }, [profile]); // eslint-disable-line
+  }, [profile, loading, userDoc]); // eslint-disable-line
 
   if (loading || !user || !userDoc) return <PageLoader />;
 

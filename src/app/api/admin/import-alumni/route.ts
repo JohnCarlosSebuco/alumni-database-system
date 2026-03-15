@@ -318,6 +318,38 @@ export async function POST(req: Request) {
         );
 
         await admin.firestore().collection("users").doc(userRecord.uid).set(cleanDoc);
+
+        const profileDoc: Record<string, unknown> = {
+          firstName,
+          lastName,
+          birthDate:     birthday      ?? "",
+          gender:        sex           ?? "",
+          civilStatus:   civilStatus   ?? "",
+          contactNumber: contactNumber ?? "",
+          address:       locality      ?? "",
+          currentEmployment: {
+            isEmployed:     isEmployed ?? false,
+            employerName:   currentCompany  ?? "",
+            position:       currentPosition ?? "",
+            industry:       "",
+            employmentType: "",
+            startDate:      "",
+            city:           "",
+          },
+          education:          [],
+          employmentHistory:  [],
+          licenses:           [],
+          awards:             [],
+          research:           [],
+          communityExtension: [],
+        };
+
+        await admin
+          .firestore()
+          .collection("users").doc(userRecord.uid)
+          .collection("profile").doc("data")
+          .set(profileDoc);
+
         created.push({ email, uid: userRecord.uid });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Unknown error";
