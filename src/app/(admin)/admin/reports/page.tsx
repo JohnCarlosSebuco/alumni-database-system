@@ -98,25 +98,95 @@ export default function ReportsPage() {
 
   const exportPDF = async () => {
     const { jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
     const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("AlumNayan — Alumni Report", 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Generated: ${new Date().toLocaleDateString("en-PH")} · Total: ${results.length} alumni`, 14, 28);
-    doc.text(`Employment Rate: ${employmentStats.employmentRate}%  ·  Unemployment Rate: ${employmentStats.unemploymentRate}%`, 14, 35);
-    doc.text(`Recent Graduate Course-Aligned Placement: ${outcomeRates.recentGraduatePlacementRate}% (${outcomeRates.recentAligned}/${outcomeRates.recentTotal})`, 14, 42);
-    doc.text(`Mid-Career Course-Aligned Rate (3–5 yrs): ${outcomeRates.midCareerAlignmentRate}% (${outcomeRates.midCareerAligned}/${outcomeRates.midCareerTotal})`, 14, 49);
 
-    let y = 58;
-    doc.setFontSize(9);
-    results.forEach((a, i) => {
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
-      const empStatus = a.isEmployed === true ? "Employed" : a.isEmployed === false ? "Unemployed" : "—";
-      doc.text(`${i + 1}. ${a.displayName} · ${a.course ?? a.department ?? "—"} · Batch ${a.batchYear ?? "—"} · ${empStatus}`, 14, y);
-      y += 7;
+    const filterLabel = filters.course
+      ? COE_COURSES.find((c) => c.value === filters.course)?.label ?? filters.course
+      : "All Programs";
+    const batchLabel = filters.batchYear || "All Years";
+
+    // ── Page 1: Outcomes Summary ──────────────────────────────────────
+    doc.setFontSize(16); doc.setFont("helvetica", "bold");
+    doc.text("AlumNayan \u2014 Alumni Outcomes Report", 14, 20);
+    doc.setFontSize(10); doc.setFont("helvetica", "normal");
+    doc.text("College of Engineering", 14, 27);
+    doc.setFontSize(8); doc.setTextColor(100);
+    doc.text(
+      `Generated: ${new Date().toLocaleDateString("en-PH")}  |  Program: ${filterLabel}  |  Batch: ${batchLabel}  |  Total Alumni: ${results.length}`,
+      14, 33
+    );
+    doc.setDrawColor(200); doc.line(14, 36, 196, 36);
+    doc.setTextColor(0);
+
+    // Section A — Employment Summary
+    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("A. Employment Summary", 14, 43);
+    autoTable(doc, {
+      startY: 46,
+      head: [["Metric", "Count", "Rate"]],
+      body: [
+        ["Employed",   String(employmentStats.employed),   `${employmentStats.employmentRate}%`],
+        ["Unemployed", String(employmentStats.unemployed), `${employmentStats.unemploymentRate}%`],
+        ["Total",      String(results.length),             "\u2014"],
+      ],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [30, 41, 82] },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { halign: "center" }, 2: { halign: "center" } },
+      margin: { left: 14, right: 14 },
+    });
+
+    // Section B — Course-Aligned Placement Rates
+    const afterA = (doc as any).lastAutoTable.finalY + 8;
+    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("B. Course-Aligned Placement Rates", 14, afterA);
+    autoTable(doc, {
+      startY: afterA + 3,
+      head: [["Career Stage", "Alumni in Stage", "Course-Aligned", "Alignment Rate"]],
+      body: [
+        ["Recent Graduates (0\u20132 yrs)", String(outcomeRates.recentTotal),    String(outcomeRates.recentAligned),    `${outcomeRates.recentGraduatePlacementRate}%`],
+        ["Mid-Career (3\u20135 yrs)",       String(outcomeRates.midCareerTotal), String(outcomeRates.midCareerAligned), `${outcomeRates.midCareerAlignmentRate}%`],
+      ],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [30, 41, 82] },
+      columnStyles: { 1: { halign: "center" }, 2: { halign: "center" }, 3: { halign: "center" } },
+      margin: { left: 14, right: 14 },
+    });
+
+    // Footer note — page 1
+    doc.setFontSize(7); doc.setTextColor(120);
+    doc.text(
+      "Course-aligned placement is determined by job title keyword matching against the graduate\u2019s program of study.",
+      14, 285
+    );
+    doc.setTextColor(0);
+
+    // ── Page 2+: Alumni Registry ──────────────────────────────────────
+    doc.addPage();
+    doc.setFontSize(14); doc.setFont("helvetica", "bold");
+    doc.text("Alumni Registry", 14, 20);
+    doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+    doc.text(`Program: ${filterLabel}  |  Batch: ${batchLabel}  |  Total: ${results.length}`, 14, 27);
+    doc.setTextColor(0);
+
+    autoTable(doc, {
+      startY: 31,
+      head: [["No.", "Name", "Program", "Batch Year", "Employment Status"]],
+      body: results.map((a, i) => [
+        String(i + 1),
+        a.displayName,
+        a.course ?? a.department ?? "\u2014",
+        a.batchYear ? String(a.batchYear) : "\u2014",
+        a.isEmployed === true ? "Employed" : a.isEmployed === false ? "Unemployed" : "Not specified",
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [30, 41, 82] },
+      columnStyles: {
+        0: { cellWidth: 10, halign: "center" },
+        3: { cellWidth: 20, halign: "center" },
+        4: { cellWidth: 35, halign: "center" },
+      },
+      margin: { left: 14, right: 14 },
     });
 
     doc.save(`alumnayan-report-${Date.now()}.pdf`);
