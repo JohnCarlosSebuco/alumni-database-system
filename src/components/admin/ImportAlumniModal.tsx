@@ -15,6 +15,14 @@ interface ImportResult {
   detectedColumns: Record<string, string>;
 }
 
+interface EnrichResult {
+  updated: number;
+  skipped: number;
+  failed:  number;
+  failedRows: { email: string; reason: string }[];
+  detectedColumns: Record<string, string>;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -23,16 +31,18 @@ interface Props {
 
 export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [file, setFile]         = useState<File | null>(null);
-  const [loading, setLoading]   = useState(false);
-  const [result, setResult]     = useState<ImportResult | null>(null);
-  const [error, setError]       = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const [showCols, setShowCols] = useState(false);
+  const [file, setFile]               = useState<File | null>(null);
+  const [loading, setLoading]         = useState(false);
+  const [result, setResult]           = useState<ImportResult | null>(null);
+  const [enrichResult, setEnrichResult] = useState<EnrichResult | null>(null);
+  const [error, setError]             = useState<string | null>(null);
+  const [dragging, setDragging]       = useState(false);
+  const [showCols, setShowCols]       = useState(false);
 
   function reset() {
     setFile(null);
     setResult(null);
+    setEnrichResult(null);
     setError(null);
     setLoading(false);
     setShowCols(false);
@@ -79,10 +89,60 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
     }
   }
 
+  async function handleEnrich() {
+    if (!file) return;
+    setLoading(true);
+    setError(null);
+    setEnrichResult(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/enrich-alumni", {
+        method: "POST",
+        credentials: "include",
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Update failed");
+      setEnrichResult(data as EnrichResult);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <Modal open={open} onClose={handleClose} title="Import Alumni from XLSX" size="md">
       <div className="p-6 space-y-5">
-        {!result ? (
+        {enrichResult ? (
+          <>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                <p className="text-2xl font-bold text-blue-700">{enrichResult.updated}</p>
+                <p className="text-xs text-blue-600 mt-1">Updated</p>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-2xl font-bold text-gray-600">{enrichResult.skipped}</p>
+                <p className="text-xs text-gray-500 mt-1">Skipped</p>
+              </div>
+              <div className={`rounded-xl border p-4 ${enrichResult.failed > 0 ? "border-red-200 bg-red-50" : "border-gray-200 bg-gray-50"}`}>
+                <p className={`text-2xl font-bold ${enrichResult.failed > 0 ? "text-red-600" : "text-gray-600"}`}>
+                  {enrichResult.failed}
+                </p>
+                <p className={`text-xs mt-1 ${enrichResult.failed > 0 ? "text-red-500" : "text-gray-500"}`}>Failed</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
+              <CheckCircle size={15} className="flex-shrink-0" />
+              {enrichResult.updated} alumni record{enrichResult.updated !== 1 ? "s" : ""} updated with survey field data.
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="ghost" type="button" onClick={reset}>Update Another</Button>
+              <Button variant="primary" type="button" onClick={handleClose}>Done</Button>
+            </div>
+          </>
+        ) : !result ? (
           <>
             {/* Drop zone */}
             <div
@@ -149,6 +209,11 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
               </ul>
             </div>
 
+            <div className="rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 text-xs text-amber-700 space-y-1">
+              <p className="font-semibold">Already imported alumni?</p>
+              <p>Use <strong>Update Existing</strong> to enrich existing records with survey fields (e.g. time-to-first-job) without creating new accounts.</p>
+            </div>
+
             {error && (
               <div className="flex items-start gap-2 rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
                 <AlertCircle size={15} className="mt-0.5 flex-shrink-0" />
@@ -159,13 +224,22 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
             <div className="flex justify-end gap-3">
               <Button variant="ghost" type="button" onClick={handleClose}>Cancel</Button>
               <Button
+                variant="outline"
+                type="button"
+                loading={loading}
+                disabled={!file}
+                onClick={handleEnrich}
+              >
+                Update Existing
+              </Button>
+              <Button
                 variant="primary"
                 type="button"
                 loading={loading}
                 disabled={!file}
                 onClick={handleImport}
               >
-                Import
+                Import New
               </Button>
             </div>
           </>

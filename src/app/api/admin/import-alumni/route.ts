@@ -104,6 +104,13 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "course related job",
     "first job related to course",
   ],
+  timeToFirstJob: [
+    "after graduation how long did it take you to land your first job",
+    "time to first job",
+    "how long to first job",
+    "waiting time",
+    "employment waiting time",
+  ],
 };
 
 function normKey(s: string): string {
@@ -150,6 +157,17 @@ function normStr(v: unknown): string | null {
 function normBool(v: unknown): boolean {
   if (!v) return false;
   return String(v).trim().toLowerCase().startsWith("y");
+}
+
+function normTimeToFirstJob(v: unknown): string | undefined {
+  if (!v) return undefined;
+  const s = String(v).trim().toLowerCase();
+  if (s.includes("less than 3") || s.includes("lt3") || s.includes("<3")) return "lt3mo";
+  if (s.includes("3") && s.includes("6")) return "3to6mo";
+  if (s.includes("7") || s.includes("12")) return "7to12mo";
+  if (s.includes("more than") || s.includes("year") || s.includes(">1") || s.includes("gt1")) return "gt1yr";
+  if (s.includes("not yet") || s.includes("never") || s.includes("unemployed")) return "not_yet";
+  return undefined;
 }
 
 // Returns true/false when a clear Yes/No answer is present, undefined when column is absent
@@ -269,6 +287,7 @@ export async function POST(req: Request) {
       const currentCompany  = normStr(resolver.get(row, "currentCompany"));
       const honors          = normStr(resolver.get(row, "honors"));
       const courseAligned   = normBoolOrUndef(resolver.get(row, "courseAligned"));
+      const timeToFirstJob  = normTimeToFirstJob(resolver.get(row, "timeToFirstJob"));
 
       try {
         const tempPassword = crypto.randomBytes(32).toString("hex");
@@ -311,6 +330,7 @@ export async function POST(req: Request) {
         if (currentCompany)             userDoc.currentCompany = currentCompany;
         if (honors)                     userDoc.honors = honors;
         if (courseAligned !== undefined) userDoc.courseAligned = courseAligned;
+        if (timeToFirstJob)              userDoc.timeToFirstJob = timeToFirstJob;
 
         // Strip null values for clean Firestore docs
         const cleanDoc = Object.fromEntries(

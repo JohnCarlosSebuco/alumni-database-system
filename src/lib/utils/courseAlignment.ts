@@ -53,6 +53,83 @@ function isAligned(a: AlumniForOutcome): boolean {
   return isCourseAligned(a.currentPosition ?? "", a.course);
 }
 
+export interface CohortRow {
+  batchYear: number;
+  evalYear: number;       // batchYear + 5 (5-year tracking cycle)
+  yearsOut: number;       // currentYear - batchYear
+  total: number;
+  employed: number;
+  employmentRate: number;
+  aligned: number;
+  alignmentRate: number;
+}
+
+export function computeCohortBreakdown(alumni: AlumniForOutcome[]): CohortRow[] {
+  const currentYear = new Date().getFullYear();
+  const map = new Map<number, { total: number; employed: number; aligned: number }>();
+
+  for (const a of alumni) {
+    if (!a.batchYear) continue;
+    if (!map.has(a.batchYear)) map.set(a.batchYear, { total: 0, employed: 0, aligned: 0 });
+    const row = map.get(a.batchYear)!;
+    row.total++;
+    if (a.isEmployed === true) row.employed++;
+    if (isAligned(a)) row.aligned++;
+  }
+
+  return Array.from(map.entries())
+    .sort(([a], [b]) => b - a)
+    .map(([batchYear, row]) => ({
+      batchYear,
+      evalYear: batchYear + 5,
+      yearsOut: currentYear - batchYear,
+      total: row.total,
+      employed: row.employed,
+      employmentRate: row.total > 0 ? Math.round((row.employed / row.total) * 100) : 0,
+      aligned: row.aligned,
+      alignmentRate: row.total > 0 ? Math.round((row.aligned / row.total) * 100) : 0,
+    }));
+}
+
+export type WaitingTimeBucket = "lt3mo" | "3to6mo" | "7to12mo" | "gt1yr" | "not_yet";
+
+export interface WaitingTimeRow {
+  bucket:     WaitingTimeBucket;
+  label:      string;
+  count:      number;
+  percentage: number;
+  color:      string;
+}
+
+const WAITING_TIME_META: { bucket: WaitingTimeBucket; label: string; color: string }[] = [
+  { bucket: "lt3mo",   label: "Less than 3 months", color: "#22c55e" },
+  { bucket: "3to6mo",  label: "3–6 months",          color: "#14b8a6" },
+  { bucket: "7to12mo", label: "7–12 months",          color: "#f59e0b" },
+  { bucket: "gt1yr",   label: "More than a year",     color: "#ef4444" },
+  { bucket: "not_yet", label: "Still unemployed",      color: "#94a3b8" },
+];
+
+export function computeWaitingTimeBreakdown(
+  alumni: (AlumniForOutcome & { timeToFirstJob?: string })[]
+): WaitingTimeRow[] {
+  const counts: Record<string, number> = {};
+  let total = 0;
+
+  for (const a of alumni) {
+    if (!a.timeToFirstJob) continue;
+    counts[a.timeToFirstJob] = (counts[a.timeToFirstJob] ?? 0) + 1;
+    total++;
+  }
+
+  return WAITING_TIME_META.map(({ bucket, label, color }) => ({
+    bucket,
+    label,
+    count:      counts[bucket] ?? 0,
+    percentage: total > 0 ? Math.round(((counts[bucket] ?? 0) / total) * 100) : 0,
+    color,
+  }));
+}
+
 export function computeOutcomeRates(alumni: AlumniForOutcome[]): OutcomeRates {
   const currentYear = new Date().getFullYear();
 

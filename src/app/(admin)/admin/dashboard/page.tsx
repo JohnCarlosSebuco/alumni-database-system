@@ -18,8 +18,9 @@ import { PageLoader } from "@/components/ui/Spinner";
 import { formatRelativeTime } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
 import type { UserDoc } from "@/lib/types/alumni.types";
-import { computeOutcomeRates } from "@/lib/utils/courseAlignment";
-import type { OutcomeRates } from "@/lib/utils/courseAlignment";
+import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown } from "@/lib/utils/courseAlignment";
+import type { OutcomeRates, CohortRow, WaitingTimeRow } from "@/lib/utils/courseAlignment";
+import { WaitingTimeChart } from "@/components/dashboard/WaitingTimeChart";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +97,8 @@ export default function AdminDashboardPage() {
     employedCount: 0,
   });
   const [outcomeRates, setOutcomeRates] = useState<OutcomeRates | null>(null);
+  const [cohortRows, setCohortRows] = useState<CohortRow[]>([]);
+  const [waitingTimeRows, setWaitingTimeRows] = useState<WaitingTimeRow[]>([]);
   const [recentAlumni, setRecentAlumni] = useState<UserDoc[]>([]);
   const [deptData, setDeptData] = useState<{ name: string; value: number }[]>([]);
   const [empData, setEmpData] = useState<{ department: string; employed: number; total: number }[]>([]);
@@ -130,6 +133,8 @@ export default function AdminDashboardPage() {
         });
 
         setOutcomeRates(computeOutcomeRates(alumniDocs));
+        setCohortRows(computeCohortBreakdown(alumniDocs));
+        setWaitingTimeRows(computeWaitingTimeBreakdown(alumniDocs));
         setStats({
           alumni: totalAlumni,
           jobs: jobsSnap.size,
@@ -373,6 +378,69 @@ export default function AdminDashboardPage() {
           </CardBody>
         </Card>
       </div>
+
+      {/* ── Waiting Time ── */}
+      {waitingTimeRows.some((r) => r.count > 0) && (
+        <Card>
+          <CardHeader>
+            <div>
+              <h2 className="font-semibold text-gray-900">Time to First Job After Graduation</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Distribution of how long alumni took to land their first job
+              </p>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <WaitingTimeChart data={waitingTimeRows} />
+          </CardBody>
+        </Card>
+      )}
+
+      {/* ── Cohort Outcomes ── */}
+      {cohortRows.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div>
+              <h2 className="font-semibold text-gray-900">Cohort Outcomes by Batch Year</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Employment &amp; course-alignment rate per graduation cohort · 5-year evaluation cycle
+              </p>
+            </div>
+          </CardHeader>
+          <CardBody className="p-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch Year</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">5-yr Eval Year</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Years Out</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Total</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employed</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employment Rate</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Course-Aligned</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Alignment Rate</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {cohortRows.map((row) => (
+                    <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{row.evalYear}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{row.yearsOut} yrs</td>
+                      <td className="px-4 py-3 text-xs text-gray-600">{row.total}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600">{row.employed}</td>
+                      <td className="px-4 py-3 text-xs font-semibold text-green-700">{row.employmentRate}%</td>
+                      <td className="px-4 py-3 text-xs text-gray-600">{row.aligned}</td>
+                      <td className="px-4 py-3 text-xs font-semibold text-indigo-700">{row.alignmentRate}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       {/* ── Recent sign-ups ── */}
       <Card>

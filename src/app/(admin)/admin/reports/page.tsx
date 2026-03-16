@@ -14,7 +14,9 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate, batchYearLabel } from "@/lib/utils/formatters";
-import { computeOutcomeRates } from "@/lib/utils/courseAlignment";
+import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown } from "@/lib/utils/courseAlignment";
+import type { WaitingTimeRow } from "@/lib/utils/courseAlignment";
+import { WaitingTimeChart } from "@/components/dashboard/WaitingTimeChart";
 import type { UserDoc } from "@/lib/types/alumni.types";
 
 export const dynamic = 'force-dynamic';
@@ -52,6 +54,8 @@ export default function ReportsPage() {
   }, [results]);
 
   const outcomeRates = useMemo(() => computeOutcomeRates(results), [results]);
+  const cohortRows = useMemo(() => computeCohortBreakdown(results), [results]);
+  const waitingTimeRows = useMemo(() => computeWaitingTimeBreakdown(results), [results]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -151,6 +155,60 @@ export default function ReportsPage() {
       styles: { fontSize: 9 },
       headStyles: { fillColor: [30, 41, 82] },
       columnStyles: { 1: { halign: "center" }, 2: { halign: "center" }, 3: { halign: "center" } },
+      margin: { left: 14, right: 14 },
+    });
+
+    // Section C — Cohort Breakdown
+    const afterB = (doc as any).lastAutoTable.finalY + 8;
+    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("C. Cohort Outcomes by Batch Year", 14, afterB);
+    autoTable(doc, {
+      startY: afterB + 3,
+      head: [["Batch Year", "5-yr Eval Year", "Years Out", "Total", "Employed", "Employment Rate", "Course-Aligned", "Alignment Rate"]],
+      body: cohortRows.map((row) => [
+        String(row.batchYear),
+        String(row.evalYear),
+        `${row.yearsOut} yrs`,
+        String(row.total),
+        String(row.employed),
+        `${row.employmentRate}%`,
+        String(row.aligned),
+        `${row.alignmentRate}%`,
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [30, 41, 82] },
+      columnStyles: {
+        0: { halign: "center" },
+        1: { halign: "center" },
+        2: { halign: "center" },
+        3: { halign: "center" },
+        4: { halign: "center" },
+        5: { halign: "center", fontStyle: "bold" },
+        6: { halign: "center" },
+        7: { halign: "center", fontStyle: "bold" },
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    // Section D — Time to First Job
+    const afterC = (doc as any).lastAutoTable.finalY + 8;
+    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("D. Time to First Job After Graduation", 14, afterC);
+    const respondents = waitingTimeRows.reduce((s, r) => s + r.count, 0);
+    doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+    doc.text(`Based on ${respondents} alumni who answered this question.`, 14, afterC + 5);
+    doc.setTextColor(0);
+    autoTable(doc, {
+      startY: afterC + 9,
+      head: [["Waiting Time", "Frequency", "Percentage"]],
+      body: waitingTimeRows.map((r) => [r.label, String(r.count), `${r.percentage}%`]),
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [30, 41, 82] },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { halign: "center" },
+        2: { halign: "center", fontStyle: "bold" },
+      },
       margin: { left: 14, right: 14 },
     });
 
@@ -261,6 +319,67 @@ export default function ReportsPage() {
               <p className="text-[10px] text-gray-400">Course-aligned · 6+ yrs</p>
             </div>
           </div>
+
+          {cohortRows.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div>
+                  <h2 className="font-semibold text-gray-900">Cohort Outcomes by Batch Year</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Employment &amp; course-alignment rate per graduation cohort · 5-year evaluation cycle
+                  </p>
+                </div>
+              </CardHeader>
+              <CardBody className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch Year</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">5-yr Eval Year</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Years Out</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Total</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employed</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employment Rate</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Course-Aligned</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Alignment Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {cohortRows.map((row) => (
+                        <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{row.evalYear}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{row.yearsOut} yrs</td>
+                          <td className="px-4 py-3 text-xs text-gray-600">{row.total}</td>
+                          <td className="px-4 py-3 text-xs text-gray-600">{row.employed}</td>
+                          <td className="px-4 py-3 text-xs font-semibold text-green-700">{row.employmentRate}%</td>
+                          <td className="px-4 py-3 text-xs text-gray-600">{row.aligned}</td>
+                          <td className="px-4 py-3 text-xs font-semibold text-indigo-700">{row.alignmentRate}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+        {waitingTimeRows.some((r) => r.count > 0) && (
+          <Card>
+            <CardHeader>
+              <div>
+                <h2 className="font-semibold text-gray-900">Time to First Job After Graduation</h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Distribution of how long alumni took to land their first job
+                </p>
+              </div>
+            </CardHeader>
+            <CardBody>
+              <WaitingTimeChart data={waitingTimeRows} />
+            </CardBody>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>

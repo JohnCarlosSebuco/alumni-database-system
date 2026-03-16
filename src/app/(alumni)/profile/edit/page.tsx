@@ -74,6 +74,7 @@ export default function EditProfilePage() {
   const [awards, setAwards] = useState<Award[]>([]);
   const [research, setResearch] = useState<Research[]>([]);
   const [communityExtension, setCommunityExtension] = useState<CommunityExtension[]>([]);
+  const [timeToFirstJob, setTimeToFirstJob] = useState<string>("");
 
   useEffect(() => {
     if (profile) {
@@ -124,6 +125,7 @@ export default function EditProfilePage() {
         department: userDoc.department ?? "",
         course: userDoc.course ?? "",
       });
+      setTimeToFirstJob(userDoc.timeToFirstJob ?? "");
     }
   }, [userDoc]); // eslint-disable-line
 
@@ -185,7 +187,7 @@ export default function EditProfilePage() {
         communityExtension,
       }, { merge: true });
 
-      await updateDoc(userDocRef(user.uid), {
+      const userUpdates: Record<string, unknown> = {
         batchYear: d2.batchYear,
         department: d2.department,
         course: d2.course,
@@ -194,7 +196,9 @@ export default function EditProfilePage() {
         isEmployed: d3.isEmployed,
         currentPosition: d3.isEmployed ? (d3.position ?? "") : "",
         updatedAt: new Date().toISOString(),
-      });
+      };
+      if (timeToFirstJob) userUpdates.timeToFirstJob = timeToFirstJob;
+      await updateDoc(userDocRef(user.uid), userUpdates);
 
       success("Profile saved successfully!");
       router.push("/profile");
@@ -343,6 +347,19 @@ export default function EditProfilePage() {
                   <Input label="City" {...form3.register("city")} />
                 </div>
               )}
+              <Select
+                label="Time to First Job After Graduation"
+                options={[
+                  { value: "",        label: "Select..." },
+                  { value: "lt3mo",   label: "Less than 3 months" },
+                  { value: "3to6mo",  label: "3–6 months" },
+                  { value: "7to12mo", label: "7–12 months" },
+                  { value: "gt1yr",   label: "More than a year" },
+                  { value: "not_yet", label: "Still unemployed" },
+                ]}
+                value={timeToFirstJob}
+                onChange={(e) => setTimeToFirstJob(e.target.value)}
+              />
             </div>
           )}
 
