@@ -18,8 +18,8 @@ export function WaitingTimeChart({ data }: Props) {
             <YAxis type="category" dataKey="label" width={140}
               tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
             <Tooltip
-              formatter={(value: number | undefined, _: string, props: { payload: WaitingTimeRow }) =>
-                [`${props.payload.count} alumni (${value ?? 0}%)`, "Share"]
+              formatter={(value, _name, props) =>
+                [`${(props.payload as WaitingTimeRow).count} alumni (${value ?? 0}%)`, "Share"]
               }
             />
             <Bar dataKey="percentage" radius={[0, 4, 4, 0]}>
