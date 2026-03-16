@@ -127,7 +127,7 @@ export function AlumniTable({
               {/* Program */}
               <td className="px-5 py-3.5 hidden md:table-cell">
                 <p className="text-xs font-medium text-gray-600 truncate max-w-[180px]">
-                  {a.course ?? a.department ?? "—"}
+                  {a.course ?? "—"}
                 </p>
               </td>
 

@@ -175,7 +175,7 @@ export default function ReportsPage() {
       body: results.map((a, i) => [
         String(i + 1),
         a.displayName,
-        a.course ?? a.department ?? "\u2014",
+        a.course ?? "\u2014",
         a.batchYear ? String(a.batchYear) : "\u2014",
         a.isEmployed === true ? "Employed" : a.isEmployed === false ? "Unemployed" : "Not specified",
       ]),
@@ -321,7 +321,7 @@ export default function ReportsPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-600">{a.course ?? a.department ?? "—"}</td>
+                        <td className="px-4 py-3 text-xs text-gray-600">{a.course ?? "—"}</td>
                         <td className="px-4 py-3 text-xs text-gray-600">{batchYearLabel(a.batchYear)}</td>
                         <td className="px-4 py-3">
                           {a.isEmployed === true ? (
