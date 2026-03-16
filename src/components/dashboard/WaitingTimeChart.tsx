@@ -25,7 +25,7 @@ export function WaitingTimeChart({ data }: Props) {
             <Bar dataKey="percentage" radius={[0, 4, 4, 0]}>
               {data.map((row) => <Cell key={row.bucket} fill={row.color} />)}
               <LabelList dataKey="percentage" position="right"
-                formatter={(v: number) => `${v}%`}
+                formatter={(v) => `${v}%`}
                 style={{ fontSize: 11, fontWeight: 600, fill: "#374151" }} />
             </Bar>
           </BarChart>
