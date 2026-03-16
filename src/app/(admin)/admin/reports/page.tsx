@@ -144,8 +144,9 @@ export default function ReportsPage() {
       startY: afterA + 3,
       head: [["Career Stage", "Alumni in Stage", "Course-Aligned", "Alignment Rate"]],
       body: [
-        ["Recent Graduates (0\u20132 yrs)", String(outcomeRates.recentTotal),    String(outcomeRates.recentAligned),    `${outcomeRates.recentGraduatePlacementRate}%`],
-        ["Mid-Career (3\u20135 yrs)",       String(outcomeRates.midCareerTotal), String(outcomeRates.midCareerAligned), `${outcomeRates.midCareerAlignmentRate}%`],
+        ["Recent Graduates (0\u20132 yrs)", String(outcomeRates.recentTotal),           String(outcomeRates.recentAligned),           `${outcomeRates.recentGraduatePlacementRate}%`],
+        ["Mid-Career (3\u20135 yrs)",       String(outcomeRates.midCareerTotal),        String(outcomeRates.midCareerAligned),        `${outcomeRates.midCareerAlignmentRate}%`],
+        ["Established Career (6+ yrs)",     String(outcomeRates.establishedCareerTotal), String(outcomeRates.establishedCareerAligned), `${outcomeRates.establishedCareerAlignmentRate}%`],
       ],
       styles: { fontSize: 9 },
       headStyles: { fillColor: [30, 41, 82] },
@@ -227,7 +228,7 @@ export default function ReportsPage() {
       {generated && (
         <>
           {/* Employment Stats Summary */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
             <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
               <p className="text-2xl font-bold text-gray-900">{results.length}</p>
               <p className="text-xs text-gray-500 mt-1">Total Alumni</p>
@@ -247,12 +248,17 @@ export default function ReportsPage() {
             <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-center">
               <p className="text-2xl font-bold text-amber-700">{outcomeRates.recentGraduatePlacementRate}%</p>
               <p className="text-xs text-gray-500 mt-1">Recent Graduate Placement</p>
-              <p className="text-[10px] text-gray-400">Course-aligned · last 2 yrs</p>
+              <p className="text-[10px] text-gray-400">Course-aligned · 0–2 yrs</p>
             </div>
             <div className="rounded-xl border border-teal-100 bg-teal-50 p-4 text-center">
               <p className="text-2xl font-bold text-teal-700">{outcomeRates.midCareerAlignmentRate}%</p>
               <p className="text-xs text-gray-500 mt-1">Mid-Career Alignment</p>
               <p className="text-[10px] text-gray-400">Course-aligned · 3–5 yrs</p>
+            </div>
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-center">
+              <p className="text-2xl font-bold text-indigo-700">{outcomeRates.establishedCareerAlignmentRate}%</p>
+              <p className="text-xs text-gray-500 mt-1">Established Career</p>
+              <p className="text-[10px] text-gray-400">Course-aligned · 6+ yrs</p>
             </div>
           </div>
 

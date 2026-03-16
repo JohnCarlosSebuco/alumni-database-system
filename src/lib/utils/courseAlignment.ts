@@ -25,12 +25,15 @@ export function isCourseAligned(jobTitle: string, course: string | null): boolea
 }
 
 export interface OutcomeRates {
-  recentGraduatePlacementRate: number; // alumni from last 2 batch years, % course-aligned employed
+  recentGraduatePlacementRate: number; // alumni 0-2 years out, % course-aligned employed
   midCareerAlignmentRate: number;       // alumni 3-5 years out, % course-aligned employed
+  establishedCareerAlignmentRate: number; // alumni 6+ years out, % course-aligned employed
   recentTotal: number;
   recentAligned: number;
   midCareerTotal: number;
   midCareerAligned: number;
+  establishedCareerTotal: number;
+  establishedCareerAligned: number;
 }
 
 export interface AlumniForOutcome {
@@ -59,16 +62,23 @@ export function computeOutcomeRates(alumni: AlumniForOutcome[]): OutcomeRates {
   const midCareer = alumni.filter(
     (a) => a.batchYear != null && a.batchYear >= currentYear - 5 && a.batchYear <= currentYear - 3
   );
+  const established = alumni.filter(
+    (a) => a.batchYear != null && a.batchYear <= currentYear - 6
+  );
 
-  const recentAligned    = recent.filter(isAligned).length;
-  const midCareerAligned = midCareer.filter(isAligned).length;
+  const recentAligned       = recent.filter(isAligned).length;
+  const midCareerAligned    = midCareer.filter(isAligned).length;
+  const establishedAligned  = established.filter(isAligned).length;
 
   return {
     recentGraduatePlacementRate: recent.length > 0 ? Math.round((recentAligned / recent.length) * 100) : 0,
     midCareerAlignmentRate: midCareer.length > 0 ? Math.round((midCareerAligned / midCareer.length) * 100) : 0,
+    establishedCareerAlignmentRate: established.length > 0 ? Math.round((establishedAligned / established.length) * 100) : 0,
     recentTotal: recent.length,
     recentAligned,
     midCareerTotal: midCareer.length,
     midCareerAligned,
+    establishedCareerTotal: established.length,
+    establishedCareerAligned: establishedAligned,
   };
 }

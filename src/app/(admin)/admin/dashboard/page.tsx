@@ -281,7 +281,7 @@ export default function AdminDashboardPage() {
                 <div className="mb-1.5 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Recent Graduate Placement</p>
-                    <p className="text-xs text-gray-400">Last 2 batch years</p>
+                    <p className="text-xs text-gray-400">0–2 years out</p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-gray-900">
@@ -312,6 +312,25 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
                 <ProgressBar value={outcomeRates.midCareerAlignmentRate} color="bg-teal-500" />
+              </div>
+
+              {/* Established career */}
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Established Career</p>
+                    <p className="text-xs text-gray-400">6+ years out</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gray-900">
+                      {outcomeRates.establishedCareerAlignmentRate}%
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {outcomeRates.establishedCareerAligned} / {outcomeRates.establishedCareerTotal}
+                    </p>
+                  </div>
+                </div>
+                <ProgressBar value={outcomeRates.establishedCareerAlignmentRate} color="bg-indigo-500" />
               </div>
             </div>
           </div>
