@@ -45,6 +45,9 @@ export interface AlumniForOutcome {
   courseAligned?: boolean;
   locality?: string;   // residence/work location text
   isAbroad?: boolean;  // explicit survey flag
+  researchRaw?: string;            // "Yes: details" or "No"
+  communityExtensionRaw?: string;  // "Yes: details" or "No"
+  industryType?: string;           // Major line of business
 }
 
 function isAligned(a: AlumniForOutcome): boolean {
@@ -132,7 +135,30 @@ export function computeWaitingTimeBreakdown(
   }));
 }
 
-// ── College Goals ─────────────────────────────────────────────────────────────
+// ── College Goals / POE / GA ─────────────────────────────────────────────────
+
+const LEADERSHIP_KEYWORDS = [
+  "manager", "management", "supervisor", "superintendent", "director",
+  "chief", "head of", "lead", "team lead", "team leader", "vp",
+  "vice president", "president", "ceo", "cto", "cfo", "coo",
+  "executive", "coordinator", "administrator", "principal",
+  "dean", "department head", "section head", "officer in charge",
+  "general manager", "assistant manager", "project manager",
+  "operations manager", "branch manager", "area manager",
+];
+
+const RESEARCH_INDUSTRY_KEYWORDS = [
+  "research", "r&d", "technology", "tech", "innovation", "it",
+  "information technology", "software", "engineering", "biotech",
+  "pharmaceutical", "semiconductor", "electronics", "telecommunications",
+  "data", "analytics", "artificial intelligence", "ai", "machine learning",
+  "robotics", "automation", "energy", "renewable", "startup",
+];
+
+function hasParticipation(raw?: string): boolean {
+  if (!raw) return false;
+  return raw.toLowerCase().startsWith("yes");
+}
 
 const GLOBAL_KEYWORDS = [
   "usa", "united states", "new york", "california", "canada", "australia",
@@ -169,15 +195,65 @@ export function isGlobalContext(a: AlumniForOutcome): boolean {
 
 export function isResearchInnovation(a: AlumniForOutcome): boolean {
   if (!a.isEmployed) return false;
+  if (hasParticipation(a.researchRaw)) return true;
   const pos = (a.currentPosition ?? "").toLowerCase();
   return RESEARCH_KEYWORDS.some((kw) => pos.includes(kw));
 }
 
 export function isCommunityExtension(a: AlumniForOutcome): boolean {
   if (!a.isEmployed) return false;
+  if (hasParticipation(a.communityExtensionRaw)) return true;
   const pos = (a.currentPosition ?? "").toLowerCase();
   return COMMUNITY_KEYWORDS.some((kw) => pos.includes(kw));
 }
+
+export function isLeadershipManagement(a: AlumniForOutcome): boolean {
+  if (!a.isEmployed) return false;
+  const pos = (a.currentPosition ?? "").toLowerCase();
+  return LEADERSHIP_KEYWORDS.some((kw) => pos.includes(kw));
+}
+
+export function isResearchIndustry(a: AlumniForOutcome): boolean {
+  if (!a.isEmployed) return false;
+  const ind = (a.industryType ?? "").toLowerCase();
+  return RESEARCH_INDUSTRY_KEYWORDS.some((kw) => ind.includes(kw));
+}
+
+export function isPOE1(a: AlumniForOutcome): boolean {
+  return isAligned(a) || isGlobalContext(a);
+}
+
+export function isPOE2(a: AlumniForOutcome): boolean {
+  return isLeadershipManagement(a) || isCommunityExtension(a);
+}
+
+export function isPOE3(a: AlumniForOutcome): boolean {
+  return isResearchInnovation(a) || isResearchIndustry(a);
+}
+
+export interface POEGAStats { count: number; percentage: number; }
+export interface POEGAResult {
+  poe1: POEGAStats;
+  poe2: POEGAStats;
+  poe3: POEGAStats;
+  total: number;
+}
+
+export function computePOEStats(alumni: AlumniForOutcome[]): POEGAResult {
+  const total = alumni.length;
+  const pct = (n: number) => total > 0 ? Math.round((n / total) * 100) : 0;
+  const p1 = alumni.filter(isPOE1).length;
+  const p2 = alumni.filter(isPOE2).length;
+  const p3 = alumni.filter(isPOE3).length;
+  return {
+    poe1: { count: p1, percentage: pct(p1) },
+    poe2: { count: p2, percentage: pct(p2) },
+    poe3: { count: p3, percentage: pct(p3) },
+    total,
+  };
+}
+
+export const computeGAStats = computePOEStats;
 
 export interface CollegeGoalStats { count: number; percentage: number; }
 export interface CollegeGoalsResult {

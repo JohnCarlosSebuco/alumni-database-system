@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate, batchYearLabel } from "@/lib/utils/formatters";
-import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals } from "@/lib/utils/courseAlignment";
+import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals, computePOEStats, computeGAStats } from "@/lib/utils/courseAlignment";
 import type { WaitingTimeRow } from "@/lib/utils/courseAlignment";
 import { WaitingTimeChart } from "@/components/dashboard/WaitingTimeChart";
 import type { UserDoc } from "@/lib/types/alumni.types";
@@ -57,6 +57,8 @@ export default function ReportsPage() {
   const cohortRows = useMemo(() => computeCohortBreakdown(results), [results]);
   const waitingTimeRows = useMemo(() => computeWaitingTimeBreakdown(results), [results]);
   const collegeGoals = useMemo(() => computeCollegeGoals(results), [results]);
+  const poeStats = useMemo(() => computePOEStats(results), [results]);
+  const gaStats = useMemo(() => computeGAStats(results), [results]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -254,13 +256,54 @@ export default function ReportsPage() {
       margin: { left: 14, right: 14 },
     });
 
+    // Section F — POE Summary
+    let afterE = (doc as any).lastAutoTable.finalY + 8;
+    if (afterE > 240) { doc.addPage(); afterE = 20; }
+    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("F. Program Educational Objectives (POE)", 14, afterE);
+    autoTable(doc, {
+      startY: afterE + 3,
+      head: [["POE", "Description", "Count", "Percentage"]],
+      body: [
+        ["POE 1", "Professional & Technical Competence", String(poeStats.poe1.count), `${poeStats.poe1.percentage}%`],
+        ["POE 2", "Ethical, Social & Leadership Responsibility", String(poeStats.poe2.count), `${poeStats.poe2.percentage}%`],
+        ["POE 3", "Innovation, Research & Sustainability", String(poeStats.poe3.count), `${poeStats.poe3.percentage}%`],
+      ],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [30, 41, 82] },
+      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 80 }, 2: { halign: "center" }, 3: { halign: "center" } },
+      margin: { left: 14, right: 14 },
+    });
+
+    // Section G — GA Summary
+    let afterF = (doc as any).lastAutoTable.finalY + 8;
+    if (afterF > 240) { doc.addPage(); afterF = 20; }
+    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("G. Graduate Attributes (GA)", 14, afterF);
+    autoTable(doc, {
+      startY: afterF + 3,
+      head: [["GA", "Description", "Count", "Percentage"]],
+      body: [
+        ["GA 1", "Professional & Technical Competence", String(gaStats.poe1.count), `${gaStats.poe1.percentage}%`],
+        ["GA 2", "Ethical, Social, and Leadership Responsibility", String(gaStats.poe2.count), `${gaStats.poe2.percentage}%`],
+        ["GA 3", "Innovation, Research, and Sustainability Orientation", String(gaStats.poe3.count), `${gaStats.poe3.percentage}%`],
+      ],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [30, 41, 82] },
+      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 80 }, 2: { halign: "center" }, 3: { halign: "center" } },
+      margin: { left: 14, right: 14 },
+    });
+
     // Footer note — page 1
-    doc.setFontSize(7); doc.setTextColor(120);
-    doc.text(
-      "Course-aligned placement is determined by job title keyword matching against the graduate\u2019s program of study.",
-      14, 285
-    );
-    doc.setTextColor(0);
+    const afterG = (doc as any).lastAutoTable.finalY;
+    if (afterG < 275) {
+      doc.setFontSize(7); doc.setTextColor(120);
+      doc.text(
+        "Course-aligned placement is determined by job title keyword matching against the graduate\u2019s program of study.",
+        14, 285
+      );
+      doc.setTextColor(0);
+    }
 
     // ── Page 2+: Alumni Registry ──────────────────────────────────────
     doc.addPage();
@@ -488,6 +531,96 @@ export default function ReportsPage() {
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
                       {collegeGoals.goal3.count} ({collegeGoals.goal3.percentage}%)
                     </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <h2 className="font-semibold text-gray-900">Program Educational Objectives (POE)</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Classification of graduates by POE — total count and percentage
+              </p>
+            </div>
+          </CardHeader>
+          <CardBody className="p-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">POE</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Count</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Percentage</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 1</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">Professional &amp; Technical Competence</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe1.count}</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe1.percentage}%</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 2</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">Ethical, Social &amp; Leadership Responsibility</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe2.count}</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe2.percentage}%</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 3</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">Innovation, Research &amp; Sustainability</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe3.count}</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe3.percentage}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <h2 className="font-semibold text-gray-900">Graduate Attributes (GA)</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Classification of graduates by GA — total count and percentage
+              </p>
+            </div>
+          </CardHeader>
+          <CardBody className="p-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">GA</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Count</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Percentage</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 1</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">Professional &amp; Technical Competence</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe1.count}</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe1.percentage}%</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 2</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">Ethical, Social, and Leadership Responsibility</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe2.count}</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe2.percentage}%</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 3</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">Innovation, Research, and Sustainability Orientation</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe3.count}</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe3.percentage}%</td>
                   </tr>
                 </tbody>
               </table>
