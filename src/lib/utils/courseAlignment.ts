@@ -43,6 +43,8 @@ export interface AlumniForOutcome {
   currentPosition?: string;
   // Explicit survey answer — preferred over keyword inference when present
   courseAligned?: boolean;
+  locality?: string;   // residence/work location text
+  isAbroad?: boolean;  // explicit survey flag
 }
 
 function isAligned(a: AlumniForOutcome): boolean {
@@ -129,6 +131,77 @@ export function computeWaitingTimeBreakdown(
     color,
   }));
 }
+
+// ── College Goals ─────────────────────────────────────────────────────────────
+
+const GLOBAL_KEYWORDS = [
+  "usa", "united states", "new york", "california", "canada", "australia",
+  "singapore", "hong kong", "japan", "korea", "south korea", "uae", "dubai",
+  "qatar", "saudi", "saudi arabia", "kuwait", "bahrain", "oman", "uk",
+  "england", "london", "germany", "france", "italy", "spain", "netherlands",
+  "switzerland", "new zealand", "malaysia", "taiwan", "china", "abroad",
+  "overseas", "international", "expat",
+];
+
+const RESEARCH_KEYWORDS = [
+  "research", "r&d", "researcher", "scientist", "innovation", "innovate",
+  "laboratory", "lab technician", "development engineer", "technology",
+  "technologist", "academic", "professor", "faculty", "lecturer",
+  "instructor", "thesis", "publication", "patent", "data scientist",
+  "data analyst", "process engineer", "quality engineer",
+];
+
+const COMMUNITY_KEYWORDS = [
+  "community", "extension", "sustainability", "sustainable", "environmental",
+  "conservation", "ngo", "non-government", "non government", "volunteer",
+  "social worker", "social development", "outreach", "welfare", "public service",
+  "government service", "barangay", "lgu", "deped", "doh", "dswd", "dole",
+  "municipal", "provincial", "city hall", "resource management",
+  "empowerment", "livelihood",
+];
+
+export function isGlobalContext(a: AlumniForOutcome): boolean {
+  if (!a.isEmployed) return false;
+  if (typeof a.isAbroad === "boolean") return a.isAbroad;
+  const loc = (a.locality ?? "").toLowerCase();
+  return GLOBAL_KEYWORDS.some((kw) => loc.includes(kw));
+}
+
+export function isResearchInnovation(a: AlumniForOutcome): boolean {
+  if (!a.isEmployed) return false;
+  const pos = (a.currentPosition ?? "").toLowerCase();
+  return RESEARCH_KEYWORDS.some((kw) => pos.includes(kw));
+}
+
+export function isCommunityExtension(a: AlumniForOutcome): boolean {
+  if (!a.isEmployed) return false;
+  const pos = (a.currentPosition ?? "").toLowerCase();
+  return COMMUNITY_KEYWORDS.some((kw) => pos.includes(kw));
+}
+
+export interface CollegeGoalStats { count: number; percentage: number; }
+export interface CollegeGoalsResult {
+  goal1: CollegeGoalStats;
+  goal2: CollegeGoalStats;
+  goal3: CollegeGoalStats;
+  total: number;
+}
+
+export function computeCollegeGoals(alumni: AlumniForOutcome[]): CollegeGoalsResult {
+  const total = alumni.length;
+  const pct = (n: number) => total > 0 ? Math.round((n / total) * 100) : 0;
+  const g1 = alumni.filter(isGlobalContext).length;
+  const g2 = alumni.filter(isResearchInnovation).length;
+  const g3 = alumni.filter(isCommunityExtension).length;
+  return {
+    goal1: { count: g1, percentage: pct(g1) },
+    goal2: { count: g2, percentage: pct(g2) },
+    goal3: { count: g3, percentage: pct(g3) },
+    total,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 
 export function computeOutcomeRates(alumni: AlumniForOutcome[]): OutcomeRates {
   const currentYear = new Date().getFullYear();

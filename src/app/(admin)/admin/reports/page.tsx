@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate, batchYearLabel } from "@/lib/utils/formatters";
-import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown } from "@/lib/utils/courseAlignment";
+import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals } from "@/lib/utils/courseAlignment";
 import type { WaitingTimeRow } from "@/lib/utils/courseAlignment";
 import { WaitingTimeChart } from "@/components/dashboard/WaitingTimeChart";
 import type { UserDoc } from "@/lib/types/alumni.types";
@@ -56,6 +56,7 @@ export default function ReportsPage() {
   const outcomeRates = useMemo(() => computeOutcomeRates(results), [results]);
   const cohortRows = useMemo(() => computeCohortBreakdown(results), [results]);
   const waitingTimeRows = useMemo(() => computeWaitingTimeBreakdown(results), [results]);
+  const collegeGoals = useMemo(() => computeCollegeGoals(results), [results]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -208,6 +209,47 @@ export default function ReportsPage() {
         0: { cellWidth: 80 },
         1: { halign: "center" },
         2: { halign: "center", fontStyle: "bold" },
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    // Section E — College Goals
+    const afterD = (doc as any).lastAutoTable.finalY + 8;
+    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("E. College Goals", 14, afterD);
+    doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+    doc.text("PEO-to-College Goal mapping: Goal 1 \u2014 Global Context | Goal 2 \u2014 Research/Innovation/Industry | Goal 3 \u2014 Community/Extension/Sustainability", 14, afterD + 5);
+    doc.setTextColor(0);
+    autoTable(doc, {
+      startY: afterD + 9,
+      head: [["Program Educational Objective", "Goal 1\nGlobal Context", "Goal 2\nResearch/Innovation", "Goal 3\nCommunity/Extension"]],
+      body: [
+        [
+          "PEO 1: Professional competence, global and industry excellence.",
+          `${collegeGoals.goal1.count} (${collegeGoals.goal1.percentage}%)`,
+          `${collegeGoals.goal2.count} (${collegeGoals.goal2.percentage}%)`,
+          "\u2014",
+        ],
+        [
+          "PEO 2: Ethics, social responsibility, and community service.",
+          `${collegeGoals.goal1.count} (${collegeGoals.goal1.percentage}%)`,
+          "\u2014",
+          `${collegeGoals.goal3.count} (${collegeGoals.goal3.percentage}%)`,
+        ],
+        [
+          "PEO 3: Innovation, research, extension, and sustainability.",
+          "\u2014",
+          `${collegeGoals.goal2.count} (${collegeGoals.goal2.percentage}%)`,
+          `${collegeGoals.goal3.count} (${collegeGoals.goal3.percentage}%)`,
+        ],
+      ],
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [30, 41, 82] },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { halign: "center" },
+        2: { halign: "center" },
+        3: { halign: "center" },
       },
       margin: { left: 14, right: 14 },
     });
@@ -380,6 +422,78 @@ export default function ReportsPage() {
             </CardBody>
           </Card>
         )}
+
+        <Card>
+          <CardHeader>
+            <div>
+              <h2 className="font-semibold text-gray-900">College Goals</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                PEO-to-College Goal mapping — count and percentage of graduates qualifying per goal
+              </p>
+            </div>
+          </CardHeader>
+          <CardBody className="p-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Program Educational Objective</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
+                      <span className="block">Goal 1</span>
+                      <span className="block font-normal normal-case text-gray-400">Global Context</span>
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
+                      <span className="block">Goal 2</span>
+                      <span className="block font-normal normal-case text-gray-400">Research / Innovation / Industry</span>
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
+                      <span className="block">Goal 3</span>
+                      <span className="block font-normal normal-case text-gray-400">Community / Extension / Sustainability</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs text-gray-700 max-w-xs">
+                      <span className="font-semibold">PEO 1</span> — Graduates shall demonstrate professional competence by applying advanced knowledge and skills in their respective fields, contributing to academic and industry excellence through innovation, research, and continuous learning in both local and global contexts.
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
+                      {collegeGoals.goal1.count} ({collegeGoals.goal1.percentage}%)
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
+                      {collegeGoals.goal2.count} ({collegeGoals.goal2.percentage}%)
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-300">—</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs text-gray-700 max-w-xs">
+                      <span className="font-semibold">PEO 2</span> — Graduates shall exhibit moral integrity, ethical values, and social responsibility by addressing community needs, promoting inclusivity, and upholding professional and societal ethics in their personal and professional undertakings.
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
+                      {collegeGoals.goal1.count} ({collegeGoals.goal1.percentage}%)
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-300">—</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
+                      {collegeGoals.goal3.count} ({collegeGoals.goal3.percentage}%)
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs text-gray-700 max-w-xs">
+                      <span className="font-semibold">PEO 3</span> — Graduates shall engage in innovative research, technological advancement, and extension services that promote environmental sustainability, resource regeneration, and community empowerment in support of national and global development.
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-300">—</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
+                      {collegeGoals.goal2.count} ({collegeGoals.goal2.percentage}%)
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
+                      {collegeGoals.goal3.count} ({collegeGoals.goal3.percentage}%)
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardBody>
+        </Card>
 
         <Card>
           <CardHeader>

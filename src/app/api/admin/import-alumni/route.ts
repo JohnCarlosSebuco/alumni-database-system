@@ -111,6 +111,49 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "waiting time",
     "employment waiting time",
   ],
+  employmentStatus: [
+    "if employed what is your present employment status",
+    "employment status",
+    "present employment status",
+    "employment type",
+  ],
+  companyAddress: [
+    "company   organization address",
+    "company organization address",
+    "company address",
+    "organization address",
+    "office address",
+    "work address",
+  ],
+  industryType: [
+    "major line of business of the company you are currently employed in",
+    "major line of business",
+    "line of business",
+    "industry",
+    "industry type",
+    "business type",
+  ],
+  licensesRaw: [
+    "do you have professional licenses or certifications",
+    "professional licenses",
+    "licenses or certifications",
+    "licenses certifications",
+    "certifications",
+  ],
+  researchRaw: [
+    "have you participated in research innovations or major projects after graduation",
+    "participated in research",
+    "research innovations",
+    "research or innovations",
+    "research projects",
+  ],
+  communityExtensionRaw: [
+    "have you participated in community extension outreach or volunteer programs",
+    "participated in community extension",
+    "community extension outreach",
+    "community extension",
+    "volunteer programs",
+  ],
 };
 
 function normKey(s: string): string {
@@ -195,6 +238,14 @@ function normBatchYear(v: unknown): number | null {
   if (!v) return null;
   const n = Math.round(parseFloat(String(v)));
   return isNaN(n) ? null : n;
+}
+
+/** Combine a Yes/No flag column with its detail column into a single raw string. */
+function buildRaw(yesNo: unknown, detail: unknown): string | null {
+  const flag = normStr(yesNo);
+  const det  = normStr(detail);
+  if (!flag) return null;
+  return det ? `${flag}: ${det}` : flag;
 }
 
 // ── POST ─────────────────────────────────────────────────────────────────────
@@ -288,6 +339,12 @@ export async function POST(req: Request) {
       const honors          = normStr(resolver.get(row, "honors"));
       const courseAligned   = normBoolOrUndef(resolver.get(row, "courseAligned"));
       const timeToFirstJob  = normTimeToFirstJob(resolver.get(row, "timeToFirstJob"));
+      const employmentStatus    = normStr(resolver.get(row, "employmentStatus"));
+      const companyAddress      = normStr(resolver.get(row, "companyAddress"));
+      const industryType        = normStr(resolver.get(row, "industryType"));
+      const licensesRaw         = buildRaw(resolver.get(row, "licensesRaw"), row["If YES, please specify:"]);
+      const researchRaw         = buildRaw(resolver.get(row, "researchRaw"), row["If YES, please specify: 4"]);
+      const communityExtensionRaw = buildRaw(resolver.get(row, "communityExtensionRaw"), row["If YES, please specify: 5"]);
 
       try {
         const tempPassword = crypto.randomBytes(32).toString("hex");
@@ -331,6 +388,12 @@ export async function POST(req: Request) {
         if (honors)                     userDoc.honors = honors;
         if (courseAligned !== undefined) userDoc.courseAligned = courseAligned;
         if (timeToFirstJob)              userDoc.timeToFirstJob = timeToFirstJob;
+        if (employmentStatus)            userDoc.employmentStatus = employmentStatus;
+        if (companyAddress)              userDoc.companyAddress = companyAddress;
+        if (industryType)                userDoc.industryType = industryType;
+        if (licensesRaw)                 userDoc.licensesRaw = licensesRaw;
+        if (researchRaw)                 userDoc.researchRaw = researchRaw;
+        if (communityExtensionRaw)       userDoc.communityExtensionRaw = communityExtensionRaw;
 
         // Strip null values for clean Firestore docs
         const cleanDoc = Object.fromEntries(
@@ -349,12 +412,12 @@ export async function POST(req: Request) {
           address:       locality      ?? "",
           currentEmployment: {
             isEmployed:     isEmployed ?? false,
-            employerName:   currentCompany  ?? "",
-            position:       currentPosition ?? "",
-            industry:       "",
-            employmentType: "",
+            employerName:   currentCompany   ?? "",
+            position:       currentPosition  ?? "",
+            industry:       industryType     ?? "",
+            employmentType: employmentStatus ?? "",
             startDate:      "",
-            city:           "",
+            city:           companyAddress   ?? "",
           },
           education:          [],
           employmentHistory:  [],

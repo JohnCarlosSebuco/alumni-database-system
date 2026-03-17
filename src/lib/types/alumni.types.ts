@@ -30,8 +30,16 @@ export interface UserDoc {
   employmentStatus?: string;
   // Course alignment — explicit answer from survey, overrides keyword inference
   courseAligned?: boolean;
+  // Whether the alumni is currently working/residing abroad
+  isAbroad?: boolean;
   // How long after graduation the alumni landed their first job — survey answer
   timeToFirstJob?: "lt3mo" | "3to6mo" | "7to12mo" | "gt1yr" | "not_yet";
+  // Rich-text fields from survey
+  companyAddress?: string;          // Company / Organization Address
+  industryType?: string;            // Major line of business
+  licensesRaw?: string;             // Free-text: licenses/certifications held
+  researchRaw?: string;             // Free-text: research/innovation participation
+  communityExtensionRaw?: string;   // Free-text: community extension participation
   // Import / claim tracking
   importedByAdmin?: boolean;
   isClaimed?: boolean;

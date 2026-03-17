@@ -35,6 +35,14 @@ const ALIASES: Record<string, string[]> = {
     "course related job",
     "first job related to course",
   ],
+  isAbroad: [
+    "are you working abroad",
+    "working abroad",
+    "work abroad",
+    "currently working abroad",
+    "overseas worker",
+    "ofw",
+  ],
 };
 
 function normKey(s: string): string {
@@ -123,9 +131,10 @@ export async function POST(req: Request) {
 
       const timeToFirstJob = normTimeToFirstJob(resolver.get(row, "timeToFirstJob"));
       const courseAligned  = normBoolOrUndef(resolver.get(row, "courseAligned"));
+      const isAbroad       = normBoolOrUndef(resolver.get(row, "isAbroad"));
 
       // Nothing to update from this row
-      if (timeToFirstJob === undefined && courseAligned === undefined) { skipped++; continue; }
+      if (timeToFirstJob === undefined && courseAligned === undefined && isAbroad === undefined) { skipped++; continue; }
 
       try {
         // Find user by email in Firestore
@@ -140,6 +149,7 @@ export async function POST(req: Request) {
         const updates: Record<string, unknown> = { updatedAt: now };
         if (timeToFirstJob !== undefined) updates.timeToFirstJob = timeToFirstJob;
         if (courseAligned !== undefined)  updates.courseAligned  = courseAligned;
+        if (isAbroad !== undefined)       updates.isAbroad       = isAbroad;
 
         await snap.docs[0].ref.update(updates);
         updated++;
