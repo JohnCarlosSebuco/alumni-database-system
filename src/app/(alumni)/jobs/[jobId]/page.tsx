@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
-  MapPin, Clock, Users, Briefcase, ArrowLeft, Upload,
+  MapPin, Clock, Users, Briefcase, ArrowLeft, Upload, Pencil, XCircle,
 } from "lucide-react";
 import { db, doc, getDoc, setDoc, updateDoc, increment, applicantRef, jobRef } from "@/lib/firebase/firestore";
 import { uploadResume } from "@/lib/cloudinary/upload";
@@ -33,6 +34,7 @@ export default function JobDetailPage() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     if (!jobId) return;
@@ -73,6 +75,22 @@ export default function JobDetailPage() {
       toastError("Failed to submit application. Please try again.");
     } finally {
       setApplying(false);
+    }
+  };
+
+  const isOwner = !!user && job?.postedBy === user.uid;
+
+  const handleClose = async () => {
+    if (!jobId) return;
+    setClosing(true);
+    try {
+      await updateDoc(jobRef(jobId), { status: "closed", updatedAt: new Date().toISOString() });
+      setJob((prev) => prev ? { ...prev, status: "closed" } : prev);
+      success("Job posting closed.");
+    } catch {
+      toastError("Failed to close job posting.");
+    } finally {
+      setClosing(false);
     }
   };
 
@@ -125,7 +143,31 @@ export default function JobDetailPage() {
                 </div>
               ))}
 
-              {applied ? (
+              {isOwner ? (
+                <>
+                  <Link href={`/jobs/${jobId}/edit`} className="block w-full">
+                    <Button variant="secondary" className="w-full" leftIcon={<Pencil size={14} />}>
+                      Edit Posting
+                    </Button>
+                  </Link>
+                  {job.status !== "closed" && (
+                    <Button
+                      variant="ghost"
+                      className="w-full text-error hover:text-error"
+                      leftIcon={<XCircle size={14} />}
+                      loading={closing}
+                      onClick={handleClose}
+                    >
+                      Close Posting
+                    </Button>
+                  )}
+                  {job.status === "closed" && (
+                    <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-500 font-medium text-center">
+                      This posting is closed
+                    </div>
+                  )}
+                </>
+              ) : applied ? (
                 <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800 font-medium text-center">
                   ✓ You have applied
                 </div>

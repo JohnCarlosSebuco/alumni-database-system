@@ -13,9 +13,11 @@ interface JobFormProps {
   defaultValues?: Partial<JobFormInput>;
   onSubmit: (data: JobFormInput) => Promise<void>;
   loading?: boolean;
+  hideStatus?: boolean;
+  statusOptions?: { value: string; label: string }[];
 }
 
-export function JobForm({ defaultValues, onSubmit, loading }: JobFormProps) {
+export function JobForm({ defaultValues, onSubmit, loading, hideStatus, statusOptions }: JobFormProps) {
   const { register, handleSubmit, formState: { errors } } = useForm<JobFormInput>({
     resolver: zodResolver(jobFormSchema),
     defaultValues: {
@@ -67,16 +69,18 @@ export function JobForm({ defaultValues, onSubmit, loading }: JobFormProps) {
         <label htmlFor="isRemote" className="text-sm text-gray-700">This is a remote position</label>
       </div>
 
-      <Select
-        label="Status"
-        options={[
-          { value: "draft",  label: "Draft" },
-          { value: "active", label: "Active (visible to alumni)" },
-          { value: "closed", label: "Closed" },
-        ]}
-        error={errors.status?.message}
-        {...register("status")}
-      />
+      {!hideStatus && (
+        <Select
+          label="Status"
+          options={statusOptions ?? [
+            { value: "draft",  label: "Draft" },
+            { value: "active", label: "Active (visible to alumni)" },
+            { value: "closed", label: "Closed" },
+          ]}
+          error={errors.status?.message}
+          {...register("status")}
+        />
+      )}
 
       <div className="flex justify-end pt-2">
         <Button type="submit" variant="primary" loading={loading} size="lg">

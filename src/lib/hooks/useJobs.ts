@@ -14,9 +14,10 @@ import type { Job } from "@/lib/types/job.types";
 interface UseJobsOptions {
   adminView?: boolean;
   statusFilter?: string;
+  postedBy?: string;
 }
 
-export function useJobs({ adminView = false, statusFilter }: UseJobsOptions = {}) {
+export function useJobs({ adminView = false, statusFilter, postedBy }: UseJobsOptions = {}) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +27,13 @@ export function useJobs({ adminView = false, statusFilter }: UseJobsOptions = {}
       orderBy("createdAt", "desc")
     );
 
-    if (!adminView) {
+    if (postedBy) {
+      q = query(
+        collection(db, "jobs"),
+        where("postedBy", "==", postedBy),
+        orderBy("createdAt", "desc")
+      );
+    } else if (!adminView) {
       q = query(
         collection(db, "jobs"),
         where("status", "==", "active"),
@@ -52,7 +59,7 @@ export function useJobs({ adminView = false, statusFilter }: UseJobsOptions = {}
       }
     );
     return () => unsub();
-  }, [adminView, statusFilter]);
+  }, [adminView, statusFilter, postedBy]);
 
   return { jobs, loading };
 }
