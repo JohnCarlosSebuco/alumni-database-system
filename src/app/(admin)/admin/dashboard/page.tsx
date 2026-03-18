@@ -18,8 +18,8 @@ import { PageLoader } from "@/components/ui/Spinner";
 import { formatRelativeTime } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
 import type { UserDoc } from "@/lib/types/alumni.types";
-import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown } from "@/lib/utils/courseAlignment";
-import type { OutcomeRates, CohortRow, WaitingTimeRow } from "@/lib/utils/courseAlignment";
+import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeIntervalOutcomes, computeIntervalOutcomesByDept } from "@/lib/utils/courseAlignment";
+import type { OutcomeRates, CohortRow, WaitingTimeRow, IntervalOutcomeRow, IntervalBucket, IntervalOutcomeByDept } from "@/lib/utils/courseAlignment";
 import { WaitingTimeChart } from "@/components/dashboard/WaitingTimeChart";
 
 export const dynamic = "force-dynamic";
@@ -102,6 +102,9 @@ export default function AdminDashboardPage() {
   const [recentAlumni, setRecentAlumni] = useState<UserDoc[]>([]);
   const [deptData, setDeptData] = useState<{ name: string; value: number }[]>([]);
   const [empData, setEmpData] = useState<{ department: string; employed: number; total: number }[]>([]);
+  const [intervalOutcomes, setIntervalOutcomes] = useState<IntervalOutcomeRow[]>([]);
+  const [intervalByDept, setIntervalByDept] = useState<IntervalOutcomeByDept[]>([]);
+  const [intervalView, setIntervalView] = useState<"batch" | "dept">("batch");
 
   useEffect(() => {
     async function load() {
@@ -135,6 +138,8 @@ export default function AdminDashboardPage() {
         setOutcomeRates(computeOutcomeRates(alumniDocs));
         setCohortRows(computeCohortBreakdown(alumniDocs));
         setWaitingTimeRows(computeWaitingTimeBreakdown(alumniDocs));
+        setIntervalOutcomes(computeIntervalOutcomes(alumniDocs));
+        setIntervalByDept(computeIntervalOutcomesByDept(alumniDocs));
         setStats({
           alumni: totalAlumni,
           jobs: jobsSnap.size,
@@ -435,6 +440,102 @@ export default function AdminDashboardPage() {
                       <td className="px-4 py-3 text-xs font-semibold text-indigo-700">{row.alignmentRate}%</td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* ── Interval Outcomes ── */}
+      {intervalOutcomes.some((r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0) && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
+                </p>
+              </div>
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                <button
+                  type="button"
+                  className={cn("px-3 py-1.5 text-xs font-medium transition-colors", intervalView === "batch" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50")}
+                  onClick={() => setIntervalView("batch")}
+                >
+                  By Batch Year
+                </button>
+                <button
+                  type="button"
+                  className={cn("px-3 py-1.5 text-xs font-medium transition-colors border-l border-gray-200", intervalView === "dept" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50")}
+                  onClick={() => setIntervalView("dept")}
+                >
+                  By Department
+                </button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardBody className="p-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch Year</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">1 Year</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">2 Years</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">5 Years</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">8 Years</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {intervalView === "batch" ? (
+                    intervalOutcomes.map((row) => (
+                      <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                        <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                        {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
+                          <td key={i} className="px-4 py-3 text-center text-xs">
+                            {b.responded > 0 ? (
+                              <span className="font-semibold text-green-700">
+                                {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                              </span>
+                            ) : (
+                              <span className="text-gray-300">&mdash;</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    intervalByDept.map((dept) => (
+                      <React.Fragment key={dept.course}>
+                        <tr className="bg-indigo-50">
+                          <td colSpan={6} className="px-4 py-2.5 text-xs font-bold text-indigo-900">
+                            {dept.label}
+                          </td>
+                        </tr>
+                        {dept.rows.map((row) => (
+                          <tr key={`${dept.course}-${row.batchYear}`} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 pl-8 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                            <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                            {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
+                              <td key={i} className="px-4 py-3 text-center text-xs">
+                                {b.responded > 0 ? (
+                                  <span className="font-semibold text-green-700">
+                                    {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-300">&mdash;</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

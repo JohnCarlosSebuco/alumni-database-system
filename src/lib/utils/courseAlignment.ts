@@ -309,6 +309,30 @@ export interface IntervalOutcomeRow {
   at8yr: IntervalBucket;
 }
 
+export interface IntervalOutcomeByDept {
+  course: string;
+  label: string;
+  rows: IntervalOutcomeRow[];
+}
+
+export function computeIntervalOutcomesByDept(alumni: AlumniForOutcome[]): IntervalOutcomeByDept[] {
+  const byCourse = new Map<string, AlumniForOutcome[]>();
+  for (const a of alumni) {
+    if (!a.course) continue;
+    if (!byCourse.has(a.course)) byCourse.set(a.course, []);
+    byCourse.get(a.course)!.push(a);
+  }
+
+  return Array.from(byCourse.entries())
+    .map(([course, group]) => ({
+      course,
+      label: course.replace("Bachelor of Science in ", "BS "),
+      rows: computeIntervalOutcomes(group),
+    }))
+    .filter((d) => d.rows.some((r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
 export function computeIntervalOutcomes(alumni: AlumniForOutcome[]): IntervalOutcomeRow[] {
   const map = new Map<number, {
     total: number;

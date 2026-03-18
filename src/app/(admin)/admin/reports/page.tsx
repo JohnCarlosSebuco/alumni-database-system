@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate, batchYearLabel } from "@/lib/utils/formatters";
-import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals, computePOEStats, computeGAStats, computeIntervalOutcomes } from "@/lib/utils/courseAlignment";
-import type { WaitingTimeRow, IntervalOutcomeRow, IntervalBucket } from "@/lib/utils/courseAlignment";
+import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals, computePOEStats, computeGAStats, computeIntervalOutcomes, computeIntervalOutcomesByDept } from "@/lib/utils/courseAlignment";
+import type { WaitingTimeRow, IntervalOutcomeRow, IntervalBucket, IntervalOutcomeByDept } from "@/lib/utils/courseAlignment";
 import { WaitingTimeChart } from "@/components/dashboard/WaitingTimeChart";
 import type { UserDoc } from "@/lib/types/alumni.types";
 
@@ -40,6 +40,7 @@ export default function ReportsPage() {
   const [results, setResults] = useState<UserDoc[]>([]);
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [intervalView, setIntervalView] = useState<"batch" | "dept">("batch");
 
   const employmentStats = useMemo(() => {
     if (!results.length) return { employed: 0, unemployed: 0, employmentRate: 0, unemploymentRate: 0 };
@@ -60,6 +61,7 @@ export default function ReportsPage() {
   const poeStats = useMemo(() => computePOEStats(results), [results]);
   const gaStats = useMemo(() => computeGAStats(results), [results]);
   const intervalOutcomes = useMemo(() => computeIntervalOutcomes(results), [results]);
+  const intervalByDept = useMemo(() => computeIntervalOutcomesByDept(results), [results]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -298,40 +300,85 @@ export default function ReportsPage() {
     // Section H — Employment Outcomes by Year Interval
     let afterG = (doc as any).lastAutoTable.finalY + 8;
     if (afterG > 240) { doc.addPage(); afterG = 20; }
-    const intervalRows = intervalOutcomes.filter(
-      (r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0
-    );
-    if (intervalRows.length > 0) {
-      doc.setFontSize(10); doc.setFont("helvetica", "bold");
-      doc.text("H. Employment Outcomes by Year Interval", 14, afterG);
-      doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
-      doc.text("Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses).", 14, afterG + 5);
-      doc.setTextColor(0);
-      const fmtBucket = (b: IntervalBucket) =>
-        b.responded > 0 ? `${b.rate}% (${b.employed}/${b.responded})` : "\u2014";
-      autoTable(doc, {
-        startY: afterG + 9,
-        head: [["Batch Year", "Total", "1 Year", "2 Years", "5 Years", "8 Years"]],
-        body: intervalRows.map((row) => [
-          String(row.batchYear),
-          String(row.total),
-          fmtBucket(row.at1yr),
-          fmtBucket(row.at2yr),
-          fmtBucket(row.at5yr),
-          fmtBucket(row.at8yr),
-        ]),
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [30, 41, 82] },
-        columnStyles: {
-          0: { halign: "center" },
-          1: { halign: "center" },
-          2: { halign: "center" },
-          3: { halign: "center" },
-          4: { halign: "center" },
-          5: { halign: "center" },
-        },
-        margin: { left: 14, right: 14 },
-      });
+    const fmtBucket = (b: IntervalBucket) =>
+      b.responded > 0 ? `${b.rate}% (${b.employed}/${b.responded})` : "\u2014";
+
+    if (intervalView === "batch") {
+      const intervalRows = intervalOutcomes.filter(
+        (r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0
+      );
+      if (intervalRows.length > 0) {
+        doc.setFontSize(10); doc.setFont("helvetica", "bold");
+        doc.text("H. Employment Outcomes by Year Interval", 14, afterG);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+        doc.text("Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses).", 14, afterG + 5);
+        doc.setTextColor(0);
+        autoTable(doc, {
+          startY: afterG + 9,
+          head: [["Batch Year", "Total", "1 Year", "2 Years", "5 Years", "8 Years"]],
+          body: intervalRows.map((row) => [
+            String(row.batchYear),
+            String(row.total),
+            fmtBucket(row.at1yr),
+            fmtBucket(row.at2yr),
+            fmtBucket(row.at5yr),
+            fmtBucket(row.at8yr),
+          ]),
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [30, 41, 82] },
+          columnStyles: {
+            0: { halign: "center" },
+            1: { halign: "center" },
+            2: { halign: "center" },
+            3: { halign: "center" },
+            4: { halign: "center" },
+            5: { halign: "center" },
+          },
+          margin: { left: 14, right: 14 },
+        });
+      }
+    } else {
+      if (intervalByDept.length > 0) {
+        doc.setFontSize(10); doc.setFont("helvetica", "bold");
+        doc.text("H. Employment Outcomes by Year Interval (by Department)", 14, afterG);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+        doc.text("Employment rate at 1, 2, 5, and 8 years after graduation, grouped by department.", 14, afterG + 5);
+        doc.setTextColor(0);
+        const deptBody: (string | { content: string; colSpan: number; styles: Record<string, unknown> })[][] = [];
+        for (const dept of intervalByDept) {
+          deptBody.push([{
+            content: dept.label,
+            colSpan: 6,
+            styles: { fontStyle: "bold", fillColor: [224, 231, 255], textColor: [49, 46, 129] },
+          }]);
+          for (const row of dept.rows) {
+            deptBody.push([
+              String(row.batchYear),
+              String(row.total),
+              fmtBucket(row.at1yr),
+              fmtBucket(row.at2yr),
+              fmtBucket(row.at5yr),
+              fmtBucket(row.at8yr),
+            ]);
+          }
+        }
+        autoTable(doc, {
+          startY: afterG + 9,
+          head: [["Batch Year", "Total", "1 Year", "2 Years", "5 Years", "8 Years"]],
+          body: deptBody,
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [30, 41, 82] },
+          columnStyles: {
+            0: { halign: "center" },
+            1: { halign: "center" },
+            2: { halign: "center" },
+            3: { halign: "center" },
+            4: { halign: "center" },
+            5: { halign: "center" },
+          },
+          margin: { left: 14, right: 14 },
+        });
+      }
     }
 
     // Footer note — page 1
@@ -493,11 +540,29 @@ export default function ReportsPage() {
           {intervalOutcomes.some((r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0) && (
             <Card>
               <CardHeader>
-                <div>
-                  <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
-                  </p>
+                <div className="flex items-center justify-between w-full">
+                  <div>
+                    <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
+                    </p>
+                  </div>
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                    <button
+                      type="button"
+                      className={`px-3 py-1.5 text-xs font-medium transition-colors ${intervalView === "batch" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+                      onClick={() => setIntervalView("batch")}
+                    >
+                      By Batch Year
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-3 py-1.5 text-xs font-medium transition-colors border-l border-gray-200 ${intervalView === "dept" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+                      onClick={() => setIntervalView("dept")}
+                    >
+                      By Department
+                    </button>
+                  </div>
                 </div>
               </CardHeader>
               <CardBody className="p-0">
@@ -514,23 +579,52 @@ export default function ReportsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {intervalOutcomes.map((row) => (
-                        <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
-                          <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
-                          {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
-                            <td key={i} className="px-4 py-3 text-center text-xs">
-                              {b.responded > 0 ? (
-                                <span className="font-semibold text-green-700">
-                                  {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
-                                </span>
-                              ) : (
-                                <span className="text-gray-300">&mdash;</span>
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
+                      {intervalView === "batch" ? (
+                        intervalOutcomes.map((row) => (
+                          <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                            <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                            {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
+                              <td key={i} className="px-4 py-3 text-center text-xs">
+                                {b.responded > 0 ? (
+                                  <span className="font-semibold text-green-700">
+                                    {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-300">&mdash;</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        ))
+                      ) : (
+                        intervalByDept.map((dept) => (
+                          <React.Fragment key={dept.course}>
+                            <tr className="bg-indigo-50">
+                              <td colSpan={6} className="px-4 py-2.5 text-xs font-bold text-indigo-900">
+                                {dept.label}
+                              </td>
+                            </tr>
+                            {dept.rows.map((row) => (
+                              <tr key={`${dept.course}-${row.batchYear}`} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-4 py-3 pl-8 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                                <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                                {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
+                                  <td key={i} className="px-4 py-3 text-center text-xs">
+                                    {b.responded > 0 ? (
+                                      <span className="font-semibold text-green-700">
+                                        {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-gray-300">&mdash;</span>
+                                    )}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
