@@ -22,7 +22,9 @@ import { useToast } from "@/components/ui/Toast";
 import { PageLoader } from "@/components/ui/Spinner";
 import { step1Schema, step2Schema, step3Schema, type Step1Input, type Step2Input, type Step3Input } from "@/lib/utils/validators";
 import { ChevronRight, ChevronLeft, Camera, Plus, Trash2 } from "lucide-react";
-import type { EmploymentHistory, Education, License, Award, Research, CommunityExtension } from "@/lib/types/alumni.types";
+import type { EmploymentHistory, Education, License, Award, Research, CommunityExtension, Training } from "@/lib/types/alumni.types";
+import { calculateProfileComplete } from "@/lib/utils/profileComplete";
+import { SurveyDataBanner } from "@/components/profile/SurveyDataBanner";
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +32,7 @@ const STEPS = [
   "Personal Info",
   "Academic Background",
   "Current Employment",
-  "Education & History",
+  "Education, Training & History",
   "Licenses & Certs",
   "Awards & Recognition",
   "Research & Projects",
@@ -74,6 +76,7 @@ export default function EditProfilePage() {
   const [awards, setAwards] = useState<Award[]>([]);
   const [research, setResearch] = useState<Research[]>([]);
   const [communityExtension, setCommunityExtension] = useState<CommunityExtension[]>([]);
+  const [training, setTraining] = useState<Training[]>([]);
   const [timeToFirstJob, setTimeToFirstJob] = useState<string>("");
 
   useEffect(() => {
@@ -84,6 +87,7 @@ export default function EditProfilePage() {
       setAwards(profile.awards ?? []);
       setResearch(profile.research ?? []);
       setCommunityExtension(profile.communityExtension ?? []);
+      setTraining(profile.training ?? []);
     }
   }, [profile]);
 
@@ -185,6 +189,7 @@ export default function EditProfilePage() {
         awards,
         research,
         communityExtension,
+        training,
       }, { merge: true });
 
       const userUpdates: Record<string, unknown> = {
@@ -192,7 +197,18 @@ export default function EditProfilePage() {
         department: d2.department,
         course: d2.course,
         displayName: `${d1.firstName} ${d1.lastName}`,
-        profileComplete: 80,
+        profileComplete: calculateProfileComplete({
+          firstName: d1.firstName, lastName: d1.lastName,
+          birthDate: d1.birthDate, gender: d1.gender,
+          contactNumber: d1.contactNumber, address: d1.address,
+          batchYear: d2.batchYear, course: d2.course, department: d2.department,
+          isEmployed: d3.isEmployed,
+          currentEmployment: d3,
+          licenses, research, communityExtension,
+          licensesRaw: userDoc.licensesRaw,
+          researchRaw: userDoc.researchRaw,
+          communityExtensionRaw: userDoc.communityExtensionRaw,
+        }),
         isEmployed: d3.isEmployed,
         currentPosition: d3.isEmployed ? (d3.position ?? "") : "",
         updatedAt: new Date().toISOString(),
@@ -240,6 +256,11 @@ export default function EditProfilePage() {
     id: nanoid(), programName: "", organization: "", role: "", startDate: "", endDate: "",
   }]);
   const removeCommunity = (id: string) => setCommunityExtension((prev) => prev.filter((c) => c.id !== id));
+
+  const addTraining = () => setTraining((prev) => [...prev, {
+    id: nanoid(), title: "", provider: "", dateCompleted: "", certificateURL: "", description: "",
+  }]);
+  const removeTraining = (id: string) => setTraining((prev) => prev.filter((t) => t.id !== id));
 
   return (
     <div className="space-y-6">
@@ -397,6 +418,35 @@ export default function EditProfilePage() {
               </div>
 
               <div>
+                {userDoc.trainingRaw && <SurveyDataBanner label="Professional Training & Seminars" rawText={userDoc.trainingRaw} />}
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">Training & Seminars</h3>
+                  <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addTraining}>Add</Button>
+                </div>
+                <div className="space-y-4">
+                  {training.map((t, idx) => (
+                    <div key={t.id} className="rounded-xl border border-gray-200 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-600">Training #{idx + 1}</span>
+                        <button onClick={() => removeTraining(t.id)} className="text-error hover:text-red-700">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <Input label="Title" value={t.title} onChange={(e) => setTraining((prev) => prev.map((x) => x.id === t.id ? { ...x, title: e.target.value } : x))} className="sm:col-span-2" />
+                        <Input label="Provider" value={t.provider} onChange={(e) => setTraining((prev) => prev.map((x) => x.id === t.id ? { ...x, provider: e.target.value } : x))} />
+                        <Input label="Date Completed" type="date" value={t.dateCompleted} onChange={(e) => setTraining((prev) => prev.map((x) => x.id === t.id ? { ...x, dateCompleted: e.target.value } : x))} />
+                      </div>
+                      <Textarea label="Description" rows={2} value={t.description} onChange={(e) => setTraining((prev) => prev.map((x) => x.id === t.id ? { ...x, description: e.target.value } : x))} />
+                    </div>
+                  ))}
+                  {training.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-4">No training entries yet. Click Add to create one.</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-base font-semibold text-gray-900">Employment History</h3>
                   <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addHistory}>Add</Button>
@@ -427,6 +477,7 @@ export default function EditProfilePage() {
           {/* Step 4 — Licenses & Certifications */}
           {step === 4 && (
             <div className="space-y-6">
+              {userDoc.licensesRaw && <SurveyDataBanner label="Licenses & Certifications" rawText={userDoc.licensesRaw} />}
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-gray-900">Licenses & Certifications</h3>
                 <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addLicense}>Add</Button>
@@ -456,6 +507,7 @@ export default function EditProfilePage() {
           {/* Step 5 — Awards & Recognition */}
           {step === 5 && (
             <div className="space-y-6">
+              {userDoc.awardsRaw && <SurveyDataBanner label="Awards & Recognition" rawText={userDoc.awardsRaw} />}
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-gray-900">Awards & Recognition</h3>
                 <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addAward}>Add</Button>
@@ -485,6 +537,7 @@ export default function EditProfilePage() {
           {/* Step 6 — Research & Projects */}
           {step === 6 && (
             <div className="space-y-6">
+              {userDoc.researchRaw && <SurveyDataBanner label="Research & Innovation" rawText={userDoc.researchRaw} />}
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-gray-900">Research & Projects</h3>
                 <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addResearch}>Add</Button>
@@ -515,6 +568,7 @@ export default function EditProfilePage() {
           {/* Step 7 — Community Extension */}
           {step === 7 && (
             <div className="space-y-6">
+              {userDoc.communityExtensionRaw && <SurveyDataBanner label="Community Extension" rawText={userDoc.communityExtensionRaw} />}
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-gray-900">Community Extension</h3>
                 <Button variant="outline" size="sm" leftIcon={<Plus size={14} />} onClick={addCommunity}>Add</Button>

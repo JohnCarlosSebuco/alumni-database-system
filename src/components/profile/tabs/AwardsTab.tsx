@@ -1,22 +1,27 @@
 import React from "react";
 import { Trophy } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { AlumniProfile } from "@/lib/types/alumni.types";
+import { SurveyDataBanner } from "@/components/profile/SurveyDataBanner";
+import type { AlumniProfile, UserDoc } from "@/lib/types/alumni.types";
 
-interface Props { profile: AlumniProfile }
+interface Props { profile: AlumniProfile; userDoc?: UserDoc }
 
-export function AwardsTab({ profile }: Props) {
-  if (!profile.awards?.length) {
+export function AwardsTab({ profile, userDoc }: Props) {
+  const hasItems = profile.awards?.length > 0;
+  const hasSurvey = userDoc?.awardsRaw;
+
+  if (!hasItems && !hasSurvey) {
     return (
       <EmptyState
         icon={<Trophy size={40} />}
-        title="No awards"
+        title="No awards or recognitions added yet."
         description="Add awards and recognitions in the profile editor."
       />
     );
   }
   return (
     <div className="space-y-4">
+      {hasSurvey && <SurveyDataBanner label="Awards & Recognition" rawText={userDoc.awardsRaw!} />}
       {profile.awards.map((a) => (
         <div key={a.id} className="rounded-xl border border-gray-100 p-4">
           <div className="flex items-start gap-3">

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import admin from "@/lib/firebase/admin";
 import crypto from "crypto";
 import { read, utils } from "xlsx";
+import { calculateProfileComplete } from "@/lib/utils/profileComplete";
 
 // ── Auth helper ──────────────────────────────────────────────────────────────
 async function verifyAdminCaller(req: Request) {
@@ -154,6 +155,18 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "community extension",
     "volunteer programs",
   ],
+  awardsRaw: [
+    "have you received any academic or professional awards recognition",
+    "academic or professional awards",
+    "awards recognition",
+    "awards received",
+  ],
+  trainingRaw: [
+    "have you attended professional training seminars",
+    "professional training seminars",
+    "training seminars",
+    "professional training",
+  ],
   jobAt1yr: [
     "job within 1 year from graduation",
     "job at 1 year", "1 year job", "job 1yr",
@@ -264,6 +277,26 @@ function buildRaw(yesNo: unknown, detail: unknown): string | null {
   return det ? `${flag}: ${det}` : flag;
 }
 
+/** Extract meaningful detail text from a raw "Yes: <detail>" string. */
+function extractDetail(raw: string | null): string | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  const stripped = s.replace(/^(yes|no)\s*:\s*/i, "").trim();
+  if (!stripped) return null;
+  const lower = stripped.toLowerCase();
+  if (["n/a", "na", "none", "yes", "no", ""].includes(lower)) return null;
+  return stripped;
+}
+
+/** Parse degree string into { degree, fieldOfStudy }. */
+function parseDegree(courseStr: string): { degree: string; fieldOfStudy: string } {
+  const parts = courseStr.split(" in ");
+  if (parts.length >= 2) {
+    return { degree: parts[0].trim(), fieldOfStudy: parts.slice(1).join(" in ").trim() };
+  }
+  return { degree: courseStr.trim(), fieldOfStudy: "" };
+}
+
 // ── POST ─────────────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
   try {
@@ -361,6 +394,8 @@ export async function POST(req: Request) {
       const licensesRaw         = buildRaw(resolver.get(row, "licensesRaw"), row["If YES, please specify:"]);
       const researchRaw         = buildRaw(resolver.get(row, "researchRaw"), row["If YES, please specify: 4"]);
       const communityExtensionRaw = buildRaw(resolver.get(row, "communityExtensionRaw"), row["If YES, please specify: 5"]);
+      const awardsRaw         = buildRaw(resolver.get(row, "awardsRaw"), row["If YES, please specify: 3"]);
+      const trainingRaw       = buildRaw(resolver.get(row, "trainingRaw"), row["If YES, please specify: 2"]);
       const jobAt1yr = normStr(resolver.get(row, "jobAt1yr"));
       const jobAt2yr = normStr(resolver.get(row, "jobAt2yr"));
       const jobAt5yr = normStr(resolver.get(row, "jobAt5yr"));
@@ -414,10 +449,25 @@ export async function POST(req: Request) {
         if (licensesRaw)                 userDoc.licensesRaw = licensesRaw;
         if (researchRaw)                 userDoc.researchRaw = researchRaw;
         if (communityExtensionRaw)       userDoc.communityExtensionRaw = communityExtensionRaw;
+        if (awardsRaw)                   userDoc.awardsRaw = awardsRaw;
+        if (trainingRaw)                 userDoc.trainingRaw = trainingRaw;
         if (jobAt1yr)                    userDoc.jobAt1yr = jobAt1yr;
         if (jobAt2yr)                    userDoc.jobAt2yr = jobAt2yr;
         if (jobAt5yr)                    userDoc.jobAt5yr = jobAt5yr;
         if (jobAt8yr)                    userDoc.jobAt8yr = jobAt8yr;
+
+        // Dynamically calculate profile completion
+        userDoc.profileComplete = calculateProfileComplete({
+          firstName, lastName, birthday, sex: sex ?? undefined,
+          contactNumber: contactNumber ?? undefined,
+          locality: locality ?? undefined,
+          batchYear, course, department: "College of Engineering",
+          isEmployed, currentCompany: currentCompany ?? undefined,
+          currentPosition: currentPosition ?? undefined,
+          licensesRaw: licensesRaw ?? undefined,
+          researchRaw: researchRaw ?? undefined,
+          communityExtensionRaw: communityExtensionRaw ?? undefined,
+        });
 
         // Strip null values for clean Firestore docs
         const cleanDoc = Object.fromEntries(
@@ -425,6 +475,43 @@ export async function POST(req: Request) {
         );
 
         await admin.firestore().collection("users").doc(userRecord.uid).set(cleanDoc);
+
+        // Build structured arrays from raw survey data
+        const educationArr: Record<string, unknown>[] = [];
+        if (course) {
+          const { degree: degStr, fieldOfStudy } = parseDegree(course);
+          const honorsVal = normStr(resolver.get(row, "honors"));
+          const honorsClean = honorsVal && !["n/a", "na", "none"].includes(honorsVal.toLowerCase()) && !/^\d+\s*[a-z]$/i.test(honorsVal.trim()) ? honorsVal : "";
+          educationArr.push({
+            id: crypto.randomBytes(10).toString("hex"),
+            institution: "Southern Luzon State University",
+            degree: degStr,
+            fieldOfStudy,
+            yearStarted: batchYear ? batchYear - 4 : 0,
+            yearEnded: batchYear ?? null,
+            honors: honorsClean,
+          });
+        }
+
+        const licensesArr: Record<string, unknown>[] = [];
+        const licDetail = extractDetail(licensesRaw);
+        if (licDetail) licensesArr.push({ id: crypto.randomBytes(10).toString("hex"), name: licDetail, issuingBody: "", licenseNumber: "", dateIssued: "", fileURL: "" });
+
+        const awardsArr: Record<string, unknown>[] = [];
+        const awardDetail = extractDetail(awardsRaw);
+        if (awardDetail) awardsArr.push({ id: crypto.randomBytes(10).toString("hex"), title: awardDetail, grantedBy: "", year: 0, description: "" });
+
+        const researchArr: Record<string, unknown>[] = [];
+        const researchDetail = extractDetail(researchRaw);
+        if (researchDetail) researchArr.push({ id: crypto.randomBytes(10).toString("hex"), title: researchDetail, coAuthors: "", publishedIn: "", year: 0, doiOrLink: "" });
+
+        const communityArr: Record<string, unknown>[] = [];
+        const communityDetail = extractDetail(communityExtensionRaw);
+        if (communityDetail) communityArr.push({ id: crypto.randomBytes(10).toString("hex"), programName: communityDetail, organization: "", role: "", startDate: "", endDate: "" });
+
+        const trainingArr: Record<string, unknown>[] = [];
+        const trainingDetail = extractDetail(trainingRaw);
+        if (trainingDetail) trainingArr.push({ id: crypto.randomBytes(10).toString("hex"), title: trainingDetail, provider: "", dateCompleted: "", certificateURL: "", description: "" });
 
         const profileDoc: Record<string, unknown> = {
           firstName,
@@ -443,12 +530,13 @@ export async function POST(req: Request) {
             startDate:      "",
             city:           companyAddress   ?? "",
           },
-          education:          [],
+          education:          educationArr,
           employmentHistory:  [],
-          licenses:           [],
-          awards:             [],
-          research:           [],
-          communityExtension: [],
+          licenses:           licensesArr,
+          awards:             awardsArr,
+          research:           researchArr,
+          communityExtension: communityArr,
+          training:           trainingArr,
         };
 
         await admin

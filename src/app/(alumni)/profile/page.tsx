@@ -16,9 +16,10 @@ import { LicensesTab } from "@/components/profile/tabs/LicensesTab";
 import { AwardsTab } from "@/components/profile/tabs/AwardsTab";
 import { ResearchTab } from "@/components/profile/tabs/ResearchTab";
 import { CommunityExtensionTab } from "@/components/profile/tabs/CommunityExtensionTab";
+import { TrainingTab } from "@/components/profile/tabs/TrainingTab";
 import {
   User, GraduationCap, Briefcase, Clock, Award,
-  Trophy, BookOpen, Heart,
+  Trophy, BookOpen, Heart, BookMarked,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,7 @@ export const dynamic = 'force-dynamic';
 const TABS = [
   { key: "personal",   label: "Personal",   icon: <User size={14} /> },
   { key: "education",  label: "Education",  icon: <GraduationCap size={14} /> },
+  { key: "training",   label: "Training",   icon: <BookMarked size={14} /> },
   { key: "employment", label: "Employment", icon: <Briefcase size={14} /> },
   { key: "history",    label: "Work History",icon: <Clock size={14} /> },
   { key: "licenses",   label: "Licenses",   icon: <Award size={14} /> },
@@ -54,22 +56,34 @@ export default function ProfilePage() {
       <Card>
         <Tabs tabs={TABS} activeKey={activeTab} onChange={setActiveTab} className="px-2" />
         <CardBody>
-          {!profile ? (
-            <p className="text-sm text-gray-500 py-8 text-center">
-              Your profile is empty. <a href="/profile/edit" className="text-navy-800 underline">Fill it in now</a>.
-            </p>
-          ) : (
-            <>
-              {activeTab === "personal"   && <PersonalInfoTab profile={profile} />}
-              {activeTab === "education"  && <EducationTab profile={profile} />}
-              {activeTab === "employment" && <EmploymentTab profile={profile} />}
-              {activeTab === "history"    && <EmploymentHistoryTab profile={profile} />}
-              {activeTab === "licenses"   && <LicensesTab profile={profile} />}
-              {activeTab === "awards"     && <AwardsTab profile={profile} />}
-              {activeTab === "research"   && <ResearchTab profile={profile} />}
-              {activeTab === "community"  && <CommunityExtensionTab profile={profile} />}
-            </>
-          )}
+          {(() => {
+            const p = profile ?? {
+              firstName: "", lastName: "", birthDate: "", gender: "", address: "", contactNumber: "",
+              education: [], currentEmployment: { isEmployed: false, employerName: "", position: "", industry: "", employmentType: "", startDate: "", city: "" },
+              employmentHistory: [], licenses: [], awards: [], research: [], communityExtension: [], training: [],
+            };
+            const hasSurveyData = userDoc?.licensesRaw || userDoc?.researchRaw || userDoc?.communityExtensionRaw || userDoc?.awardsRaw || userDoc?.trainingRaw;
+            if (!profile && !hasSurveyData) {
+              return (
+                <p className="text-sm text-gray-500 py-8 text-center">
+                  Your profile is empty. <a href="/profile/edit" className="text-navy-800 underline">Fill it in now</a>.
+                </p>
+              );
+            }
+            return (
+              <>
+                {activeTab === "personal"   && <PersonalInfoTab profile={p} />}
+                {activeTab === "education"  && <EducationTab profile={p} />}
+                {activeTab === "training"   && <TrainingTab profile={p} userDoc={userDoc} />}
+                {activeTab === "employment" && <EmploymentTab profile={p} />}
+                {activeTab === "history"    && <EmploymentHistoryTab profile={p} userDoc={userDoc} />}
+                {activeTab === "licenses"   && <LicensesTab profile={p} userDoc={userDoc} />}
+                {activeTab === "awards"     && <AwardsTab profile={p} userDoc={userDoc} />}
+                {activeTab === "research"   && <ResearchTab profile={p} userDoc={userDoc} />}
+                {activeTab === "community"  && <CommunityExtensionTab profile={p} userDoc={userDoc} />}
+              </>
+            );
+          })()}
         </CardBody>
       </Card>
     </div>

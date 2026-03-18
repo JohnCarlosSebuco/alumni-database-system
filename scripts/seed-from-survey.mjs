@@ -68,6 +68,10 @@ const COL = {
   researchDetail:   "If YES, please specify: 4",
   hasCommunity:     "Have you participated in community extension, outreach, or volunteer programs?",
   communityDetail:  "If YES, please specify: 5",
+  hasTraining:      "Have you attended professional training/seminars?",
+  trainingDetail:   "If YES, please specify: 2",
+  hasAwards:        "Have you received any academic or professional awards/recognition?",
+  awardsDetail:     "If YES, please specify: 3",
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -134,6 +138,58 @@ function buildRaw(yesNoVal, detailVal) {
   const detail = normStr(detailVal);
   if (!flag) return null;
   return detail ? `${flag}: ${detail}` : flag;
+}
+
+/**
+ * Extract meaningful detail text from a raw "Yes: <detail>" string.
+ * Returns null if no usable detail (just "Yes"/"No", or "N/A"/"NA"/"None"/empty).
+ */
+function extractDetail(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  // Strip "Yes: " or "No: " prefix
+  const stripped = s.replace(/^(yes|no)\s*:\s*/i, "").trim();
+  if (!stripped) return null;
+  const lower = stripped.toLowerCase();
+  if (["n/a", "na", "none", "yes", "no", ""].includes(lower)) return null;
+  return stripped;
+}
+
+/**
+ * Parse a degree string like "Bachelor of Science in Industrial Engineering"
+ * into { degree, fieldOfStudy }.
+ */
+function parseDegree(courseStr) {
+  if (!courseStr) return { degree: "", fieldOfStudy: "" };
+  const parts = courseStr.split(" in ");
+  if (parts.length >= 2) {
+    return { degree: parts[0].trim(), fieldOfStudy: parts.slice(1).join(" in ").trim() };
+  }
+  return { degree: courseStr.trim(), fieldOfStudy: "" };
+}
+
+function calcProfileComplete(d) {
+  let s = 0;
+  if (d.firstName || d.displayName?.split(" ")[0]) s += 10;
+  if (d.lastName || d.displayName?.split(" ").slice(1).join(" ")) s += 10;
+  if (d.birthday) s += 5;
+  if (d.sex) s += 5;
+  if (d.contactNumber) s += 5;
+  if (d.locality) s += 5;
+  if (d.batchYear) s += 10;
+  if (d.course) s += 5;
+  if (d.department) s += 5;
+  if (d.isEmployed !== undefined && d.isEmployed !== null) {
+    if (d.isEmployed) {
+      if (d.currentCompany && d.currentPosition) s += 15;
+      else if (d.currentCompany || d.currentPosition) s += 10;
+      else s += 5;
+    } else s += 15;
+  }
+  if (d.licensesRaw?.toLowerCase().startsWith("yes")) s += 10;
+  if (d.researchRaw?.toLowerCase().startsWith("yes")) s += 10;
+  if (d.communityExtensionRaw?.toLowerCase().startsWith("yes")) s += 5;
+  return Math.min(s, 100);
 }
 
 async function sendPasswordResetEmail(email) {
@@ -260,6 +316,8 @@ for (const row of rows) {
   const licensesRaw      = buildRaw(row[COL.hasLicenses], row[COL.licensesDetail]);
   const researchRaw      = buildRaw(row[COL.hasResearch], row[COL.researchDetail]);
   const communityExtensionRaw = buildRaw(row[COL.hasCommunity], row[COL.communityDetail]);
+  const trainingRaw    = buildRaw(row[COL.hasTraining], row[COL.trainingDetail]);
+  const awardsRaw      = buildRaw(row[COL.hasAwards], row[COL.awardsDetail]);
 
   const jobAt1yr = COL_INTERVAL.jobAt1yr ? normStr(row[COL_INTERVAL.jobAt1yr]) : null;
   const jobAt2yr = COL_INTERVAL.jobAt2yr ? normStr(row[COL_INTERVAL.jobAt2yr]) : null;
@@ -291,7 +349,7 @@ for (const row of rows) {
       createdAt:      now,
       updatedAt:      now,
       isActive:       true,
-      profileComplete: 0,
+      profileComplete: 0, // will be recalculated below
       batchYear,
       department:     "College of Engineering",
       course,
@@ -320,10 +378,15 @@ for (const row of rows) {
     if (licensesRaw)      userDoc.licensesRaw      = licensesRaw;
     if (researchRaw)      userDoc.researchRaw      = researchRaw;
     if (communityExtensionRaw) userDoc.communityExtensionRaw = communityExtensionRaw;
+    if (trainingRaw)      userDoc.trainingRaw      = trainingRaw;
+    if (awardsRaw)        userDoc.awardsRaw        = awardsRaw;
     if (jobAt1yr) userDoc.jobAt1yr = jobAt1yr;
     if (jobAt2yr) userDoc.jobAt2yr = jobAt2yr;
     if (jobAt5yr) userDoc.jobAt5yr = jobAt5yr;
     if (jobAt8yr) userDoc.jobAt8yr = jobAt8yr;
+
+    // Dynamically calculate profile completion
+    userDoc.profileComplete = calcProfileComplete(userDoc);
 
     // Remove null values for clean Firestore docs
     const cleanDoc = Object.fromEntries(
@@ -333,6 +396,52 @@ for (const row of rows) {
     await db.collection("users").doc(userRecord.uid).set(cleanDoc);
 
     // 4. Write profile subcollection pre-filled from survey
+    // -- Build structured arrays from raw survey data --
+    const educationArr = [];
+    if (course) {
+      const { degree: degStr, fieldOfStudy } = parseDegree(course);
+      const honorsClean = honors && !["n/a", "na", "none"].includes(honors.toLowerCase()) && !/^\d+\s*[a-z]$/i.test(honors.trim()) ? honors : "";
+      educationArr.push({
+        id: crypto.randomBytes(10).toString("hex"),
+        institution: "Southern Luzon State University",
+        degree: degStr,
+        fieldOfStudy,
+        yearStarted: batchYear ? batchYear - 4 : 0,
+        yearEnded: batchYear ?? null,
+        honors: honorsClean,
+      });
+    }
+
+    const licensesArr = [];
+    const licDetail = extractDetail(licensesRaw);
+    if (licDetail) {
+      licensesArr.push({ id: crypto.randomBytes(10).toString("hex"), name: licDetail, issuingBody: "", licenseNumber: "", dateIssued: "", fileURL: "" });
+    }
+
+    const awardsArr = [];
+    const awardDetail = extractDetail(awardsRaw);
+    if (awardDetail) {
+      awardsArr.push({ id: crypto.randomBytes(10).toString("hex"), title: awardDetail, grantedBy: "", year: 0, description: "" });
+    }
+
+    const researchArr = [];
+    const researchDetail = extractDetail(researchRaw);
+    if (researchDetail) {
+      researchArr.push({ id: crypto.randomBytes(10).toString("hex"), title: researchDetail, coAuthors: "", publishedIn: "", year: 0, doiOrLink: "" });
+    }
+
+    const communityArr = [];
+    const communityDetail = extractDetail(communityExtensionRaw);
+    if (communityDetail) {
+      communityArr.push({ id: crypto.randomBytes(10).toString("hex"), programName: communityDetail, organization: "", role: "", startDate: "", endDate: "" });
+    }
+
+    const trainingArr = [];
+    const trainingDetail = extractDetail(trainingRaw);
+    if (trainingDetail) {
+      trainingArr.push({ id: crypto.randomBytes(10).toString("hex"), title: trainingDetail, provider: "", dateCompleted: "", certificateURL: "", description: "" });
+    }
+
     const profileDoc = {
       firstName,
       lastName,
@@ -350,12 +459,13 @@ for (const row of rows) {
         startDate:      "",
         city:           companyAddress   ?? "",
       },
-      education:          [],
+      education:          educationArr,
       employmentHistory:  [],
-      licenses:           [],
-      awards:             [],
-      research:           [],
-      communityExtension: [],
+      licenses:           licensesArr,
+      awards:             awardsArr,
+      research:           researchArr,
+      communityExtension: communityArr,
+      training:           trainingArr,
     };
 
     await db

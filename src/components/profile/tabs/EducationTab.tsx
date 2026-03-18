@@ -10,7 +10,7 @@ export function EducationTab({ profile }: Props) {
     return (
       <EmptyState
         icon={<GraduationCap size={40} />}
-        title="No education records"
+        title="No education records added yet."
         description="Add your educational background in the profile editor."
       />
     );
@@ -24,7 +24,9 @@ export function EducationTab({ profile }: Props) {
               <GraduationCap size={18} className="text-blue-700" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-gray-900">{edu.degree} in {edu.fieldOfStudy}</p>
+              <p className="font-semibold text-gray-900">
+                {edu.fieldOfStudy ? `${edu.degree} in ${edu.fieldOfStudy}` : edu.degree}
+              </p>
               <p className="text-sm text-gray-600">{edu.institution}</p>
               <p className="text-xs text-gray-400 mt-1">
                 {edu.yearStarted} — {edu.yearEnded ?? "Present"}

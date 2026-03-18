@@ -40,6 +40,8 @@ export interface UserDoc {
   licensesRaw?: string;             // Free-text: licenses/certifications held
   researchRaw?: string;             // Free-text: research/innovation participation
   communityExtensionRaw?: string;   // Free-text: community extension participation
+  awardsRaw?: string;               // Free-text: awards/recognition received
+  trainingRaw?: string;             // Free-text: professional training/seminars attended
   // Employment at specific year intervals from graduation (parsed from survey free-text)
   jobAt1yr?: string;   // raw survey text for "JOB WITHIN 1 YEAR"
   jobAt2yr?: string;   // raw survey text for "JOB WITHIN 2 YEARS"
@@ -115,6 +117,15 @@ export interface CommunityExtension {
   endDate: string;
 }
 
+export interface Training {
+  id: string;
+  title: string;
+  provider: string;
+  dateCompleted: string;
+  certificateURL: string;
+  description: string;
+}
+
 export interface AlumniProfile {
   // Personal Info
   firstName: string;
@@ -132,6 +143,7 @@ export interface AlumniProfile {
   awards: Award[];
   research: Research[];
   communityExtension: CommunityExtension[];
+  training: Training[];
 }
 
 export interface Department {
