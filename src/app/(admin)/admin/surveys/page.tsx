@@ -176,6 +176,7 @@ export default function AdminSurveysPage() {
               </p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="bg-gray-50/60">
@@ -279,6 +280,7 @@ export default function AdminSurveysPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}

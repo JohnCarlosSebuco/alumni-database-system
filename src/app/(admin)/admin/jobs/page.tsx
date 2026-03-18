@@ -185,6 +185,7 @@ export default function AdminJobsPage() {
               <p className="text-sm text-gray-400">No {filter} jobs found.</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="bg-gray-50/60">
@@ -307,6 +308,7 @@ export default function AdminJobsPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}

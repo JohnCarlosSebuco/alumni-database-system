@@ -458,37 +458,37 @@ export default function ReportsPage() {
       {generated && (
         <>
           {/* Employment Stats Summary */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-              <p className="text-2xl font-bold text-gray-900">{results.length}</p>
-              <p className="text-xs text-gray-500 mt-1">Total Alumni</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">{results.length}</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Total Alumni</p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{employmentStats.employed}</p>
-              <p className="text-xs text-gray-500 mt-1">Employed</p>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{employmentStats.employed}</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Employed</p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{employmentStats.employmentRate}%</p>
-              <p className="text-xs text-gray-500 mt-1">Employment Rate</p>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{employmentStats.employmentRate}%</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Employment Rate</p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-              <p className="text-2xl font-bold text-red-500">{employmentStats.unemploymentRate}%</p>
-              <p className="text-xs text-gray-500 mt-1">Unemployment Rate</p>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-red-500">{employmentStats.unemploymentRate}%</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Unemployment Rate</p>
             </div>
-            <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-center">
-              <p className="text-2xl font-bold text-amber-700">{outcomeRates.recentGraduatePlacementRate}%</p>
-              <p className="text-xs text-gray-500 mt-1">Recent Graduate Placement</p>
-              <p className="text-[10px] text-gray-400">Course-aligned · 0–2 yrs</p>
+            <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-amber-700">{outcomeRates.recentGraduatePlacementRate}%</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Recent Graduate Placement</p>
+              <p className="text-[10px] text-gray-400 hidden sm:block">Course-aligned · 0–2 yrs</p>
             </div>
-            <div className="rounded-xl border border-teal-100 bg-teal-50 p-4 text-center">
-              <p className="text-2xl font-bold text-teal-700">{outcomeRates.midCareerAlignmentRate}%</p>
-              <p className="text-xs text-gray-500 mt-1">Mid-Career Alignment</p>
-              <p className="text-[10px] text-gray-400">Course-aligned · 3–5 yrs</p>
+            <div className="rounded-xl border border-teal-100 bg-teal-50 p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-teal-700">{outcomeRates.midCareerAlignmentRate}%</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Mid-Career Alignment</p>
+              <p className="text-[10px] text-gray-400 hidden sm:block">Course-aligned · 3–5 yrs</p>
             </div>
-            <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-center">
-              <p className="text-2xl font-bold text-indigo-700">{outcomeRates.establishedCareerAlignmentRate}%</p>
-              <p className="text-xs text-gray-500 mt-1">Established Career</p>
-              <p className="text-[10px] text-gray-400">Course-aligned · 6+ yrs</p>
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-indigo-700">{outcomeRates.establishedCareerAlignmentRate}%</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Established Career</p>
+              <p className="text-[10px] text-gray-400 hidden sm:block">Course-aligned · 6+ yrs</p>
             </div>
           </div>
 
@@ -507,26 +507,26 @@ export default function ReportsPage() {
                   <table className="min-w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-100 bg-gray-50">
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch Year</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">5-yr Eval Year</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Years Out</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Total</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employed</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employment Rate</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Course-Aligned</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Alignment Rate</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">5-yr Eval</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Years Out</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Total</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Employed</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Emp. Rate</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Aligned</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Align. Rate</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {cohortRows.map((row) => (
                         <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
-                          <td className="px-4 py-3 text-xs text-gray-500">{row.evalYear}</td>
-                          <td className="px-4 py-3 text-xs text-gray-500">{row.yearsOut} yrs</td>
-                          <td className="px-4 py-3 text-xs text-gray-600">{row.total}</td>
-                          <td className="px-4 py-3 text-xs text-gray-600">{row.employed}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500 hidden md:table-cell">{row.evalYear}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500 hidden md:table-cell">{row.yearsOut} yrs</td>
+                          <td className="px-4 py-3 text-xs text-gray-600 hidden sm:table-cell">{row.total}</td>
+                          <td className="px-4 py-3 text-xs text-gray-600 hidden sm:table-cell">{row.employed}</td>
                           <td className="px-4 py-3 text-xs font-semibold text-green-700">{row.employmentRate}%</td>
-                          <td className="px-4 py-3 text-xs text-gray-600">{row.aligned}</td>
+                          <td className="px-4 py-3 text-xs text-gray-600 hidden sm:table-cell">{row.aligned}</td>
                           <td className="px-4 py-3 text-xs font-semibold text-indigo-700">{row.alignmentRate}%</td>
                         </tr>
                       ))}
@@ -540,14 +540,14 @@ export default function ReportsPage() {
           {intervalOutcomes.some((r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0) && (
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
                   <div>
                     <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
                     <p className="text-xs text-gray-400 mt-0.5">
                       Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
                     </p>
                   </div>
-                  <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden self-start">
                     <button
                       type="button"
                       className={`px-3 py-1.5 text-xs font-medium transition-colors ${intervalView === "batch" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
@@ -570,22 +570,22 @@ export default function ReportsPage() {
                   <table className="min-w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-100 bg-gray-50">
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch Year</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Total</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">1 Year</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">2 Years</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">5 Years</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">8 Years</th>
+                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch</th>
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Total</th>
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">1 Yr</th>
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">2 Yr</th>
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">5 Yr</th>
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">8 Yr</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {intervalView === "batch" ? (
                         intervalOutcomes.map((row) => (
                           <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
-                            <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                            <td className="px-3 sm:px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                            <td className="px-3 sm:px-4 py-3 text-center text-xs text-gray-600 hidden sm:table-cell">{row.total}</td>
                             {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
-                              <td key={i} className="px-4 py-3 text-center text-xs">
+                              <td key={i} className="px-3 sm:px-4 py-3 text-center text-xs">
                                 {b.responded > 0 ? (
                                   <span className="font-semibold text-green-700">
                                     {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
@@ -601,16 +601,16 @@ export default function ReportsPage() {
                         intervalByDept.map((dept) => (
                           <React.Fragment key={dept.course}>
                             <tr className="bg-indigo-50">
-                              <td colSpan={6} className="px-4 py-2.5 text-xs font-bold text-indigo-900">
+                              <td colSpan={6} className="px-3 sm:px-4 py-2.5 text-xs font-bold text-indigo-900">
                                 {dept.label}
                               </td>
                             </tr>
                             {dept.rows.map((row) => (
                               <tr key={`${dept.course}-${row.batchYear}`} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-4 py-3 pl-8 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
-                                <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                                <td className="px-3 sm:px-4 py-3 pl-6 sm:pl-8 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                                <td className="px-3 sm:px-4 py-3 text-center text-xs text-gray-600 hidden sm:table-cell">{row.total}</td>
                                 {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
-                                  <td key={i} className="px-4 py-3 text-center text-xs">
+                                  <td key={i} className="px-3 sm:px-4 py-3 text-center text-xs">
                                     {b.responded > 0 ? (
                                       <span className="font-semibold text-green-700">
                                         {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
@@ -662,25 +662,25 @@ export default function ReportsPage() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Program Educational Objective</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">PEO</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
                       <span className="block">Goal 1</span>
-                      <span className="block font-normal normal-case text-gray-400">Global Context</span>
+                      <span className="hidden sm:block font-normal normal-case text-gray-400">Global Context</span>
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
                       <span className="block">Goal 2</span>
-                      <span className="block font-normal normal-case text-gray-400">Research / Innovation / Industry</span>
+                      <span className="hidden sm:block font-normal normal-case text-gray-400">Research / Innovation</span>
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
                       <span className="block">Goal 3</span>
-                      <span className="block font-normal normal-case text-gray-400">Community / Extension / Sustainability</span>
+                      <span className="hidden sm:block font-normal normal-case text-gray-400">Community / Extension</span>
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs text-gray-700 max-w-xs">
-                      <span className="font-semibold">PEO 1</span> — Graduates shall demonstrate professional competence by applying advanced knowledge and skills in their respective fields, contributing to academic and industry excellence through innovation, research, and continuous learning in both local and global contexts.
+                      <span className="font-semibold">PEO 1</span><span className="hidden sm:inline"> — Graduates shall demonstrate professional competence by applying advanced knowledge and skills in their respective fields, contributing to academic and industry excellence through innovation, research, and continuous learning in both local and global contexts.</span>
                     </td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
                       {collegeGoals.goal1.count} ({collegeGoals.goal1.percentage}%)
@@ -692,7 +692,7 @@ export default function ReportsPage() {
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs text-gray-700 max-w-xs">
-                      <span className="font-semibold">PEO 2</span> — Graduates shall exhibit moral integrity, ethical values, and social responsibility by addressing community needs, promoting inclusivity, and upholding professional and societal ethics in their personal and professional undertakings.
+                      <span className="font-semibold">PEO 2</span><span className="hidden sm:inline"> — Graduates shall exhibit moral integrity, ethical values, and social responsibility by addressing community needs, promoting inclusivity, and upholding professional and societal ethics in their personal and professional undertakings.</span>
                     </td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
                       {collegeGoals.goal1.count} ({collegeGoals.goal1.percentage}%)
@@ -704,7 +704,7 @@ export default function ReportsPage() {
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs text-gray-700 max-w-xs">
-                      <span className="font-semibold">PEO 3</span> — Graduates shall engage in innovative research, technological advancement, and extension services that promote environmental sustainability, resource regeneration, and community empowerment in support of national and global development.
+                      <span className="font-semibold">PEO 3</span><span className="hidden sm:inline"> — Graduates shall engage in innovative research, technological advancement, and extension services that promote environmental sustainability, resource regeneration, and community empowerment in support of national and global development.</span>
                     </td>
                     <td className="px-4 py-3 text-center text-xs text-gray-300">—</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">
@@ -735,7 +735,7 @@ export default function ReportsPage() {
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">POE</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Description</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Count</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Percentage</th>
                   </tr>
@@ -743,19 +743,19 @@ export default function ReportsPage() {
                 <tbody className="divide-y divide-gray-100">
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 1</td>
-                    <td className="px-4 py-3 text-xs text-gray-700">Professional &amp; Technical Competence</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Professional &amp; Technical Competence</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe1.count}</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe1.percentage}%</td>
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 2</td>
-                    <td className="px-4 py-3 text-xs text-gray-700">Ethical, Social &amp; Leadership Responsibility</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Ethical, Social &amp; Leadership Responsibility</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe2.count}</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe2.percentage}%</td>
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 3</td>
-                    <td className="px-4 py-3 text-xs text-gray-700">Innovation, Research &amp; Sustainability</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Innovation, Research &amp; Sustainability</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe3.count}</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe3.percentage}%</td>
                   </tr>
@@ -780,7 +780,7 @@ export default function ReportsPage() {
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">GA</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Description</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Count</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Percentage</th>
                   </tr>
@@ -788,19 +788,19 @@ export default function ReportsPage() {
                 <tbody className="divide-y divide-gray-100">
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 1</td>
-                    <td className="px-4 py-3 text-xs text-gray-700">Professional &amp; Technical Competence</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Professional &amp; Technical Competence</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe1.count}</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe1.percentage}%</td>
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 2</td>
-                    <td className="px-4 py-3 text-xs text-gray-700">Ethical, Social, and Leadership Responsibility</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Ethical, Social, and Leadership Responsibility</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe2.count}</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe2.percentage}%</td>
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 3</td>
-                    <td className="px-4 py-3 text-xs text-gray-700">Innovation, Research, and Sustainability Orientation</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Innovation, Research, and Sustainability Orientation</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe3.count}</td>
                     <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe3.percentage}%</td>
                   </tr>
@@ -812,12 +812,12 @@ export default function ReportsPage() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <h2 className="font-semibold text-gray-900">Preview</h2>
                 <Badge variant="navy">{results.length} alumni</Badge>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -853,19 +853,19 @@ export default function ReportsPage() {
                 <table className="min-w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">#</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">#</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Name</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Program</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Program</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">Batch</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employment</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Profile</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Joined</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Profile</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">Joined</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {results.map((a, i) => (
                       <tr key={a.uid} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
+                        <td className="px-4 py-3 text-gray-400 text-xs hidden sm:table-cell">{i + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <Avatar src={a.photoURL} name={a.displayName} size="xs" />
@@ -875,8 +875,8 @@ export default function ReportsPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-600">{a.course ?? "—"}</td>
-                        <td className="px-4 py-3 text-xs text-gray-600">{batchYearLabel(a.batchYear)}</td>
+                        <td className="px-4 py-3 text-xs text-gray-600 hidden md:table-cell">{a.course ?? "—"}</td>
+                        <td className="px-4 py-3 text-xs text-gray-600 hidden lg:table-cell">{batchYearLabel(a.batchYear)}</td>
                         <td className="px-4 py-3">
                           {a.isEmployed === true ? (
                             <Badge variant="success" className="text-[10px]">Employed</Badge>
@@ -886,12 +886,12 @@ export default function ReportsPage() {
                             <Badge variant="warning" className="text-[10px]">Not set</Badge>
                           )}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 hidden md:table-cell">
                           <Badge variant={a.profileComplete >= 80 ? "success" : a.profileComplete >= 40 ? "warning" : "error"} className="text-[10px]">
                             {a.profileComplete}%
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500">{formatDate(a.createdAt)}</td>
+                        <td className="px-4 py-3 text-xs text-gray-500 hidden lg:table-cell">{formatDate(a.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>

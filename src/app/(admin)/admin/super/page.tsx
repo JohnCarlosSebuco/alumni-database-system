@@ -119,7 +119,7 @@ export default function SuperAdminPage() {
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Email</th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -130,13 +130,13 @@ export default function SuperAdminPage() {
                     return (
                       <tr key={u.uid} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 font-medium text-gray-900">{u.displayName}</td>
-                        <td className="px-6 py-4 text-gray-600">{u.email}</td>
+                        <td className="px-6 py-4 text-gray-600 hidden md:table-cell">{u.email}</td>
                         <td className="px-6 py-4">{roleBadge(u.role)}</td>
                         <td className="px-6 py-4">
                           {isSelf ? (
                             <span className="text-xs text-gray-400 italic">You</span>
                           ) : (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               {u.role === "admin" && (
                                 <>
                                   <Button
@@ -201,7 +201,7 @@ export default function SuperAdminPage() {
       {/* Section B — Promote Alumni to Admin */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2">
               <Users size={18} className="text-navy-800" />
               <h2 className="text-base font-semibold text-gray-900">Promote Alumni to Admin</h2>
@@ -211,7 +211,7 @@ export default function SuperAdminPage() {
               placeholder="Search by name or email…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800 w-64"
+              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800 w-full sm:w-64"
             />
           </div>
         </CardHeader>
@@ -224,9 +224,9 @@ export default function SuperAdminPage() {
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Batch</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Email</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Batch</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Course</th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
@@ -234,9 +234,9 @@ export default function SuperAdminPage() {
                   {filteredAlumni.map((u) => (
                     <tr key={u.uid} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">{u.displayName}</td>
-                      <td className="px-6 py-4 text-gray-600">{u.email}</td>
-                      <td className="px-6 py-4 text-gray-600">{u.batchYear ?? "—"}</td>
-                      <td className="px-6 py-4 text-gray-600">{u.course ?? "—"}</td>
+                      <td className="px-6 py-4 text-gray-600 hidden md:table-cell">{u.email}</td>
+                      <td className="px-6 py-4 text-gray-600 hidden lg:table-cell">{u.batchYear ?? "—"}</td>
+                      <td className="px-6 py-4 text-gray-600 hidden lg:table-cell">{u.course ?? "—"}</td>
                       <td className="px-6 py-4">
                         <Button
                           size="sm"

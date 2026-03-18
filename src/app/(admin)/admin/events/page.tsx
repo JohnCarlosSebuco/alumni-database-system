@@ -179,6 +179,7 @@ export default function AdminEventsPage() {
               <p className="text-sm text-gray-400">No {filter} events found.</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="bg-gray-50/60">
@@ -320,6 +321,7 @@ export default function AdminEventsPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}

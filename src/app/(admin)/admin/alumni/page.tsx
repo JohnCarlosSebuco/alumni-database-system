@@ -430,7 +430,7 @@ export default function AdminAlumniPage() {
         breadcrumbs={[{ label: "Admin" }, { label: "Alumni" }]}
         actions={
           isAdmin ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="ghost"
                 leftIcon={<Send size={16} />}
@@ -465,16 +465,16 @@ export default function AdminAlumniPage() {
           leftIcon={<Search size={16} />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
+          className="w-full sm:w-auto sm:max-w-xs"
         />
         <Select options={COURSE_FILTER_OPTIONS} value={course}
-          onChange={(e) => setCourse(e.target.value)} className="max-w-[220px]" />
+          onChange={(e) => setCourse(e.target.value)} className="w-full sm:w-auto sm:max-w-[220px]" />
         <Select options={BATCH_YEAR_OPTIONS} value={batchYear}
-          onChange={(e) => setBatchYear(e.target.value)} className="max-w-[140px]" />
+          onChange={(e) => setBatchYear(e.target.value)} className="w-full sm:w-auto sm:max-w-[140px]" />
         <Select options={EMPLOYMENT_OPTIONS} value={employment}
-          onChange={(e) => setEmployment(e.target.value)} className="max-w-[160px]" />
+          onChange={(e) => setEmployment(e.target.value)} className="w-full sm:w-auto sm:max-w-[160px]" />
         <Select options={CLAIM_OPTIONS} value={claimStatus}
-          onChange={(e) => setClaimStatus(e.target.value)} className="max-w-[160px]" />
+          onChange={(e) => setClaimStatus(e.target.value)} className="w-full sm:w-auto sm:max-w-[160px]" />
         <span className="text-sm text-gray-500">{filtered.length} alumni</span>
       </div>
 

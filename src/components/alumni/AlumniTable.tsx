@@ -156,7 +156,7 @@ export function AlumniTable({
                           type="button"
                           onClick={() => onEdit(a)}
                           title="Edit"
-                          className="rounded-lg p-1.5 text-gray-300 opacity-0 group-hover:opacity-100 hover:bg-blue-50 hover:text-blue-600 transition-all"
+                          className="rounded-lg p-1.5 text-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-blue-50 hover:text-blue-600 transition-all"
                         >
                           <Pencil size={14} />
                         </button>
@@ -166,7 +166,7 @@ export function AlumniTable({
                           type="button"
                           onClick={() => onDelete(a)}
                           title="Delete"
-                          className="rounded-lg p-1.5 text-gray-300 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 transition-all"
+                          className="rounded-lg p-1.5 text-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 transition-all"
                         >
                           <Trash2 size={14} />
                         </button>

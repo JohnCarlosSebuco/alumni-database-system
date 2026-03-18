@@ -58,7 +58,7 @@ interface MetricCardProps {
 function MetricCard({ title, value, suffix = "", icon, iconBg, borderColor, description }: MetricCardProps) {
   const display = useCountUp(value);
   return (
-    <div className={cn("flex flex-col gap-3 rounded-xl border-l-[3px] border border-gray-100 bg-white p-5 shadow-sm", borderColor)}>
+    <div className={cn("flex flex-col gap-3 rounded-xl border-l-[3px] border border-gray-100 bg-white p-4 sm:p-5 shadow-sm", borderColor)}>
       <div className="flex items-start justify-between">
         <p className="text-sm font-medium text-gray-500">{title}</p>
         <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0", iconBg)}>
@@ -66,7 +66,7 @@ function MetricCard({ title, value, suffix = "", icon, iconBg, borderColor, desc
         </div>
       </div>
       <div>
-        <p className="text-3xl font-bold tracking-tight text-gray-900">
+        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
           {display.toLocaleString()}{suffix}
         </p>
         {description && (
@@ -171,7 +171,7 @@ export default function AdminDashboardPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-gray-400">{getGreeting()}</p>
-          <h1 className="mt-0.5 text-2xl font-bold text-gray-900">{firstName}!</h1>
+          <h1 className="mt-0.5 text-xl sm:text-2xl font-bold text-gray-900">{firstName}!</h1>
           <p className="mt-1 text-sm text-gray-400">{today}</p>
         </div>
         <div className="hidden sm:flex flex-col items-end gap-1 text-right">
@@ -417,26 +417,26 @@ export default function AdminDashboardPage() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch Year</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">5-yr Eval Year</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Years Out</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Total</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employed</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employment Rate</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Course-Aligned</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Alignment Rate</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">5-yr Eval</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Years Out</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Total</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Employed</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Emp. Rate</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Aligned</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Align. Rate</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {cohortRows.map((row) => (
                     <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{row.evalYear}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{row.yearsOut} yrs</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{row.total}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{row.employed}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500 hidden md:table-cell">{row.evalYear}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500 hidden md:table-cell">{row.yearsOut} yrs</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 hidden sm:table-cell">{row.total}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 hidden sm:table-cell">{row.employed}</td>
                       <td className="px-4 py-3 text-xs font-semibold text-green-700">{row.employmentRate}%</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{row.aligned}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 hidden sm:table-cell">{row.aligned}</td>
                       <td className="px-4 py-3 text-xs font-semibold text-indigo-700">{row.alignmentRate}%</td>
                     </tr>
                   ))}
@@ -451,14 +451,14 @@ export default function AdminDashboardPage() {
       {intervalOutcomes.some((r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0) && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
               <div>
                 <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
                   Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
                 </p>
               </div>
-              <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden self-start flex-shrink-0">
                 <button
                   type="button"
                   className={cn("px-3 py-1.5 text-xs font-medium transition-colors", intervalView === "batch" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50")}
@@ -481,22 +481,22 @@ export default function AdminDashboardPage() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch Year</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Total</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">1 Year</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">2 Years</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">5 Years</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">8 Years</th>
+                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch</th>
+                    <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Total</th>
+                    <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">1 Yr</th>
+                    <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">2 Yr</th>
+                    <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">5 Yr</th>
+                    <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">8 Yr</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {intervalView === "batch" ? (
                     intervalOutcomes.map((row) => (
                       <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
-                        <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                        <td className="px-3 sm:px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                        <td className="px-3 sm:px-4 py-3 text-center text-xs text-gray-600 hidden sm:table-cell">{row.total}</td>
                         {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
-                          <td key={i} className="px-4 py-3 text-center text-xs">
+                          <td key={i} className="px-3 sm:px-4 py-3 text-center text-xs">
                             {b.responded > 0 ? (
                               <span className="font-semibold text-green-700">
                                 {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
@@ -518,10 +518,10 @@ export default function AdminDashboardPage() {
                         </tr>
                         {dept.rows.map((row) => (
                           <tr key={`${dept.course}-${row.batchYear}`} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-3 pl-8 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
-                            <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                            <td className="px-3 sm:px-4 py-3 pl-6 sm:pl-8 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                            <td className="px-3 sm:px-4 py-3 text-center text-xs text-gray-600 hidden sm:table-cell">{row.total}</td>
                             {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
-                              <td key={i} className="px-4 py-3 text-center text-xs">
+                              <td key={i} className="px-3 sm:px-4 py-3 text-center text-xs">
                                 {b.responded > 0 ? (
                                   <span className="font-semibold text-green-700">
                                     {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
@@ -568,7 +568,7 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="divide-y divide-gray-50">
               {recentAlumni.map((a) => (
-                <div key={a.uid} className="flex items-center gap-4 px-6 py-4">
+                <div key={a.uid} className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4">
                   <Avatar src={a.photoURL} name={a.displayName} size="sm" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">

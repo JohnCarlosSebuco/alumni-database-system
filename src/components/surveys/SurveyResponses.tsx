@@ -74,7 +74,7 @@ function HorizBar({
   return (
     <div className="flex items-center gap-3 group">
       <span
-        className="w-40 text-sm text-gray-700 text-right shrink-0 truncate"
+        className="w-24 sm:w-40 text-xs sm:text-sm text-gray-700 text-right shrink-0 truncate"
         title={label}
       >
         {label}
@@ -85,7 +85,7 @@ function HorizBar({
           style={{ width: `${Math.max(pct, count > 0 ? 1 : 0)}%` }}
         />
       </div>
-      <span className="w-28 shrink-0 text-sm text-gray-500">
+      <span className="w-20 sm:w-28 shrink-0 text-xs sm:text-sm text-gray-500">
         {count} &nbsp;
         <span className="text-gray-400">({pct.toFixed(0)}%)</span>
       </span>
@@ -312,7 +312,7 @@ function IndividualView({
 
       {/* Answer card */}
       <Card>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-100">
           <div>
             <p className="font-semibold text-gray-900">{r.displayName}</p>
             <p className="text-xs text-gray-400 mt-0.5">

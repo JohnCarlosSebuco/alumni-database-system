@@ -80,11 +80,11 @@ export function ProfileHeader({ userDoc, profile, editable }: ProfileHeaderProps
   }, [userDoc.uid, userDoc.profileComplete, computed]);
 
   return (
-    <div className="rounded-2xl bg-gradient-to-r from-navy-900 to-navy-800 p-6 text-white">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+    <div className="rounded-2xl bg-gradient-to-r from-navy-900 to-navy-800 p-4 sm:p-6 text-white">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
         <Avatar src={userDoc.photoURL} name={fullName} size="xl" />
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-white truncate">{fullName}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{fullName}</h1>
           <p className="text-navy-200 text-sm mt-1">
             {userDoc.course} · {userDoc.department}
           </p>
@@ -101,13 +101,13 @@ export function ProfileHeader({ userDoc, profile, editable }: ProfileHeaderProps
             </Badge>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex sm:flex-col items-center gap-2">
           <CompletionRing percent={displayPercent} />
           <span className="text-xs text-navy-300">Profile</span>
         </div>
         {editable && (
-          <Link href="/profile/edit">
-            <Button variant="secondary" size="sm" leftIcon={<Edit2 size={14} />}>
+          <Link href="/profile/edit" className="w-full sm:w-auto">
+            <Button variant="secondary" size="sm" leftIcon={<Edit2 size={14} />} className="w-full sm:w-auto">
               Edit Profile
             </Button>
           </Link>

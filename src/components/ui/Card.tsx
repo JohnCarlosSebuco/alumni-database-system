@@ -25,7 +25,7 @@ export function Card({ children, className, hover, onClick }: CardProps) {
 
 export function CardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("px-6 py-4 border-b border-gray-100", className)}>
+    <div className={cn("px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100", className)}>
       {children}
     </div>
   );
@@ -33,7 +33,7 @@ export function CardHeader({ children, className }: { children: React.ReactNode;
 
 export function CardBody({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("px-6 py-5", className)}>
+    <div className={cn("px-4 py-4 sm:px-6 sm:py-5", className)}>
       {children}
     </div>
   );
@@ -41,7 +41,7 @@ export function CardBody({ children, className }: { children: React.ReactNode; c
 
 export function CardFooter({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("px-6 py-4 border-t border-gray-100", className)}>
+    <div className={cn("px-4 py-3 sm:px-6 sm:py-4 border-t border-gray-100", className)}>
       {children}
     </div>
   );

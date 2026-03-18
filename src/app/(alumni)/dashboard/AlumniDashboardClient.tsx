@@ -187,18 +187,18 @@ export default function AlumniDashboardClient() {
             },
           ].map((s) => (
             <Link key={s.label} href={s.href}>
-              <div className="group flex flex-col gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:border-gray-200 hover:shadow-card-hover">
+              <div className="group flex flex-col gap-2 sm:gap-3 rounded-xl border border-gray-100 bg-white p-3 sm:p-4 shadow-sm transition-all hover:border-gray-200 hover:shadow-card-hover">
                 <div
                   className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-lg",
+                    "flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg",
                     s.iconCn
                   )}
                 >
                   {s.icon}
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-                  <p className="mt-0.5 text-xs text-gray-500">{s.label}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{s.value}</p>
+                  <p className="mt-0.5 text-[10px] sm:text-xs text-gray-500">{s.label}</p>
                 </div>
               </div>
             </Link>
