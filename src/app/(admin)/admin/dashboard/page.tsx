@@ -5,6 +5,7 @@ import {
   Users, Briefcase, Calendar, TrendingUp, TrendingDown,
   Target, ArrowUpRight,
 } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { format } from "date-fns";
 import {
   db, collection, query, where, getDocs, orderBy, limit,
@@ -53,15 +54,19 @@ interface MetricCardProps {
   iconBg: string;
   borderColor: string;
   description?: string;
+  tooltip?: string;
 }
 
-function MetricCard({ title, value, suffix = "", icon, iconBg, borderColor, description }: MetricCardProps) {
+function MetricCard({ title, value, suffix = "", icon, iconBg, borderColor, description, tooltip }: MetricCardProps) {
   const display = useCountUp(value);
   return (
     <div className={cn("flex flex-col gap-3 rounded-xl border-l-[3px] border border-gray-100 bg-white p-4 sm:p-5 shadow-sm", borderColor)}>
-      <div className="flex items-start justify-between">
-        <p className="text-sm font-medium text-gray-500">{title}</p>
-        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0", iconBg)}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-1 min-w-0">
+          <p className="text-sm font-medium text-gray-500">{title}</p>
+          {tooltip && <InfoTooltip text={tooltip} position="bottom" className="hidden sm:inline-flex" />}
+        </div>
+        <div className={cn("hidden sm:flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0", iconBg)}>
           {icon}
         </div>
       </div>
@@ -191,6 +196,7 @@ export default function AdminDashboardPage() {
           iconBg="bg-navy-100 text-navy-700"
           borderColor="border-l-navy-700"
           description="registered members"
+          tooltip="Total count of all registered alumni in the system."
         />
         <MetricCard
           title="Active Jobs"
@@ -199,6 +205,7 @@ export default function AdminDashboardPage() {
           iconBg="bg-blue-100 text-blue-700"
           borderColor="border-l-blue-500"
           description="open positions"
+          tooltip="Total count of all job postings in the system."
         />
         <MetricCard
           title="Events"
@@ -207,6 +214,7 @@ export default function AdminDashboardPage() {
           iconBg="bg-purple-100 text-purple-700"
           borderColor="border-l-purple-500"
           description="total created"
+          tooltip="Total count of all events created in the system."
         />
         <MetricCard
           title="Employment Rate"
@@ -216,6 +224,7 @@ export default function AdminDashboardPage() {
           iconBg="bg-green-100 text-green-700"
           borderColor="border-l-green-500"
           description={`${stats.employedCount} employed`}
+          tooltip="Percentage of alumni who are employed. Formula: (Employed alumni / Total alumni) x 100."
         />
         <MetricCard
           title="Unemployment Rate"
@@ -225,6 +234,7 @@ export default function AdminDashboardPage() {
           iconBg="bg-red-100 text-red-600"
           borderColor="border-l-red-400"
           description={`${stats.alumni - stats.employedCount} unemployed`}
+          tooltip="Percentage of alumni who are not employed. Formula: 100 - Employment Rate."
         />
       </div>
 
@@ -234,9 +244,12 @@ export default function AdminDashboardPage() {
         <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                Employment Overview
-              </p>
+              <div className="flex items-center gap-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  Employment Overview
+                </p>
+                <InfoTooltip text="Breakdown of employed vs. unemployed alumni. Employment Rate = (alumni marked employed / Total alumni) x 100." position="bottom" />
+              </div>
               <p className="mt-0.5 text-base font-semibold text-gray-900">
                 {stats.alumni} Alumni Total
               </p>
@@ -273,9 +286,12 @@ export default function AdminDashboardPage() {
           <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
+                <div className="flex items-center gap-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                   Course-Aligned Employment
                 </p>
+                <InfoTooltip text="Percentage of alumni working in jobs aligned with their academic program, grouped by career stage." position="bottom" />
+              </div>
                 <p className="mt-0.5 text-base font-semibold text-gray-900">
                   Outcome Rates
                 </p>
@@ -290,7 +306,10 @@ export default function AdminDashboardPage() {
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Recent Graduate Placement</p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-medium text-gray-700">Recent Graduate Placement</p>
+                      <InfoTooltip text="Alumni 0-2 years out who are employed in a course-aligned position. Alignment is determined by survey response or job title keyword matching. Formula: (Aligned / Total in cohort) x 100." position="bottom" />
+                    </div>
                     <p className="text-xs text-gray-400">0–2 years out</p>
                   </div>
                   <div className="text-right">
@@ -309,7 +328,10 @@ export default function AdminDashboardPage() {
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Mid-Career Alignment</p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-medium text-gray-700">Mid-Career Alignment</p>
+                      <InfoTooltip text="Alumni 3-5 years out who are employed in a course-aligned position. Formula: (Aligned / Total in cohort) x 100." position="bottom" />
+                    </div>
                     <p className="text-xs text-gray-400">3–5 years out</p>
                   </div>
                   <div className="text-right">
@@ -328,7 +350,10 @@ export default function AdminDashboardPage() {
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Established Career</p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-medium text-gray-700">Established Career</p>
+                      <InfoTooltip text="Alumni 6+ years out who are employed in a course-aligned position. Formula: (Aligned / Total in cohort) x 100." position="bottom" />
+                    </div>
                     <p className="text-xs text-gray-400">6+ years out</p>
                   </div>
                   <div className="text-right">
@@ -353,7 +378,10 @@ export default function AdminDashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-semibold text-gray-900">Alumni by Course</h2>
+                <div className="flex items-center gap-1">
+                  <h2 className="font-semibold text-gray-900">Alumni by Course</h2>
+                  <InfoTooltip text="Distribution of alumni across academic programs. Each slice shows the count per program. Top 8 programs shown." position="bottom" />
+                </div>
                 <p className="text-xs text-gray-400 mt-0.5">Distribution across programs</p>
               </div>
             </div>
@@ -368,7 +396,10 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader>
             <div>
-              <h2 className="font-semibold text-gray-900">Employment by Course</h2>
+              <div className="flex items-center gap-1">
+                <h2 className="font-semibold text-gray-900">Employment by Course</h2>
+                <InfoTooltip text="Employed count vs. total count per program shown side-by-side. Top 6 programs shown." position="bottom" />
+              </div>
               <p className="text-xs text-gray-400 mt-0.5">Employed vs total per program</p>
             </div>
           </CardHeader>
@@ -389,7 +420,10 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader>
             <div>
-              <h2 className="font-semibold text-gray-900">Time to First Job After Graduation</h2>
+              <div className="flex items-center gap-1">
+                <h2 className="font-semibold text-gray-900">Time to First Job After Graduation</h2>
+                <InfoTooltip text="How long alumni took to get their first job after graduation. Buckets: <3 months, 3-6 months, 7-12 months, >1 year, Still unemployed. Based only on alumni who answered this question." position="bottom" />
+              </div>
               <p className="text-xs text-gray-400 mt-0.5">
                 Distribution of how long alumni took to land their first job
               </p>
@@ -406,7 +440,10 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader>
             <div>
-              <h2 className="font-semibold text-gray-900">Cohort Outcomes by Batch Year</h2>
+              <div className="flex items-center gap-1">
+                <h2 className="font-semibold text-gray-900">Cohort Outcomes by Batch Year</h2>
+                <InfoTooltip text="Groups alumni by batch year. Employment Rate = (employed / total) x 100. Alignment Rate = (employed AND course-aligned / total) x 100. 5-yr Eval Year = batch year + 5." position="bottom" />
+              </div>
               <p className="text-xs text-gray-400 mt-0.5">
                 Employment &amp; course-alignment rate per graduation cohort · 5-year evaluation cycle
               </p>
@@ -453,7 +490,10 @@ export default function AdminDashboardPage() {
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
               <div>
-                <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
+                <div className="flex items-center gap-1">
+                  <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
+                  <InfoTooltip text="Employment rate at 1, 2, 5, and 8 years after graduation based on survey fields. Rate = (employed at interval / responded at interval) x 100." position="bottom" />
+                </div>
                 <p className="text-xs text-gray-400 mt-0.5">
                   Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
                 </p>

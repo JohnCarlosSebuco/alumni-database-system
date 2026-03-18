@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { FileDown, Table, Printer } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import {
   db, collection, query, where, getDocs,
 } from "@/lib/firebase/firestore";
@@ -154,8 +155,8 @@ export default function ReportsPage() {
       startY: afterA + 3,
       head: [["Career Stage", "Alumni in Stage", "Course-Aligned", "Alignment Rate"]],
       body: [
-        ["Recent Graduates (0\u20132 yrs)", String(outcomeRates.recentTotal),           String(outcomeRates.recentAligned),           `${outcomeRates.recentGraduatePlacementRate}%`],
-        ["Mid-Career (3\u20135 yrs)",       String(outcomeRates.midCareerTotal),        String(outcomeRates.midCareerAligned),        `${outcomeRates.midCareerAlignmentRate}%`],
+        ["Recent Graduates (0-2 yrs)", String(outcomeRates.recentTotal),           String(outcomeRates.recentAligned),           `${outcomeRates.recentGraduatePlacementRate}%`],
+        ["Mid-Career (3-5 yrs)",       String(outcomeRates.midCareerTotal),        String(outcomeRates.midCareerAligned),        `${outcomeRates.midCareerAlignmentRate}%`],
         ["Established Career (6+ yrs)",     String(outcomeRates.establishedCareerTotal), String(outcomeRates.establishedCareerAligned), `${outcomeRates.establishedCareerAlignmentRate}%`],
       ],
       styles: { fontSize: 9 },
@@ -461,33 +462,33 @@ export default function ReportsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 text-center">
               <p className="text-xl sm:text-2xl font-bold text-gray-900">{results.length}</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Total Alumni</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 inline-flex items-center gap-1 justify-center">Total Alumni <InfoTooltip text="Total count of alumni matching the selected filters." position="bottom" className="hidden sm:inline-flex" /></p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 text-center">
               <p className="text-xl sm:text-2xl font-bold text-green-600">{employmentStats.employed}</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Employed</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 inline-flex items-center gap-1 justify-center">Employed <InfoTooltip text="Count of filtered alumni marked as employed." position="bottom" className="hidden sm:inline-flex" /></p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 text-center">
               <p className="text-xl sm:text-2xl font-bold text-green-600">{employmentStats.employmentRate}%</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Employment Rate</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 inline-flex items-center gap-1 justify-center">Employment Rate <InfoTooltip text="Percentage of filtered alumni who are employed. Formula: (Employed / Total) x 100." position="bottom" className="hidden sm:inline-flex" /></p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 text-center">
               <p className="text-xl sm:text-2xl font-bold text-red-500">{employmentStats.unemploymentRate}%</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Unemployment Rate</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 inline-flex items-center gap-1 justify-center">Unemployment Rate <InfoTooltip text="Percentage of filtered alumni not employed. Formula: 100 - Employment Rate." position="bottom" className="hidden sm:inline-flex" /></p>
             </div>
             <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 sm:p-4 text-center">
               <p className="text-xl sm:text-2xl font-bold text-amber-700">{outcomeRates.recentGraduatePlacementRate}%</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Recent Graduate Placement</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 inline-flex items-center gap-1 justify-center">Recent Graduate Placement <InfoTooltip text="Alumni 0-2 years out employed in a course-aligned position. Alignment by survey or job title keyword matching." position="bottom" className="hidden sm:inline-flex" /></p>
               <p className="text-[10px] text-gray-400 hidden sm:block">Course-aligned · 0–2 yrs</p>
             </div>
             <div className="rounded-xl border border-teal-100 bg-teal-50 p-3 sm:p-4 text-center">
               <p className="text-xl sm:text-2xl font-bold text-teal-700">{outcomeRates.midCareerAlignmentRate}%</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Mid-Career Alignment</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 inline-flex items-center gap-1 justify-center">Mid-Career Alignment <InfoTooltip text="Alumni 3-5 years out employed in a course-aligned position." position="bottom" className="hidden sm:inline-flex" /></p>
               <p className="text-[10px] text-gray-400 hidden sm:block">Course-aligned · 3–5 yrs</p>
             </div>
             <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 sm:p-4 text-center">
               <p className="text-xl sm:text-2xl font-bold text-indigo-700">{outcomeRates.establishedCareerAlignmentRate}%</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Established Career</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 inline-flex items-center gap-1 justify-center">Established Career <InfoTooltip text="Alumni 6+ years out employed in a course-aligned position." position="bottom" className="hidden sm:inline-flex" /></p>
               <p className="text-[10px] text-gray-400 hidden sm:block">Course-aligned · 6+ yrs</p>
             </div>
           </div>
@@ -496,7 +497,10 @@ export default function ReportsPage() {
             <Card>
               <CardHeader>
                 <div>
-                  <h2 className="font-semibold text-gray-900">Cohort Outcomes by Batch Year</h2>
+                  <div className="flex items-center gap-1">
+                    <h2 className="font-semibold text-gray-900">Cohort Outcomes by Batch Year</h2>
+                    <InfoTooltip text="Groups alumni by batch year. Employment Rate = (employed / total) x 100. Alignment Rate = (employed AND course-aligned / total) x 100. 5-yr Eval Year = batch year + 5." position="bottom" />
+                  </div>
                   <p className="text-xs text-gray-400 mt-0.5">
                     Employment &amp; course-alignment based on current/present employment status
                   </p>
@@ -542,7 +546,10 @@ export default function ReportsPage() {
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
                   <div>
-                    <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
+                    <div className="flex items-center gap-1">
+                      <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
+                      <InfoTooltip text="Employment rate at 1, 2, 5, and 8 years after graduation based on survey fields. Rate = (employed at interval / responded at interval) x 100." position="bottom" />
+                    </div>
                     <p className="text-xs text-gray-400 mt-0.5">
                       Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
                     </p>
@@ -636,7 +643,10 @@ export default function ReportsPage() {
           <Card>
             <CardHeader>
               <div>
-                <h2 className="font-semibold text-gray-900">Time to First Job After Graduation</h2>
+                <div className="flex items-center gap-1">
+                  <h2 className="font-semibold text-gray-900">Time to First Job After Graduation</h2>
+                  <InfoTooltip text="How long alumni took to get their first job after graduation. Buckets: <3 months, 3-6 months, 7-12 months, >1 year, Still unemployed. Based only on alumni who answered this question." position="bottom" />
+                </div>
                 <p className="text-xs text-gray-400 mt-0.5">
                   Distribution of how long alumni took to land their first job
                 </p>
@@ -651,7 +661,10 @@ export default function ReportsPage() {
         <Card>
           <CardHeader>
             <div>
-              <h2 className="font-semibold text-gray-900">College Goals</h2>
+              <div className="flex items-center gap-1">
+                <h2 className="font-semibold text-gray-900">College Goals</h2>
+                <InfoTooltip text="Maps PEOs to 3 college goals. Goal 1 (Global Context) = alumni working abroad or global locality. Goal 2 (Research/Innovation) = alumni with research participation or research job titles. Goal 3 (Community/Extension) = alumni with community participation or community job titles. Percentage = (matching / total) x 100." position="bottom" />
+              </div>
               <p className="text-xs text-gray-400 mt-0.5">
                 PEO-to-College Goal mapping — count and percentage of graduates qualifying per goal
               </p>
@@ -723,7 +736,10 @@ export default function ReportsPage() {
         <Card>
           <CardHeader>
             <div>
-              <h2 className="font-semibold text-gray-900">Program Educational Objectives (POE)</h2>
+              <div className="flex items-center gap-1">
+                <h2 className="font-semibold text-gray-900">Program Educational Objectives (POE)</h2>
+                <InfoTooltip text="Classification of graduates by Program Educational Objectives. POE 1 = course-aligned or global context. POE 2 = leadership/management or community work. POE 3 = research/innovation or research industries. Percentage = (count / total) x 100." position="bottom" />
+              </div>
               <p className="text-xs text-gray-400 mt-0.5">
                 Classification of graduates by POE — total count and percentage
               </p>
@@ -768,7 +784,10 @@ export default function ReportsPage() {
         <Card>
           <CardHeader>
             <div>
-              <h2 className="font-semibold text-gray-900">Graduate Attributes (GA)</h2>
+              <div className="flex items-center gap-1">
+                <h2 className="font-semibold text-gray-900">Graduate Attributes (GA)</h2>
+                <InfoTooltip text="Graduate Attributes - uses the same classification logic as POE. GA 1 = Professional & Technical Competence. GA 2 = Ethical, Social & Leadership Responsibility. GA 3 = Innovation, Research & Sustainability." position="bottom" />
+              </div>
               <p className="text-xs text-gray-400 mt-0.5">
                 Classification of graduates by GA — total count and percentage
               </p>
