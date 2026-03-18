@@ -40,7 +40,7 @@ export function LandingFeatures() {
   const { ref: gridRef, inView: gridIn } = useInView(0.08);
 
   return (
-    <section id="features" className="relative py-32 bg-white overflow-hidden">
+    <section id="features" className="relative py-16 md:py-32 bg-white overflow-hidden">
       {/* Subtle dot grid */}
       <div
         className="absolute inset-0 opacity-[0.035] pointer-events-none"
@@ -57,17 +57,17 @@ export function LandingFeatures() {
         {/* Header */}
         <div
           ref={headRef}
-          className={`text-center mb-20 transition-all duration-700 ease-out ${
+          className={`text-center mb-12 md:mb-20 transition-all duration-700 ease-out ${
             headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
           <p className="text-[11px] font-semibold text-gold-600 tracking-[0.25em] uppercase mb-4">
             Platform Features
           </p>
-          <h2 className="text-5xl font-bold text-gray-900 tracking-tight leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
             Everything you need.
           </h2>
-          <p className="mt-5 text-xl text-gray-400 max-w-xl mx-auto font-light leading-relaxed">
+          <p className="mt-5 text-lg md:text-xl text-gray-400 max-w-xl mx-auto font-light leading-relaxed">
             Built exclusively for the SLSU College of Engineering alumni community.
           </p>
         </div>
@@ -79,7 +79,7 @@ export function LandingFeatures() {
             return (
               <div
                 key={f.title}
-                className={`group relative rounded-3xl bg-gray-50/80 p-8 overflow-hidden cursor-default
+                className={`group relative rounded-3xl bg-gray-50/80 p-6 md:p-8 overflow-hidden cursor-default
                   transition-all duration-500 ease-out
                   hover:-translate-y-1.5 hover:bg-white hover:shadow-[0_12px_48px_rgba(59,0,16,0.08)]
                   ${gridIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
@@ -89,7 +89,7 @@ export function LandingFeatures() {
                 <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-gold-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
 
                 {/* Icon */}
-                <div className="relative mb-7">
+                <div className="relative mb-5 md:mb-7">
                   <div
                     className="flex h-14 w-14 items-center justify-center rounded-2xl text-gold-400 group-hover:scale-110 transition-transform duration-300"
                     style={{

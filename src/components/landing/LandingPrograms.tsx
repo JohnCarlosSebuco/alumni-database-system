@@ -28,7 +28,7 @@ export function LandingPrograms() {
   const { ref: gridRef, inView: gridIn } = useInView(0.1);
 
   return (
-    <section className="relative py-32 bg-white overflow-hidden">
+    <section className="relative py-16 md:py-32 bg-white overflow-hidden">
       {/* Subtle dot grid */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
@@ -42,17 +42,17 @@ export function LandingPrograms() {
         {/* Header */}
         <div
           ref={headRef}
-          className={`text-center mb-20 transition-all duration-700 ease-out ${
+          className={`text-center mb-12 md:mb-20 transition-all duration-700 ease-out ${
             headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
           <p className="text-[11px] font-semibold text-gold-600 tracking-[0.25em] uppercase mb-4">
             College of Engineering
           </p>
-          <h2 className="text-5xl font-bold text-gray-900 tracking-tight leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
             Three programs, one community.
           </h2>
-          <p className="mt-5 text-xl text-gray-400 font-light max-w-xl mx-auto leading-relaxed">
+          <p className="mt-5 text-lg md:text-xl text-gray-400 font-light max-w-xl mx-auto leading-relaxed">
             AlumNayan is built exclusively for graduates of SLSU's College of Engineering — every program, every batch.
           </p>
         </div>
@@ -64,7 +64,7 @@ export function LandingPrograms() {
             return (
               <div
                 key={p.abbr}
-                className={`group relative rounded-3xl border border-gray-100 bg-white p-9 overflow-hidden
+                className={`group relative rounded-3xl border border-gray-100 bg-white p-6 md:p-9 overflow-hidden
                   hover:-translate-y-1.5 hover:shadow-[0_12px_48px_rgba(59,0,16,0.08)] hover:border-transparent
                   transition-all duration-300 ease-out
                   ${gridIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
@@ -85,7 +85,7 @@ export function LandingPrograms() {
                 </div>
 
                 {/* Program abbreviation */}
-                <p className="text-4xl font-bold text-navy-900 tracking-tight mb-1">
+                <p className="text-3xl md:text-4xl font-bold text-navy-900 tracking-tight mb-1">
                   {p.abbr}
                 </p>
 

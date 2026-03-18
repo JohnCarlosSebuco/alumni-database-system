@@ -79,7 +79,7 @@ function Footer() {
               <p className="text-xs text-navy-400">SLSU CEN Alumni · Connect. Grow. Give Back.</p>
             </div>
           </div>
-          <div className="flex items-center gap-6 text-sm text-navy-400">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-navy-400">
             <a href="#features"    className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
             <Link href="/login"  className="hover:text-white transition-colors">Sign In</Link>

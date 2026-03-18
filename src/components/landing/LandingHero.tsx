@@ -82,11 +82,11 @@ export function LandingHero() {
 
       {/* ── Content — fills remaining space, centered ── */}
       <div className="relative z-10 flex-1 flex items-center justify-center">
-      <div className="max-w-5xl mx-auto px-6 text-center">
+      <div className="max-w-5xl mx-auto px-5 sm:px-6 text-center">
 
         {/* Badge */}
         <div
-          className="inline-flex items-center gap-2 rounded-full bg-navy-800 border border-navy-700 px-4 py-1.5 text-sm text-gold-400 mb-8 opacity-0"
+          className="inline-flex items-center gap-2 rounded-full bg-navy-800 border border-navy-700 px-4 py-1.5 text-xs sm:text-sm text-gold-400 mb-6 md:mb-8 opacity-0"
           style={{ animation: "slideUp 0.7s ease-out 0ms forwards" }}
         >
           <span className="h-2 w-2 rounded-full bg-gold-500 animate-pulse" />
@@ -95,7 +95,7 @@ export function LandingHero() {
 
         {/* H1 */}
         <h1
-          className="text-5xl md:text-7xl font-bold text-white leading-tight text-balance mb-6 opacity-0"
+          className="text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-tight text-balance mb-6 opacity-0"
           style={{ animation: "slideUp 0.7s ease-out 120ms forwards" }}
         >
           The Alumni Platform<br />
@@ -105,7 +105,7 @@ export function LandingHero() {
 
         {/* Subline */}
         <p
-          className="text-xl text-navy-200 max-w-2xl mx-auto mb-10 leading-relaxed opacity-0"
+          className="text-lg md:text-xl text-navy-200 max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed opacity-0"
           style={{ animation: "slideUp 0.7s ease-out 270ms forwards" }}
         >
           AlumNayan connects SLSU College of Engineering graduates with their university community.

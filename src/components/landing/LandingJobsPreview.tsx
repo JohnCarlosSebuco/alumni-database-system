@@ -39,7 +39,7 @@ export function LandingJobsPreview({ jobs }: Props) {
   const { ref: rightRef, inView: rightIn } = useInView(0.15);
 
   return (
-    <section className="relative py-32 bg-white overflow-hidden">
+    <section className="relative py-16 md:py-32 bg-white overflow-hidden">
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -49,7 +49,7 @@ export function LandingJobsPreview({ jobs }: Props) {
       />
 
       <div className="relative max-w-7xl mx-auto px-6">
-        <div className="grid lg:grid-cols-[1fr_1.5fr] gap-16 lg:gap-24 items-start">
+        <div className="grid lg:grid-cols-[1fr_1.5fr] gap-10 lg:gap-24 items-start">
 
           {/* ── Left: heading + CTA ── */}
           <div
@@ -61,10 +61,10 @@ export function LandingJobsPreview({ jobs }: Props) {
             <p className="text-[11px] font-semibold text-gold-600 tracking-[0.25em] uppercase mb-4">
               Job Board
             </p>
-            <h2 className="text-5xl font-bold text-gray-900 tracking-tight leading-tight mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight mb-6">
               Your next role is waiting.
             </h2>
-            <p className="text-lg text-gray-400 font-light leading-relaxed mb-10 max-w-sm">
+            <p className="text-lg text-gray-400 font-light leading-relaxed mb-8 md:mb-10 max-w-sm">
               Browse job postings from companies actively looking for SLSU CEN graduates. Sign up to view full details and apply.
             </p>
             <Link

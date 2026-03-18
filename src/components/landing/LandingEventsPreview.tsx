@@ -44,7 +44,7 @@ export function LandingEventsPreview({ events }: Props) {
 
   return (
     <section
-      className="relative py-32 overflow-hidden"
+      className="relative py-16 md:py-32 overflow-hidden"
       style={{
         background:
           "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(188,28,66,0.10) 0%, transparent 60%), #3B0010",
@@ -64,7 +64,7 @@ export function LandingEventsPreview({ events }: Props) {
         {/* Header */}
         <div
           ref={headRef}
-          className={`flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 transition-all duration-700 ease-out ${
+          className={`flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-16 transition-all duration-700 ease-out ${
             headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
@@ -72,7 +72,7 @@ export function LandingEventsPreview({ events }: Props) {
             <p className="text-[11px] font-semibold text-gold-500 tracking-[0.25em] uppercase mb-4">
               Upcoming Events
             </p>
-            <h2 className="text-5xl font-bold text-white tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
               Stay in the loop.
             </h2>
             <p className="mt-4 text-navy-300 text-lg font-light max-w-md leading-relaxed">

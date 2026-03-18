@@ -29,7 +29,7 @@ export function LandingHowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="relative py-32 overflow-hidden"
+      className="relative py-16 md:py-32 overflow-hidden"
       style={{
         background:
           "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(188,28,66,0.12) 0%, transparent 60%), #3B0010",
@@ -52,14 +52,14 @@ export function LandingHowItWorks() {
         {/* Header */}
         <div
           ref={headRef}
-          className={`text-center mb-24 transition-all duration-700 ease-out ${
+          className={`text-center mb-14 md:mb-24 transition-all duration-700 ease-out ${
             headIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
           <p className="text-[11px] font-semibold text-gold-500 tracking-[0.25em] uppercase mb-4">
             Getting Started
           </p>
-          <h2 className="text-5xl font-bold text-white tracking-tight leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
             Three steps to connection.
           </h2>
           <p className="mt-5 text-navy-300 text-lg font-light max-w-xl mx-auto leading-relaxed">
@@ -127,7 +127,7 @@ export function LandingHowItWorks() {
         {/* CTA */}
         <div
           ref={ctaRef}
-          className={`mt-20 text-center transition-all duration-700 ease-out ${
+          className={`mt-12 md:mt-20 text-center transition-all duration-700 ease-out ${
             ctaIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
           style={{ transitionDelay: ctaIn ? "400ms" : "0ms" }}
