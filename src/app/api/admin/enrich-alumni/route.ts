@@ -43,6 +43,22 @@ const ALIASES: Record<string, string[]> = {
     "overseas worker",
     "ofw",
   ],
+  jobAt1yr: [
+    "job within 1 year from graduation",
+    "job at 1 year", "1 year job", "job 1yr",
+  ],
+  jobAt2yr: [
+    "job within 2 years from graduation",
+    "job at 2 years", "2 year job", "job 2yr",
+  ],
+  jobAt5yr: [
+    "job within 5 years from graduation",
+    "job at 5 years", "5 year job", "job 5yr",
+  ],
+  jobAt8yr: [
+    "job within 8 years from graduation",
+    "job at 8 years", "8 year job", "job 8yr",
+  ],
 };
 
 function normKey(s: string): string {
@@ -132,9 +148,14 @@ export async function POST(req: Request) {
       const timeToFirstJob = normTimeToFirstJob(resolver.get(row, "timeToFirstJob"));
       const courseAligned  = normBoolOrUndef(resolver.get(row, "courseAligned"));
       const isAbroad       = normBoolOrUndef(resolver.get(row, "isAbroad"));
+      const jobAt1yr       = normStr(resolver.get(row, "jobAt1yr"));
+      const jobAt2yr       = normStr(resolver.get(row, "jobAt2yr"));
+      const jobAt5yr       = normStr(resolver.get(row, "jobAt5yr"));
+      const jobAt8yr       = normStr(resolver.get(row, "jobAt8yr"));
 
       // Nothing to update from this row
-      if (timeToFirstJob === undefined && courseAligned === undefined && isAbroad === undefined) { skipped++; continue; }
+      if (timeToFirstJob === undefined && courseAligned === undefined && isAbroad === undefined
+          && !jobAt1yr && !jobAt2yr && !jobAt5yr && !jobAt8yr) { skipped++; continue; }
 
       try {
         // Find user by email in Firestore
@@ -150,6 +171,10 @@ export async function POST(req: Request) {
         if (timeToFirstJob !== undefined) updates.timeToFirstJob = timeToFirstJob;
         if (courseAligned !== undefined)  updates.courseAligned  = courseAligned;
         if (isAbroad !== undefined)       updates.isAbroad       = isAbroad;
+        if (jobAt1yr)                    updates.jobAt1yr       = jobAt1yr;
+        if (jobAt2yr)                    updates.jobAt2yr       = jobAt2yr;
+        if (jobAt5yr)                    updates.jobAt5yr       = jobAt5yr;
+        if (jobAt8yr)                    updates.jobAt8yr       = jobAt8yr;
 
         await snap.docs[0].ref.update(updates);
         updated++;

@@ -48,6 +48,10 @@ export interface AlumniForOutcome {
   researchRaw?: string;            // "Yes: details" or "No"
   communityExtensionRaw?: string;  // "Yes: details" or "No"
   industryType?: string;           // Major line of business
+  jobAt1yr?: string;
+  jobAt2yr?: string;
+  jobAt5yr?: string;
+  jobAt8yr?: string;
 }
 
 function isAligned(a: AlumniForOutcome): boolean {
@@ -275,6 +279,88 @@ export function computeCollegeGoals(alumni: AlumniForOutcome[]): CollegeGoalsRes
     goal3: { count: g3, percentage: pct(g3) },
     total,
   };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
+// ── Year-Interval Employment Outcomes ────────────────────────────────────────
+
+function isEmployedAtInterval(raw?: string): boolean | null {
+  if (!raw) return null; // no response
+  const s = raw.trim().toLowerCase();
+  if (!s || s === "n/a" || s === "na" || s === "none" || s === "--"
+      || s === "x" || s === "not applicable" || s === "not yet") return false;
+  if (s.length <= 3) return null; // too short to determine
+  return true; // has actual job description
+}
+
+export interface IntervalBucket {
+  responded: number;
+  employed: number;
+  rate: number;
+}
+
+export interface IntervalOutcomeRow {
+  batchYear: number;
+  total: number;
+  at1yr: IntervalBucket;
+  at2yr: IntervalBucket;
+  at5yr: IntervalBucket;
+  at8yr: IntervalBucket;
+}
+
+export function computeIntervalOutcomes(alumni: AlumniForOutcome[]): IntervalOutcomeRow[] {
+  const map = new Map<number, {
+    total: number;
+    at1yr: { responded: number; employed: number };
+    at2yr: { responded: number; employed: number };
+    at5yr: { responded: number; employed: number };
+    at8yr: { responded: number; employed: number };
+  }>();
+
+  for (const a of alumni) {
+    if (!a.batchYear) continue;
+    if (!map.has(a.batchYear)) {
+      map.set(a.batchYear, {
+        total: 0,
+        at1yr: { responded: 0, employed: 0 },
+        at2yr: { responded: 0, employed: 0 },
+        at5yr: { responded: 0, employed: 0 },
+        at8yr: { responded: 0, employed: 0 },
+      });
+    }
+    const row = map.get(a.batchYear)!;
+    row.total++;
+
+    const intervals = [
+      { field: a.jobAt1yr, bucket: row.at1yr },
+      { field: a.jobAt2yr, bucket: row.at2yr },
+      { field: a.jobAt5yr, bucket: row.at5yr },
+      { field: a.jobAt8yr, bucket: row.at8yr },
+    ];
+
+    for (const { field, bucket } of intervals) {
+      const employed = isEmployedAtInterval(field);
+      if (employed !== null) {
+        bucket.responded++;
+        if (employed) bucket.employed++;
+      }
+    }
+  }
+
+  const rate = (b: { responded: number; employed: number }): number =>
+    b.responded > 0 ? Math.round((b.employed / b.responded) * 100) : 0;
+
+  return Array.from(map.entries())
+    .sort(([a], [b]) => b - a)
+    .map(([batchYear, row]) => ({
+      batchYear,
+      total: row.total,
+      at1yr: { ...row.at1yr, rate: rate(row.at1yr) },
+      at2yr: { ...row.at2yr, rate: rate(row.at2yr) },
+      at5yr: { ...row.at5yr, rate: rate(row.at5yr) },
+      at8yr: { ...row.at8yr, rate: rate(row.at8yr) },
+    }));
 }
 
 // ──────────────────────────────────────────────────────────────────────────────

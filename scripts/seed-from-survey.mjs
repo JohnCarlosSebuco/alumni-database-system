@@ -180,6 +180,15 @@ const rows  = utils.sheet_to_json(sheet, { defval: null });
 
 console.log(`📋 Loaded ${rows.length} rows from sheet "${sheetName}".\n`);
 
+// Interval job columns — long multi-line headers, match dynamically
+const xlsxHeaders = Object.keys(rows[0] ?? {});
+const COL_INTERVAL = {
+  jobAt1yr: xlsxHeaders.find(h => h.includes("1 YEAR FROM GRADUATION")) ?? null,
+  jobAt2yr: xlsxHeaders.find(h => h.includes("2 YEARS FROM GRADUATION")) ?? null,
+  jobAt5yr: xlsxHeaders.find(h => h.includes("5 YEARS FROM GRADUATION")) ?? null,
+  jobAt8yr: xlsxHeaders.find(h => h.includes("8 YEARS FROM GRADUATION")) ?? null,
+};
+
 // ── Load optional email corrections ──────────────────────────────────────────
 let emailCorrections = {};
 try {
@@ -252,6 +261,11 @@ for (const row of rows) {
   const researchRaw      = buildRaw(row[COL.hasResearch], row[COL.researchDetail]);
   const communityExtensionRaw = buildRaw(row[COL.hasCommunity], row[COL.communityDetail]);
 
+  const jobAt1yr = COL_INTERVAL.jobAt1yr ? normStr(row[COL_INTERVAL.jobAt1yr]) : null;
+  const jobAt2yr = COL_INTERVAL.jobAt2yr ? normStr(row[COL_INTERVAL.jobAt2yr]) : null;
+  const jobAt5yr = COL_INTERVAL.jobAt5yr ? normStr(row[COL_INTERVAL.jobAt5yr]) : null;
+  const jobAt8yr = COL_INTERVAL.jobAt8yr ? normStr(row[COL_INTERVAL.jobAt8yr]) : null;
+
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || email;
 
   try {
@@ -306,6 +320,10 @@ for (const row of rows) {
     if (licensesRaw)      userDoc.licensesRaw      = licensesRaw;
     if (researchRaw)      userDoc.researchRaw      = researchRaw;
     if (communityExtensionRaw) userDoc.communityExtensionRaw = communityExtensionRaw;
+    if (jobAt1yr) userDoc.jobAt1yr = jobAt1yr;
+    if (jobAt2yr) userDoc.jobAt2yr = jobAt2yr;
+    if (jobAt5yr) userDoc.jobAt5yr = jobAt5yr;
+    if (jobAt8yr) userDoc.jobAt8yr = jobAt8yr;
 
     // Remove null values for clean Firestore docs
     const cleanDoc = Object.fromEntries(

@@ -40,6 +40,11 @@ export interface UserDoc {
   licensesRaw?: string;             // Free-text: licenses/certifications held
   researchRaw?: string;             // Free-text: research/innovation participation
   communityExtensionRaw?: string;   // Free-text: community extension participation
+  // Employment at specific year intervals from graduation (parsed from survey free-text)
+  jobAt1yr?: string;   // raw survey text for "JOB WITHIN 1 YEAR"
+  jobAt2yr?: string;   // raw survey text for "JOB WITHIN 2 YEARS"
+  jobAt5yr?: string;   // raw survey text for "JOB WITHIN 5 YEARS"
+  jobAt8yr?: string;   // raw survey text for "JOB WITHIN 8 YEARS"
   // Import / claim tracking
   importedByAdmin?: boolean;
   isClaimed?: boolean;

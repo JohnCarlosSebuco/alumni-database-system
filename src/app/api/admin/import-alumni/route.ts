@@ -154,6 +154,22 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "community extension",
     "volunteer programs",
   ],
+  jobAt1yr: [
+    "job within 1 year from graduation",
+    "job at 1 year", "1 year job", "job 1yr",
+  ],
+  jobAt2yr: [
+    "job within 2 years from graduation",
+    "job at 2 years", "2 year job", "job 2yr",
+  ],
+  jobAt5yr: [
+    "job within 5 years from graduation",
+    "job at 5 years", "5 year job", "job 5yr",
+  ],
+  jobAt8yr: [
+    "job within 8 years from graduation",
+    "job at 8 years", "8 year job", "job 8yr",
+  ],
 };
 
 function normKey(s: string): string {
@@ -345,6 +361,10 @@ export async function POST(req: Request) {
       const licensesRaw         = buildRaw(resolver.get(row, "licensesRaw"), row["If YES, please specify:"]);
       const researchRaw         = buildRaw(resolver.get(row, "researchRaw"), row["If YES, please specify: 4"]);
       const communityExtensionRaw = buildRaw(resolver.get(row, "communityExtensionRaw"), row["If YES, please specify: 5"]);
+      const jobAt1yr = normStr(resolver.get(row, "jobAt1yr"));
+      const jobAt2yr = normStr(resolver.get(row, "jobAt2yr"));
+      const jobAt5yr = normStr(resolver.get(row, "jobAt5yr"));
+      const jobAt8yr = normStr(resolver.get(row, "jobAt8yr"));
 
       try {
         const tempPassword = crypto.randomBytes(32).toString("hex");
@@ -394,6 +414,10 @@ export async function POST(req: Request) {
         if (licensesRaw)                 userDoc.licensesRaw = licensesRaw;
         if (researchRaw)                 userDoc.researchRaw = researchRaw;
         if (communityExtensionRaw)       userDoc.communityExtensionRaw = communityExtensionRaw;
+        if (jobAt1yr)                    userDoc.jobAt1yr = jobAt1yr;
+        if (jobAt2yr)                    userDoc.jobAt2yr = jobAt2yr;
+        if (jobAt5yr)                    userDoc.jobAt5yr = jobAt5yr;
+        if (jobAt8yr)                    userDoc.jobAt8yr = jobAt8yr;
 
         // Strip null values for clean Firestore docs
         const cleanDoc = Object.fromEntries(

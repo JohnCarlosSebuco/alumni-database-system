@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate, batchYearLabel } from "@/lib/utils/formatters";
-import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals, computePOEStats, computeGAStats } from "@/lib/utils/courseAlignment";
-import type { WaitingTimeRow } from "@/lib/utils/courseAlignment";
+import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals, computePOEStats, computeGAStats, computeIntervalOutcomes } from "@/lib/utils/courseAlignment";
+import type { WaitingTimeRow, IntervalOutcomeRow, IntervalBucket } from "@/lib/utils/courseAlignment";
 import { WaitingTimeChart } from "@/components/dashboard/WaitingTimeChart";
 import type { UserDoc } from "@/lib/types/alumni.types";
 
@@ -59,6 +59,7 @@ export default function ReportsPage() {
   const collegeGoals = useMemo(() => computeCollegeGoals(results), [results]);
   const poeStats = useMemo(() => computePOEStats(results), [results]);
   const gaStats = useMemo(() => computeGAStats(results), [results]);
+  const intervalOutcomes = useMemo(() => computeIntervalOutcomes(results), [results]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -294,9 +295,48 @@ export default function ReportsPage() {
       margin: { left: 14, right: 14 },
     });
 
+    // Section H — Employment Outcomes by Year Interval
+    let afterG = (doc as any).lastAutoTable.finalY + 8;
+    if (afterG > 240) { doc.addPage(); afterG = 20; }
+    const intervalRows = intervalOutcomes.filter(
+      (r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0
+    );
+    if (intervalRows.length > 0) {
+      doc.setFontSize(10); doc.setFont("helvetica", "bold");
+      doc.text("H. Employment Outcomes by Year Interval", 14, afterG);
+      doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+      doc.text("Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses).", 14, afterG + 5);
+      doc.setTextColor(0);
+      const fmtBucket = (b: IntervalBucket) =>
+        b.responded > 0 ? `${b.rate}% (${b.employed}/${b.responded})` : "\u2014";
+      autoTable(doc, {
+        startY: afterG + 9,
+        head: [["Batch Year", "Total", "1 Year", "2 Years", "5 Years", "8 Years"]],
+        body: intervalRows.map((row) => [
+          String(row.batchYear),
+          String(row.total),
+          fmtBucket(row.at1yr),
+          fmtBucket(row.at2yr),
+          fmtBucket(row.at5yr),
+          fmtBucket(row.at8yr),
+        ]),
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [30, 41, 82] },
+        columnStyles: {
+          0: { halign: "center" },
+          1: { halign: "center" },
+          2: { halign: "center" },
+          3: { halign: "center" },
+          4: { halign: "center" },
+          5: { halign: "center" },
+        },
+        margin: { left: 14, right: 14 },
+      });
+    }
+
     // Footer note — page 1
-    const afterG = (doc as any).lastAutoTable.finalY;
-    if (afterG < 275) {
+    const afterLast = (doc as any).lastAutoTable.finalY;
+    if (afterLast < 275) {
       doc.setFontSize(7); doc.setTextColor(120);
       doc.text(
         "Course-aligned placement is determined by job title keyword matching against the graduate\u2019s program of study.",
@@ -411,7 +451,7 @@ export default function ReportsPage() {
                 <div>
                   <h2 className="font-semibold text-gray-900">Cohort Outcomes by Batch Year</h2>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    Employment &amp; course-alignment rate per graduation cohort · 5-year evaluation cycle
+                    Employment &amp; course-alignment based on current/present employment status
                   </p>
                 </div>
               </CardHeader>
@@ -441,6 +481,54 @@ export default function ReportsPage() {
                           <td className="px-4 py-3 text-xs font-semibold text-green-700">{row.employmentRate}%</td>
                           <td className="px-4 py-3 text-xs text-gray-600">{row.aligned}</td>
                           <td className="px-4 py-3 text-xs font-semibold text-indigo-700">{row.alignmentRate}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+          {intervalOutcomes.some((r) => r.at1yr.responded > 0 || r.at2yr.responded > 0 || r.at5yr.responded > 0 || r.at8yr.responded > 0) && (
+            <Card>
+              <CardHeader>
+                <div>
+                  <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
+                  </p>
+                </div>
+              </CardHeader>
+              <CardBody className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Batch Year</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Total</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">1 Year</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">2 Years</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">5 Years</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">8 Years</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {intervalOutcomes.map((row) => (
+                        <tr key={row.batchYear} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-gray-900 text-xs">{row.batchYear}</td>
+                          <td className="px-4 py-3 text-center text-xs text-gray-600">{row.total}</td>
+                          {([row.at1yr, row.at2yr, row.at5yr, row.at8yr] as IntervalBucket[]).map((b, i) => (
+                            <td key={i} className="px-4 py-3 text-center text-xs">
+                              {b.responded > 0 ? (
+                                <span className="font-semibold text-green-700">
+                                  {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                                </span>
+                              ) : (
+                                <span className="text-gray-300">&mdash;</span>
+                              )}
+                            </td>
+                          ))}
                         </tr>
                       ))}
                     </tbody>
