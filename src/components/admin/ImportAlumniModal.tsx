@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 
 interface ImportResult {
   created: number;
+  updated: number;
   skipped: number;
   failed:  number;
   failedRows: { email: string; reason: string }[];
@@ -81,7 +82,8 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Import failed");
       setResult(data as ImportResult);
-      if ((data as ImportResult).created > 0) onSuccess((data as ImportResult).created);
+      const r = data as ImportResult;
+      if (r.created > 0 || r.updated > 0) onSuccess(r.created + r.updated);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -203,9 +205,9 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
               <p className="font-semibold">How it works</p>
               <ul className="list-disc list-inside space-y-0.5">
                 <li>Column headers are matched automatically — different column names are fine</li>
-                <li>Rows with emails that already have accounts are skipped (no duplicates)</li>
+                <li>New emails create accounts; existing emails get updated with XLSX data</li>
                 <li>New accounts are left <em>unclaimed</em> — alumni use <strong>/claim</strong> to set a password</li>
-                <li>Re-uploading the same sheet with new rows only adds the new ones</li>
+                <li>Existing alumni profiles are updated — empty tab data gets populated from the XLSX</li>
               </ul>
             </div>
 
@@ -246,10 +248,14 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
         ) : (
           <>
             {/* Result summary cards */}
-            <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="grid grid-cols-4 gap-3 text-center">
               <div className="rounded-xl border border-green-200 bg-green-50 p-4">
                 <p className="text-2xl font-bold text-green-700">{result.created}</p>
                 <p className="text-xs text-green-600 mt-1">Created</p>
+              </div>
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                <p className="text-2xl font-bold text-blue-700">{result.updated}</p>
+                <p className="text-xs text-blue-600 mt-1">Updated</p>
               </div>
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                 <p className="text-2xl font-bold text-gray-600">{result.skipped}</p>
@@ -264,17 +270,20 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
             </div>
 
             {/* Status message */}
-            {result.created > 0 && (
+            {(result.created > 0 || result.updated > 0) && (
               <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-100 px-4 py-3 text-sm text-green-700">
                 <CheckCircle size={15} className="flex-shrink-0" />
-                {result.created} new alumni account{result.created !== 1 ? "s" : ""} created.
-                They can claim their accounts at <strong>/claim</strong>.
+                <span>
+                  {result.created > 0 && <>{result.created} new alumni account{result.created !== 1 ? "s" : ""} created. </>}
+                  {result.updated > 0 && <>{result.updated} existing account{result.updated !== 1 ? "s" : ""} updated with XLSX data. </>}
+                  {result.created > 0 && <>New accounts can be claimed at <strong>/claim</strong>.</>}
+                </span>
               </div>
             )}
-            {result.created === 0 && result.skipped > 0 && result.failed === 0 && (
+            {result.created === 0 && result.updated === 0 && result.skipped > 0 && result.failed === 0 && (
               <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 text-sm text-amber-700">
                 <AlertCircle size={15} className="flex-shrink-0" />
-                All rows already have accounts — no new accounts were created.
+                No changes were made — all data is already up to date.
               </div>
             )}
 

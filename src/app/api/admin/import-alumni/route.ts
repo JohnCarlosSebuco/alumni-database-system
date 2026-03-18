@@ -183,6 +183,36 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "job within 8 years from graduation",
     "job at 8 years", "8 year job", "job 8yr",
   ],
+  licensesDetail: [
+    "if yes please specify",
+    "if yes  please specify",
+    "specify licenses",
+    "licenses details",
+  ],
+  researchDetail: [
+    "if yes please specify  4",
+    "if yes  please specify  4",
+    "specify research",
+    "research details",
+  ],
+  communityDetail: [
+    "if yes please specify  5",
+    "if yes  please specify  5",
+    "specify community",
+    "community details",
+  ],
+  trainingDetail: [
+    "if yes please specify  2",
+    "if yes  please specify  2",
+    "specify training",
+    "training details",
+  ],
+  awardsDetail: [
+    "if yes please specify  3",
+    "if yes  please specify  3",
+    "specify awards",
+    "awards details",
+  ],
 };
 
 function normKey(s: string): string {
@@ -330,6 +360,7 @@ export async function POST(req: Request) {
     const resolver = buildResolver(headers);
 
     const created: { email: string; uid: string }[] = [];
+    const updated: { email: string; uid: string }[] = [];
     const skipped: { email: string; reason: string }[] = [];
     const failed:  { email: string; reason: string }[] = [];
 
@@ -357,11 +388,11 @@ export async function POST(req: Request) {
         continue;
       }
 
-      // Duplicate check
+      // Check if user already exists
+      let existingUid: string | null = null;
       try {
-        await admin.auth().getUserByEmail(email);
-        skipped.push({ email, reason: "Already exists" });
-        continue;
+        const existingUser = await admin.auth().getUserByEmail(email);
+        existingUid = existingUser.uid;
       } catch (e: unknown) {
         if ((e as { code?: string }).code !== "auth/user-not-found") {
           failed.push({ email, reason: "Error checking account" });
@@ -391,161 +422,287 @@ export async function POST(req: Request) {
       const employmentStatus    = normStr(resolver.get(row, "employmentStatus"));
       const companyAddress      = normStr(resolver.get(row, "companyAddress"));
       const industryType        = normStr(resolver.get(row, "industryType"));
-      const licensesRaw         = buildRaw(resolver.get(row, "licensesRaw"), row["If YES, please specify:"]);
-      const researchRaw         = buildRaw(resolver.get(row, "researchRaw"), row["If YES, please specify: 4"]);
-      const communityExtensionRaw = buildRaw(resolver.get(row, "communityExtensionRaw"), row["If YES, please specify: 5"]);
-      const awardsRaw         = buildRaw(resolver.get(row, "awardsRaw"), row["If YES, please specify: 3"]);
-      const trainingRaw       = buildRaw(resolver.get(row, "trainingRaw"), row["If YES, please specify: 2"]);
+      // Resolve detail columns via aliases, falling back to hardcoded headers
+      const licensesRaw         = buildRaw(resolver.get(row, "licensesRaw"), resolver.get(row, "licensesDetail") ?? row["If YES, please specify:"]);
+      const researchRaw         = buildRaw(resolver.get(row, "researchRaw"), resolver.get(row, "researchDetail") ?? row["If YES, please specify: 4"]);
+      const communityExtensionRaw = buildRaw(resolver.get(row, "communityExtensionRaw"), resolver.get(row, "communityDetail") ?? row["If YES, please specify: 5"]);
+      const awardsRaw         = buildRaw(resolver.get(row, "awardsRaw"), resolver.get(row, "awardsDetail") ?? row["If YES, please specify: 3"]);
+      const trainingRaw       = buildRaw(resolver.get(row, "trainingRaw"), resolver.get(row, "trainingDetail") ?? row["If YES, please specify: 2"]);
       const jobAt1yr = normStr(resolver.get(row, "jobAt1yr"));
       const jobAt2yr = normStr(resolver.get(row, "jobAt2yr"));
       const jobAt5yr = normStr(resolver.get(row, "jobAt5yr"));
       const jobAt8yr = normStr(resolver.get(row, "jobAt8yr"));
 
+      // Build structured profile arrays from raw survey data
+      const educationArr: Record<string, unknown>[] = [];
+      if (course) {
+        const { degree: degStr, fieldOfStudy } = parseDegree(course);
+        const honorsClean = honors && !["n/a", "na", "none"].includes(honors.toLowerCase()) && !/^\d+\s*[a-z]$/i.test(honors.trim()) ? honors : "";
+        educationArr.push({
+          id: crypto.randomBytes(10).toString("hex"),
+          institution: "Southern Luzon State University",
+          degree: degStr,
+          fieldOfStudy,
+          yearStarted: batchYear ? batchYear - 4 : 0,
+          yearEnded: batchYear ?? null,
+          honors: honorsClean,
+        });
+      }
+
+      const licensesArr: Record<string, unknown>[] = [];
+      const licDetail = extractDetail(licensesRaw);
+      if (licDetail) licensesArr.push({ id: crypto.randomBytes(10).toString("hex"), name: licDetail, issuingBody: "", licenseNumber: "", dateIssued: "", fileURL: "" });
+
+      const awardsArr: Record<string, unknown>[] = [];
+      const awardDetail = extractDetail(awardsRaw);
+      if (awardDetail) awardsArr.push({ id: crypto.randomBytes(10).toString("hex"), title: awardDetail, grantedBy: "", year: 0, description: "" });
+
+      const researchArr: Record<string, unknown>[] = [];
+      const researchDetail = extractDetail(researchRaw);
+      if (researchDetail) researchArr.push({ id: crypto.randomBytes(10).toString("hex"), title: researchDetail, coAuthors: "", publishedIn: "", year: 0, doiOrLink: "" });
+
+      const communityArr: Record<string, unknown>[] = [];
+      const communityDetail = extractDetail(communityExtensionRaw);
+      if (communityDetail) communityArr.push({ id: crypto.randomBytes(10).toString("hex"), programName: communityDetail, organization: "", role: "", startDate: "", endDate: "" });
+
+      const trainingArr: Record<string, unknown>[] = [];
+      const trainingDetail = extractDetail(trainingRaw);
+      if (trainingDetail) trainingArr.push({ id: crypto.randomBytes(10).toString("hex"), title: trainingDetail, provider: "", dateCompleted: "", certificateURL: "", description: "" });
+
       try {
-        const tempPassword = crypto.randomBytes(32).toString("hex");
-        const userRecord = await admin.auth().createUser({
-          email,
-          password: tempPassword,
-          displayName,
-          emailVerified: true,
-        });
+        if (existingUid) {
+          // ── UPDATE existing alumni ──
+          const uid = existingUid;
+          const docRef = admin.firestore().collection("users").doc(uid);
+          const existingSnap = await docRef.get();
+          const existingData = existingSnap.data() ?? {};
 
-        await admin.auth().setCustomUserClaims(userRecord.uid, { role: "alumni" });
+          // Build update payload — only set fields that have a value from XLSX
+          const userUpdates: Record<string, unknown> = { updatedAt: now };
+          if (firstName)       userUpdates.displayName = displayName;
+          if (batchYear)       userUpdates.batchYear = batchYear;
+          if (course)          userUpdates.course = course;
+          if (studentId)       userUpdates.studentId = studentId;
+          if (middleName)      userUpdates.middleName = middleName;
+          if (sex)             userUpdates.sex = sex;
+          if (birthday)        userUpdates.birthday = birthday;
+          if (contactNumber)   userUpdates.contactNumber = contactNumber;
+          if (civilStatus)     userUpdates.civilStatus = civilStatus;
+          if (locality)        userUpdates.locality = locality;
+          if (currentPosition) userUpdates.currentPosition = currentPosition;
+          if (currentCompany)  userUpdates.currentCompany = currentCompany;
+          if (honors)          userUpdates.honors = honors;
+          if (courseAligned !== undefined) userUpdates.courseAligned = courseAligned;
+          if (timeToFirstJob)  userUpdates.timeToFirstJob = timeToFirstJob;
+          if (employmentStatus) userUpdates.employmentStatus = employmentStatus;
+          if (companyAddress)  userUpdates.companyAddress = companyAddress;
+          if (industryType)    userUpdates.industryType = industryType;
+          if (licensesRaw)     userUpdates.licensesRaw = licensesRaw;
+          if (researchRaw)     userUpdates.researchRaw = researchRaw;
+          if (communityExtensionRaw) userUpdates.communityExtensionRaw = communityExtensionRaw;
+          if (awardsRaw)       userUpdates.awardsRaw = awardsRaw;
+          if (trainingRaw)     userUpdates.trainingRaw = trainingRaw;
+          if (jobAt1yr)        userUpdates.jobAt1yr = jobAt1yr;
+          if (jobAt2yr)        userUpdates.jobAt2yr = jobAt2yr;
+          if (jobAt5yr)        userUpdates.jobAt5yr = jobAt5yr;
+          if (jobAt8yr)        userUpdates.jobAt8yr = jobAt8yr;
+          userUpdates.isEmployed = isEmployed;
 
-        const userDoc: Record<string, unknown> = {
-          uid: userRecord.uid,
-          email,
-          role: "alumni",
-          displayName,
-          photoURL: null,
-          createdAt: now,
-          updatedAt: now,
-          isActive: true,
-          profileComplete: 0,
-          batchYear,
-          department: "College of Engineering",
-          course,
-          studentId,
-          notifPrefs: { jobs: true, events: true },
-          importedByAdmin: true,
-          isClaimed: false,
-          isEmployed,
-        };
-
-        if (middleName)                 userDoc.middleName = middleName;
-        if (sex)                        userDoc.sex = sex;
-        if (birthday)                   userDoc.birthday = birthday;
-        if (contactNumber)              userDoc.contactNumber = contactNumber;
-        if (civilStatus)                userDoc.civilStatus = civilStatus;
-        if (locality)                   userDoc.locality = locality;
-        if (currentPosition)            userDoc.currentPosition = currentPosition;
-        if (currentCompany)             userDoc.currentCompany = currentCompany;
-        if (honors)                     userDoc.honors = honors;
-        if (courseAligned !== undefined) userDoc.courseAligned = courseAligned;
-        if (timeToFirstJob)              userDoc.timeToFirstJob = timeToFirstJob;
-        if (employmentStatus)            userDoc.employmentStatus = employmentStatus;
-        if (companyAddress)              userDoc.companyAddress = companyAddress;
-        if (industryType)                userDoc.industryType = industryType;
-        if (licensesRaw)                 userDoc.licensesRaw = licensesRaw;
-        if (researchRaw)                 userDoc.researchRaw = researchRaw;
-        if (communityExtensionRaw)       userDoc.communityExtensionRaw = communityExtensionRaw;
-        if (awardsRaw)                   userDoc.awardsRaw = awardsRaw;
-        if (trainingRaw)                 userDoc.trainingRaw = trainingRaw;
-        if (jobAt1yr)                    userDoc.jobAt1yr = jobAt1yr;
-        if (jobAt2yr)                    userDoc.jobAt2yr = jobAt2yr;
-        if (jobAt5yr)                    userDoc.jobAt5yr = jobAt5yr;
-        if (jobAt8yr)                    userDoc.jobAt8yr = jobAt8yr;
-
-        // Dynamically calculate profile completion
-        userDoc.profileComplete = calculateProfileComplete({
-          firstName, lastName, birthday, sex: sex ?? undefined,
-          contactNumber: contactNumber ?? undefined,
-          locality: locality ?? undefined,
-          batchYear, course, department: "College of Engineering",
-          isEmployed, currentCompany: currentCompany ?? undefined,
-          currentPosition: currentPosition ?? undefined,
-          licensesRaw: licensesRaw ?? undefined,
-          researchRaw: researchRaw ?? undefined,
-          communityExtensionRaw: communityExtensionRaw ?? undefined,
-        });
-
-        // Strip null values for clean Firestore docs
-        const cleanDoc = Object.fromEntries(
-          Object.entries(userDoc).filter(([, v]) => v !== null)
-        );
-
-        await admin.firestore().collection("users").doc(userRecord.uid).set(cleanDoc);
-
-        // Build structured arrays from raw survey data
-        const educationArr: Record<string, unknown>[] = [];
-        if (course) {
-          const { degree: degStr, fieldOfStudy } = parseDegree(course);
-          const honorsVal = normStr(resolver.get(row, "honors"));
-          const honorsClean = honorsVal && !["n/a", "na", "none"].includes(honorsVal.toLowerCase()) && !/^\d+\s*[a-z]$/i.test(honorsVal.trim()) ? honorsVal : "";
-          educationArr.push({
-            id: crypto.randomBytes(10).toString("hex"),
-            institution: "Southern Luzon State University",
-            degree: degStr,
-            fieldOfStudy,
-            yearStarted: batchYear ? batchYear - 4 : 0,
-            yearEnded: batchYear ?? null,
-            honors: honorsClean,
+          // Recalculate profile completion with merged data
+          const merged = { ...existingData, ...userUpdates };
+          userUpdates.profileComplete = calculateProfileComplete({
+            firstName: firstName || merged.displayName?.split(" ")[0] || "",
+            lastName: lastName || merged.displayName?.split(" ").slice(1).join(" ") || "",
+            birthday: (birthday ?? merged.birthday) as string | undefined,
+            sex: (sex ?? merged.sex) as string | undefined,
+            contactNumber: (contactNumber ?? merged.contactNumber) as string | undefined,
+            locality: (locality ?? merged.locality) as string | undefined,
+            batchYear: batchYear ?? merged.batchYear,
+            course: course ?? merged.course,
+            department: merged.department ?? "College of Engineering",
+            isEmployed: isEmployed ?? merged.isEmployed,
+            currentCompany: (currentCompany ?? merged.currentCompany) as string | undefined,
+            currentPosition: (currentPosition ?? merged.currentPosition) as string | undefined,
+            licensesRaw: (licensesRaw ?? merged.licensesRaw) as string | undefined,
+            researchRaw: (researchRaw ?? merged.researchRaw) as string | undefined,
+            communityExtensionRaw: (communityExtensionRaw ?? merged.communityExtensionRaw) as string | undefined,
           });
+
+          await docRef.update(userUpdates);
+
+          // ── Patch profile subcollection — seed empty arrays ──
+          const profileRef = admin.firestore().collection("users").doc(uid).collection("profile").doc("data");
+          const profileSnap = await profileRef.get();
+
+          if (profileSnap.exists) {
+            const profileData = profileSnap.data() ?? {};
+            const profileUpdates: Record<string, unknown> = {};
+
+            // Update personal info fields
+            if (firstName) profileUpdates.firstName = firstName;
+            if (lastName) profileUpdates.lastName = lastName;
+            if (birthday) profileUpdates.birthDate = birthday;
+            if (sex) profileUpdates.gender = sex;
+            if (civilStatus) profileUpdates.civilStatus = civilStatus;
+            if (contactNumber) profileUpdates.contactNumber = contactNumber;
+            if (locality) profileUpdates.address = locality;
+
+            // Update current employment
+            profileUpdates.currentEmployment = {
+              isEmployed: isEmployed ?? false,
+              employerName: currentCompany ?? (profileData.currentEmployment as Record<string, unknown>)?.employerName ?? "",
+              position: currentPosition ?? (profileData.currentEmployment as Record<string, unknown>)?.position ?? "",
+              industry: industryType ?? (profileData.currentEmployment as Record<string, unknown>)?.industry ?? "",
+              employmentType: employmentStatus ?? (profileData.currentEmployment as Record<string, unknown>)?.employmentType ?? "",
+              startDate: (profileData.currentEmployment as Record<string, unknown>)?.startDate ?? "",
+              city: companyAddress ?? (profileData.currentEmployment as Record<string, unknown>)?.city ?? "",
+            };
+
+            // Seed structured arrays only if currently empty
+            if ((!profileData.education || (profileData.education as unknown[]).length === 0) && educationArr.length > 0) {
+              profileUpdates.education = educationArr;
+            }
+            if ((!profileData.licenses || (profileData.licenses as unknown[]).length === 0) && licensesArr.length > 0) {
+              profileUpdates.licenses = licensesArr;
+            }
+            if ((!profileData.awards || (profileData.awards as unknown[]).length === 0) && awardsArr.length > 0) {
+              profileUpdates.awards = awardsArr;
+            }
+            if ((!profileData.research || (profileData.research as unknown[]).length === 0) && researchArr.length > 0) {
+              profileUpdates.research = researchArr;
+            }
+            if ((!profileData.communityExtension || (profileData.communityExtension as unknown[]).length === 0) && communityArr.length > 0) {
+              profileUpdates.communityExtension = communityArr;
+            }
+            if ((!profileData.training || (profileData.training as unknown[]).length === 0) && trainingArr.length > 0) {
+              profileUpdates.training = trainingArr;
+            }
+            // Ensure training field exists
+            if (profileData.training === undefined && !profileUpdates.training) {
+              profileUpdates.training = [];
+            }
+
+            if (Object.keys(profileUpdates).length > 0) {
+              await profileRef.update(profileUpdates);
+            }
+          } else {
+            // No profile doc yet — create it fully
+            await profileRef.set({
+              firstName, lastName,
+              birthDate: birthday ?? "", gender: sex ?? "",
+              civilStatus: civilStatus ?? "", contactNumber: contactNumber ?? "",
+              address: locality ?? "",
+              currentEmployment: {
+                isEmployed: isEmployed ?? false,
+                employerName: currentCompany ?? "", position: currentPosition ?? "",
+                industry: industryType ?? "", employmentType: employmentStatus ?? "",
+                startDate: "", city: companyAddress ?? "",
+              },
+              education: educationArr, employmentHistory: [],
+              licenses: licensesArr, awards: awardsArr,
+              research: researchArr, communityExtension: communityArr,
+              training: trainingArr,
+            });
+          }
+
+          updated.push({ email, uid });
+        } else {
+          // ── CREATE new alumni ──
+          const tempPassword = crypto.randomBytes(32).toString("hex");
+          const userRecord = await admin.auth().createUser({
+            email,
+            password: tempPassword,
+            displayName,
+            emailVerified: true,
+          });
+
+          await admin.auth().setCustomUserClaims(userRecord.uid, { role: "alumni" });
+
+          const userDoc: Record<string, unknown> = {
+            uid: userRecord.uid,
+            email,
+            role: "alumni",
+            displayName,
+            photoURL: null,
+            createdAt: now,
+            updatedAt: now,
+            isActive: true,
+            profileComplete: 0,
+            batchYear,
+            department: "College of Engineering",
+            course,
+            studentId,
+            notifPrefs: { jobs: true, events: true },
+            importedByAdmin: true,
+            isClaimed: false,
+            isEmployed,
+          };
+
+          if (middleName)                 userDoc.middleName = middleName;
+          if (sex)                        userDoc.sex = sex;
+          if (birthday)                   userDoc.birthday = birthday;
+          if (contactNumber)              userDoc.contactNumber = contactNumber;
+          if (civilStatus)                userDoc.civilStatus = civilStatus;
+          if (locality)                   userDoc.locality = locality;
+          if (currentPosition)            userDoc.currentPosition = currentPosition;
+          if (currentCompany)             userDoc.currentCompany = currentCompany;
+          if (honors)                     userDoc.honors = honors;
+          if (courseAligned !== undefined) userDoc.courseAligned = courseAligned;
+          if (timeToFirstJob)              userDoc.timeToFirstJob = timeToFirstJob;
+          if (employmentStatus)            userDoc.employmentStatus = employmentStatus;
+          if (companyAddress)              userDoc.companyAddress = companyAddress;
+          if (industryType)                userDoc.industryType = industryType;
+          if (licensesRaw)                 userDoc.licensesRaw = licensesRaw;
+          if (researchRaw)                 userDoc.researchRaw = researchRaw;
+          if (communityExtensionRaw)       userDoc.communityExtensionRaw = communityExtensionRaw;
+          if (awardsRaw)                   userDoc.awardsRaw = awardsRaw;
+          if (trainingRaw)                 userDoc.trainingRaw = trainingRaw;
+          if (jobAt1yr)                    userDoc.jobAt1yr = jobAt1yr;
+          if (jobAt2yr)                    userDoc.jobAt2yr = jobAt2yr;
+          if (jobAt5yr)                    userDoc.jobAt5yr = jobAt5yr;
+          if (jobAt8yr)                    userDoc.jobAt8yr = jobAt8yr;
+
+          userDoc.profileComplete = calculateProfileComplete({
+            firstName, lastName, birthday, sex: sex ?? undefined,
+            contactNumber: contactNumber ?? undefined,
+            locality: locality ?? undefined,
+            batchYear, course, department: "College of Engineering",
+            isEmployed, currentCompany: currentCompany ?? undefined,
+            currentPosition: currentPosition ?? undefined,
+            licensesRaw: licensesRaw ?? undefined,
+            researchRaw: researchRaw ?? undefined,
+            communityExtensionRaw: communityExtensionRaw ?? undefined,
+          });
+
+          const cleanDoc = Object.fromEntries(
+            Object.entries(userDoc).filter(([, v]) => v !== null)
+          );
+
+          await admin.firestore().collection("users").doc(userRecord.uid).set(cleanDoc);
+
+          await admin
+            .firestore()
+            .collection("users").doc(userRecord.uid)
+            .collection("profile").doc("data")
+            .set({
+              firstName, lastName,
+              birthDate: birthday ?? "", gender: sex ?? "",
+              civilStatus: civilStatus ?? "", contactNumber: contactNumber ?? "",
+              address: locality ?? "",
+              currentEmployment: {
+                isEmployed: isEmployed ?? false,
+                employerName: currentCompany ?? "", position: currentPosition ?? "",
+                industry: industryType ?? "", employmentType: employmentStatus ?? "",
+                startDate: "", city: companyAddress ?? "",
+              },
+              education: educationArr, employmentHistory: [],
+              licenses: licensesArr, awards: awardsArr,
+              research: researchArr, communityExtension: communityArr,
+              training: trainingArr,
+            });
+
+          created.push({ email, uid: userRecord.uid });
         }
-
-        const licensesArr: Record<string, unknown>[] = [];
-        const licDetail = extractDetail(licensesRaw);
-        if (licDetail) licensesArr.push({ id: crypto.randomBytes(10).toString("hex"), name: licDetail, issuingBody: "", licenseNumber: "", dateIssued: "", fileURL: "" });
-
-        const awardsArr: Record<string, unknown>[] = [];
-        const awardDetail = extractDetail(awardsRaw);
-        if (awardDetail) awardsArr.push({ id: crypto.randomBytes(10).toString("hex"), title: awardDetail, grantedBy: "", year: 0, description: "" });
-
-        const researchArr: Record<string, unknown>[] = [];
-        const researchDetail = extractDetail(researchRaw);
-        if (researchDetail) researchArr.push({ id: crypto.randomBytes(10).toString("hex"), title: researchDetail, coAuthors: "", publishedIn: "", year: 0, doiOrLink: "" });
-
-        const communityArr: Record<string, unknown>[] = [];
-        const communityDetail = extractDetail(communityExtensionRaw);
-        if (communityDetail) communityArr.push({ id: crypto.randomBytes(10).toString("hex"), programName: communityDetail, organization: "", role: "", startDate: "", endDate: "" });
-
-        const trainingArr: Record<string, unknown>[] = [];
-        const trainingDetail = extractDetail(trainingRaw);
-        if (trainingDetail) trainingArr.push({ id: crypto.randomBytes(10).toString("hex"), title: trainingDetail, provider: "", dateCompleted: "", certificateURL: "", description: "" });
-
-        const profileDoc: Record<string, unknown> = {
-          firstName,
-          lastName,
-          birthDate:     birthday      ?? "",
-          gender:        sex           ?? "",
-          civilStatus:   civilStatus   ?? "",
-          contactNumber: contactNumber ?? "",
-          address:       locality      ?? "",
-          currentEmployment: {
-            isEmployed:     isEmployed ?? false,
-            employerName:   currentCompany   ?? "",
-            position:       currentPosition  ?? "",
-            industry:       industryType     ?? "",
-            employmentType: employmentStatus ?? "",
-            startDate:      "",
-            city:           companyAddress   ?? "",
-          },
-          education:          educationArr,
-          employmentHistory:  [],
-          licenses:           licensesArr,
-          awards:             awardsArr,
-          research:           researchArr,
-          communityExtension: communityArr,
-          training:           trainingArr,
-        };
-
-        await admin
-          .firestore()
-          .collection("users").doc(userRecord.uid)
-          .collection("profile").doc("data")
-          .set(profileDoc);
-
-        created.push({ email, uid: userRecord.uid });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Unknown error";
         failed.push({ email, reason: msg.includes("email-already-exists") ? "Already exists" : msg });
@@ -554,6 +711,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       created: created.length,
+      updated: updated.length,
       skipped: skipped.length,
       failed:  failed.length,
       failedRows: failed,
