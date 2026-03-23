@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, User, Briefcase, Calendar, Bell,
   Users, BarChart3, ChevronLeft,
-  ChevronRight, ShieldCheck, ClipboardList,
+  ChevronRight, ShieldCheck, ClipboardList, BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -33,6 +33,7 @@ const adminNav: NavItem[] = [
   { label: "Events",         href: "/admin/events",     icon: <Calendar size={18} /> },
   { label: "Surveys",        href: "/admin/surveys",    icon: <ClipboardList size={18} /> },
   { label: "Reports",        href: "/admin/reports",    icon: <BarChart3 size={18} /> },
+  { label: "Manuals",        href: "/admin/manuals",    icon: <BookOpen size={18} /> },
 ];
 
 interface SidebarProps {
