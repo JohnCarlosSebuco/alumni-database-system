@@ -7,7 +7,21 @@ import {
   Download,
   Users,
   Star,
+  BarChart2,
+  CheckCircle2,
+  Clock,
+  ListChecks,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody } from "@/components/ui/Card";
 import { formatDate } from "@/lib/utils/formatters";
@@ -19,7 +33,7 @@ interface SurveyResponsesProps {
   responses: SurveyResponse[];
 }
 
-// ── CSV export ───────────────────────────────────────────────────────────────
+// -- CSV export --
 
 function exportToCSV(survey: Survey, responses: SurveyResponse[]) {
   const headers = [
@@ -60,40 +74,36 @@ function exportToCSV(survey: Survey, responses: SurveyResponse[]) {
   URL.revokeObjectURL(url);
 }
 
-// ── Horizontal bar row (CSS only) ────────────────────────────────────────────
+// -- Stat card --
 
-function HorizBar({
+function StatCard({
+  icon,
   label,
-  count,
-  pct,
+  value,
+  sub,
 }: {
+  icon: React.ReactNode;
   label: string;
-  count: number;
-  pct: number;
+  value: string | number;
+  sub?: string;
 }) {
   return (
-    <div className="flex items-center gap-3 group">
-      <span
-        className="w-24 sm:w-40 text-xs sm:text-sm text-gray-700 text-right shrink-0 truncate"
-        title={label}
-      >
-        {label}
-      </span>
-      <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
-        <div
-          className="h-full bg-navy-800 rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${Math.max(pct, count > 0 ? 1 : 0)}%` }}
-        />
+    <div className="rounded-xl bg-white border border-gray-100 shadow-sm px-4 py-3 flex items-start gap-3">
+      <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-800">
+        {icon}
       </div>
-      <span className="w-20 sm:w-28 shrink-0 text-xs sm:text-sm text-gray-500">
-        {count} &nbsp;
-        <span className="text-gray-400">({pct.toFixed(0)}%)</span>
-      </span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 truncate">
+          {label}
+        </p>
+        <p className="text-xl font-bold text-gray-900 leading-tight">{value}</p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5 truncate">{sub}</p>}
+      </div>
     </div>
   );
 }
 
-// ── Per-question summary card ─────────────────────────────────────────────────
+// -- Per-question summary card --
 
 function QuestionSummaryCard({
   question,
@@ -124,7 +134,7 @@ function QuestionSummaryCard({
     </div>
   );
 
-  /* ── Short / Long text ── */
+  /* -- Short / Long text -- */
   if (question.type === "short_text" || question.type === "long_text") {
     const textAnswers = rawAnswers.filter(
       (a): a is string => typeof a === "string"
@@ -152,16 +162,20 @@ function QuestionSummaryCard({
     );
   }
 
-  /* ── Rating ── */
+  /* -- Rating -- */
   if (question.type === "rating") {
     const nums = rawAnswers
       .map((a) => parseInt(String(a)))
       .filter((n) => n >= 1 && n <= 5);
     const avg =
       nums.length > 0 ? nums.reduce((s, n) => s + n, 0) / nums.length : 0;
-    const dist = [5, 4, 3, 2, 1].map((star) => ({
-      star,
+
+    const chartData = [5, 4, 3, 2, 1].map((star) => ({
+      name: `${star} star${star !== 1 ? "s" : ""}`,
       count: nums.filter((n) => n === star).length,
+      pct: nums.length
+        ? ((nums.filter((n) => n === star).length / nums.length) * 100).toFixed(0)
+        : "0",
     }));
 
     return (
@@ -195,16 +209,52 @@ function QuestionSummaryCard({
                 </span>
               </div>
 
-              {/* Distribution bars */}
-              <div className="flex-1 space-y-2">
-                {dist.map(({ star, count }) => (
-                  <HorizBar
-                    key={star}
-                    label={`${star} star${star !== 1 ? "s" : ""}`}
-                    count={count}
-                    pct={nums.length ? (count / nums.length) * 100 : 0}
-                  />
-                ))}
+              {/* Distribution bar chart */}
+              <div className="flex-1 min-w-0">
+                <ResponsiveContainer width="100%" height={160}>
+                  <BarChart
+                    data={chartData}
+                    layout="vertical"
+                    margin={{ left: 4, right: 36, top: 2, bottom: 2 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis
+                      type="number"
+                      domain={[0, nums.length]}
+                      tickCount={4}
+                      fontSize={11}
+                      tick={{ fill: "#9ca3af" }}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={56}
+                      fontSize={11}
+                      tick={{ fill: "#6b7280" }}
+                    />
+                    <Tooltip
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      formatter={(value: any, _name: any, entry: any) =>
+                        [`${value ?? 0} (${entry?.payload?.pct ?? 0}%)`, "Responses"]
+                      }
+                      contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                    />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                      {chartData.map((entry, i) => (
+                        <Cell
+                          key={i}
+                          fill={
+                            entry.name.startsWith("5") || entry.name.startsWith("4")
+                              ? "#1e2952"
+                              : entry.name.startsWith("3")
+                              ? "#3b4a8a"
+                              : "#6b7eb5"
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           )}
@@ -213,7 +263,7 @@ function QuestionSummaryCard({
     );
   }
 
-  /* ── Single choice / Multiple choice / Yes–No ── */
+  /* -- Single choice / Multiple choice / Yes-No -- */
   const options =
     question.type === "yes_no" ? ["Yes", "No"] : (question.options ?? []);
   const counts: Record<string, number> = Object.fromEntries(
@@ -233,6 +283,13 @@ function QuestionSummaryCard({
 
   const totalVotes = Object.values(counts).reduce((s, n) => s + n, 0) || 1;
 
+  const chartData = options.map((opt) => ({
+    name: opt.length > 20 ? opt.slice(0, 18) + "..." : opt,
+    fullName: opt,
+    count: counts[opt] ?? 0,
+    pct: (((counts[opt] ?? 0) / totalVotes) * 100).toFixed(0),
+  }));
+
   return (
     <Card>
       <CardBody>
@@ -240,23 +297,54 @@ function QuestionSummaryCard({
         {options.length === 0 ? (
           <p className="text-sm text-gray-400 italic">No options configured.</p>
         ) : (
-          <div className="space-y-2.5">
-            {options.map((opt) => (
-              <HorizBar
-                key={opt}
-                label={opt}
-                count={counts[opt] ?? 0}
-                pct={((counts[opt] ?? 0) / totalVotes) * 100}
+          <ResponsiveContainer
+            width="100%"
+            height={Math.max(160, options.length * 48)}
+          >
+            <BarChart
+              data={chartData}
+              layout="vertical"
+              margin={{ left: 8, right: 48, top: 4, bottom: 4 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+              <XAxis
+                type="number"
+                domain={[0, Math.max(...Object.values(counts), 1)]}
+                allowDecimals={false}
+                fontSize={11}
+                tick={{ fill: "#9ca3af" }}
               />
-            ))}
-          </div>
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={120}
+                fontSize={11}
+                tick={{ fill: "#6b7280" }}
+              />
+              <Tooltip
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                formatter={(value: any, _name: any, entry: any) =>
+                  [`${value ?? 0} (${entry?.payload?.pct ?? 0}%)`, entry?.payload?.fullName ?? ""]
+                }
+                contentStyle={{ fontSize: 12, borderRadius: 8 }}
+              />
+              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                {chartData.map((_, i) => (
+                  <Cell
+                    key={i}
+                    fill={i % 2 === 0 ? "#1e2952" : "#3b4a8a"}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </CardBody>
     </Card>
   );
 }
 
-// ── Individual view ───────────────────────────────────────────────────────────
+// -- Individual view --
 
 function IndividualView({
   survey,
@@ -274,7 +362,7 @@ function IndividualView({
     r.course ?? null,
   ]
     .filter(Boolean)
-    .join(" · ");
+    .join(" - ");
 
   return (
     <div className="space-y-4">
@@ -317,7 +405,7 @@ function IndividualView({
             <p className="font-semibold text-gray-900">{r.displayName}</p>
             <p className="text-xs text-gray-400 mt-0.5">
               Submitted {formatDate(r.submittedAt)}
-              {meta ? ` · ${meta}` : ""}
+              {meta ? ` - ${meta}` : ""}
             </p>
           </div>
         </div>
@@ -325,7 +413,7 @@ function IndividualView({
         <CardBody className="divide-y divide-gray-50">
           {survey.type === "google_form" || survey.questions.length === 0 ? (
             <p className="text-sm text-gray-400 italic py-4">
-              (Google Form submission — answers not stored in-app)
+              (Google Form submission - answers not stored in-app)
             </p>
           ) : (
             survey.questions.map((q, i) => {
@@ -382,7 +470,7 @@ function IndividualView({
   );
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
+// -- Main export --
 
 export function SurveyResponses({ survey, responses }: SurveyResponsesProps) {
   const [view, setView] = useState<"summary" | "individual">("summary");
@@ -401,8 +489,54 @@ export function SurveyResponses({ survey, responses }: SurveyResponsesProps) {
     );
   }
 
+  // Compute overview stats
+  const sortedResponses = [...responses].sort(
+    (a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime()
+  );
+  const latestResponse = sortedResponses[sortedResponses.length - 1];
+
+  let avgCompletion = 0;
+  if (survey.questions.length > 0) {
+    const completionRates = responses.map((r) => {
+      const answered = survey.questions.filter((q) => {
+        const ans = r.answers?.[q.id];
+        if (ans === undefined || ans === null || ans === "") return false;
+        if (Array.isArray(ans)) return ans.length > 0;
+        return true;
+      }).length;
+      return (answered / survey.questions.length) * 100;
+    });
+    avgCompletion = completionRates.reduce((s, n) => s + n, 0) / completionRates.length;
+  }
+
   return (
     <div className="space-y-5">
+      {/* Overview stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard
+          icon={<Users size={18} />}
+          label="Total Responses"
+          value={responses.length}
+        />
+        <StatCard
+          icon={<CheckCircle2 size={18} />}
+          label="Avg Completion"
+          value={`${avgCompletion.toFixed(0)}%`}
+          sub={`${survey.questions.length} question${survey.questions.length !== 1 ? "s" : ""}`}
+        />
+        <StatCard
+          icon={<Clock size={18} />}
+          label="Latest Response"
+          value={formatDate(latestResponse.submittedAt)}
+        />
+        <StatCard
+          icon={<ListChecks size={18} />}
+          label="Questions"
+          value={survey.questions.length}
+          sub={survey.type === "custom" ? "Custom survey" : "Google Form"}
+        />
+      </div>
+
       {/* Toolbar: view toggle + response count + export */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
@@ -412,24 +546,26 @@ export function SurveyResponses({ survey, responses }: SurveyResponsesProps) {
               type="button"
               onClick={() => setView("summary")}
               className={cn(
-                "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+                "flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
                 view === "summary"
                   ? "bg-navy-800 text-white shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
               )}
             >
+              <BarChart2 size={14} />
               Summary
             </button>
             <button
               type="button"
               onClick={() => setView("individual")}
               className={cn(
-                "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+                "flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
                 view === "individual"
                   ? "bg-navy-800 text-white shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
               )}
             >
+              <Users size={14} />
               Individual
             </button>
           </div>

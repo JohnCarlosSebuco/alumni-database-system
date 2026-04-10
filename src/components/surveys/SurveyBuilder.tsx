@@ -15,8 +15,26 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Tabs } from "@/components/ui/Tabs";
 import { useToast } from "@/components/ui/Toast";
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Star, X } from "lucide-react";
+import {
+  Plus, Trash2, ChevronUp, ChevronDown, Copy, Star, X,
+  GripVertical, AlertCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type {
   Survey,
   SurveyQuestion,
@@ -34,7 +52,7 @@ const questionTypeOptions = [
   { value: "long_text",       label: "Long Text" },
   { value: "single_choice",   label: "Single Choice" },
   { value: "multiple_choice", label: "Multiple Choice" },
-  { value: "rating",          label: "Rating (1–5 stars)" },
+  { value: "rating",          label: "Rating (1-5 stars)" },
   { value: "yes_no",          label: "Yes / No" },
 ];
 
@@ -59,7 +77,7 @@ function makeNewQuestion(): SurveyQuestion {
   };
 }
 
-// ── Question Card ──────────────────────────────────────────────────────────
+// -- Question Card --
 
 interface QuestionCardProps {
   question: SurveyQuestion;
@@ -71,6 +89,7 @@ interface QuestionCardProps {
   onMove: (dir: -1 | 1) => void;
   onDuplicate: () => void;
   onDelete: () => void;
+  error?: string;
 }
 
 function QuestionCard({
@@ -83,11 +102,26 @@ function QuestionCard({
   onMove,
   onDuplicate,
   onDelete,
+  error,
 }: QuestionCardProps) {
   const [newOpt, setNewOpt] = useState("");
   const labelRef = useRef<HTMLInputElement>(null);
   const hasOptions =
     question.type === "single_choice" || question.type === "multiple_choice";
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: question.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   // Focus the label input when this card becomes active
   useEffect(() => {
@@ -116,29 +150,64 @@ function QuestionCard({
     });
   };
 
+  const hasError = Boolean(error);
+
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className={cn(
         "rounded-xl bg-white transition-all duration-150 cursor-pointer",
-        isActive
-          ? "border-l-4 border-l-navy-800 shadow-card-hover ring-1 ring-gray-100"
-          : "border border-gray-200 hover:border-gray-300 shadow-sm"
+        isDragging && "opacity-50 shadow-2xl scale-[1.02] z-50",
+        hasError
+          ? isActive
+            ? "border-l-4 border-l-red-500 shadow-card-hover ring-1 ring-red-200 bg-red-50/20"
+            : "border border-red-300 bg-red-50/10 shadow-sm"
+          : isActive
+            ? "border-l-4 border-l-navy-800 shadow-card-hover ring-1 ring-gray-100"
+            : "border border-gray-200 hover:border-gray-300 shadow-sm"
       )}
       onClick={onActivate}
     >
-      {/* ── Card body ── */}
+      {/* -- Card body -- */}
       <div className="p-5 space-y-4">
-        {/* Row 1: question input + type selector */}
+        {/* Row 1: drag handle + question input + type selector */}
         <div className="flex gap-3 items-start">
-          <input
-            ref={labelRef}
-            type="text"
-            value={question.label}
-            onChange={(e) => onChange({ ...question, label: e.target.value })}
-            placeholder={`Question ${index + 1}`}
-            className="flex-1 text-base font-medium text-gray-900 bg-transparent border-0 border-b-2 border-gray-200 focus:border-navy-800 outline-none py-1 placeholder-gray-300 transition-colors"
+          {/* Drag handle */}
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="mt-1.5 flex-shrink-0 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing transition-colors touch-none"
             onClick={(e) => e.stopPropagation()}
-          />
+            title="Drag to reorder"
+          >
+            <GripVertical size={16} />
+          </button>
+
+          <div className="flex-1 min-w-0">
+            <input
+              ref={labelRef}
+              type="text"
+              value={question.label}
+              onChange={(e) => onChange({ ...question, label: e.target.value })}
+              placeholder={`Question ${index + 1}`}
+              className={cn(
+                "w-full text-base font-medium text-gray-900 bg-transparent border-0 border-b-2 focus:outline-none py-1 placeholder-gray-300 transition-colors",
+                hasError
+                  ? "border-red-300 focus:border-red-500"
+                  : "border-gray-200 focus:border-navy-800"
+              )}
+              onClick={(e) => e.stopPropagation()}
+            />
+            {error && (
+              <p className="flex items-center gap-1.5 text-xs text-red-500 mt-1.5 font-medium">
+                <AlertCircle size={12} />
+                {error}
+              </p>
+            )}
+          </div>
+
           <div className="w-52 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <Select
               options={questionTypeOptions}
@@ -245,7 +314,7 @@ function QuestionCard({
         )}
       </div>
 
-      {/* ── Bottom action bar (active only) ── */}
+      {/* -- Bottom action bar (active only) -- */}
       {isActive && (
         <div
           className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100"
@@ -317,7 +386,7 @@ function QuestionCard({
   );
 }
 
-// ── Survey Builder ─────────────────────────────────────────────────────────
+// -- Survey Builder --
 
 export function SurveyBuilder({ survey }: SurveyBuilderProps) {
   const router = useRouter();
@@ -336,10 +405,33 @@ export function SurveyBuilder({ survey }: SurveyBuilderProps) {
   );
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [questionErrors, setQuestionErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("details");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setQuestions((qs) => {
+        const oldIdx = qs.findIndex((q) => q.id === active.id);
+        const newIdx = qs.findIndex((q) => q.id === over.id);
+        return arrayMove(qs, oldIdx, newIdx);
+      });
+    }
+  };
 
   const updateQuestion = (id: string, updated: SurveyQuestion) => {
     setQuestions((qs) => qs.map((q) => (q.id === id ? updated : q)));
+    if (questionErrors[id]) {
+      setQuestionErrors((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
   };
 
   const moveQuestion = (index: number, dir: -1 | 1) => {
@@ -359,9 +451,17 @@ export function SurveyBuilder({ survey }: SurveyBuilderProps) {
   };
 
   const removeQuestion = (index: number) => {
+    const removed = questions[index];
     const next = questions.filter((_, i) => i !== index);
     setQuestions(next);
     setActiveQId(next[Math.min(index, next.length - 1)]?.id ?? null);
+    if (questionErrors[removed.id]) {
+      setQuestionErrors((prev) => {
+        const n = { ...prev };
+        delete n[removed.id];
+        return n;
+      });
+    }
   };
 
   const addQuestion = () => {
@@ -372,11 +472,32 @@ export function SurveyBuilder({ survey }: SurveyBuilderProps) {
 
   const validate = () => {
     const e: Record<string, string> = {};
+    const qe: Record<string, string> = {};
+
     if (!title.trim()) e.title = "Title is required.";
     if (type === "google_form" && !googleFormUrl.trim())
       e.googleFormUrl = "Google Form URL is required.";
+
+    if (type === "custom") {
+      questions.forEach((q) => {
+        if (!q.label.trim()) {
+          qe[q.id] = "Question text is required.";
+        } else if (
+          (q.type === "single_choice" || q.type === "multiple_choice") &&
+          (q.options ?? []).filter((o) => o.trim()).length < 2
+        ) {
+          qe[q.id] = "Add at least 2 options.";
+        }
+      });
+    }
+
     setErrors(e);
-    return Object.keys(e).length === 0;
+    setQuestionErrors(qe);
+
+    const hasQuestionErrors = Object.keys(qe).length > 0;
+    if (hasQuestionErrors && activeTab !== "questions") setActiveTab("questions");
+
+    return Object.keys(e).length === 0 && !hasQuestionErrors;
   };
 
   const handleSave = async () => {
@@ -423,7 +544,7 @@ export function SurveyBuilder({ survey }: SurveyBuilderProps) {
     <div className="space-y-6">
       <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} />
 
-      {/* ── Details Tab ── */}
+      {/* -- Details Tab -- */}
       {activeTab === "details" && (
         <div className="space-y-4">
           <Input
@@ -463,13 +584,13 @@ export function SurveyBuilder({ survey }: SurveyBuilderProps) {
               value={googleFormUrl}
               onChange={(e) => setGoogleFormUrl(e.target.value)}
               error={errors.googleFormUrl}
-              placeholder="https://docs.google.com/forms/d/e/…/viewform"
+              placeholder="https://docs.google.com/forms/d/e/.../viewform"
             />
           )}
         </div>
       )}
 
-      {/* ── Questions Tab ── */}
+      {/* -- Questions Tab -- */}
       {activeTab === "questions" && (
         <div className="space-y-3">
           {questions.length === 0 && (
@@ -480,20 +601,32 @@ export function SurveyBuilder({ survey }: SurveyBuilderProps) {
             </div>
           )}
 
-          {questions.map((q, i) => (
-            <QuestionCard
-              key={q.id}
-              question={q}
-              index={i}
-              total={questions.length}
-              isActive={activeQId === q.id}
-              onActivate={() => setActiveQId(q.id)}
-              onChange={(updated) => updateQuestion(q.id, updated)}
-              onMove={(dir) => moveQuestion(i, dir)}
-              onDuplicate={() => duplicateQuestion(i)}
-              onDelete={() => removeQuestion(i)}
-            />
-          ))}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={questions.map((q) => q.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {questions.map((q, i) => (
+                <QuestionCard
+                  key={q.id}
+                  question={q}
+                  index={i}
+                  total={questions.length}
+                  isActive={activeQId === q.id}
+                  onActivate={() => setActiveQId(q.id)}
+                  onChange={(updated) => updateQuestion(q.id, updated)}
+                  onMove={(dir) => moveQuestion(i, dir)}
+                  onDuplicate={() => duplicateQuestion(i)}
+                  onDelete={() => removeQuestion(i)}
+                  error={questionErrors[q.id]}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
 
           {/* Add question button */}
           <button
@@ -507,7 +640,7 @@ export function SurveyBuilder({ survey }: SurveyBuilderProps) {
         </div>
       )}
 
-      {/* ── Save / Cancel ── */}
+      {/* -- Save / Cancel -- */}
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
         <Button type="button" variant="ghost" onClick={() => router.push("/admin/surveys")}>
           Cancel
