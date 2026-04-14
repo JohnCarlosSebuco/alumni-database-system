@@ -3,6 +3,7 @@ import admin from "@/lib/firebase/admin";
 import crypto from "crypto";
 import { read, utils } from "xlsx";
 import { calculateProfileComplete } from "@/lib/utils/profileComplete";
+import { isAbroadAddress } from "@/lib/utils/courseAlignment";
 
 // ── Auth helper ──────────────────────────────────────────────────────────────
 async function verifyAdminCaller(req: Request) {
@@ -422,6 +423,11 @@ export async function POST(req: Request) {
       const employmentStatus    = normStr(resolver.get(row, "employmentStatus"));
       const companyAddress      = normStr(resolver.get(row, "companyAddress"));
       const industryType        = normStr(resolver.get(row, "industryType"));
+      // Derive isAbroad from explicit column first, then from company/locality address text
+      let isAbroad              = normBoolOrUndef(resolver.get(row, "isAbroad"));
+      if (isAbroad === undefined && (isAbroadAddress(companyAddress) || isAbroadAddress(locality))) {
+        isAbroad = true;
+      }
       // Resolve detail columns via aliases, falling back to hardcoded headers
       const licensesRaw         = buildRaw(resolver.get(row, "licensesRaw"), resolver.get(row, "licensesDetail") ?? row["If YES, please specify:"]);
       const researchRaw         = buildRaw(resolver.get(row, "researchRaw"), resolver.get(row, "researchDetail") ?? row["If YES, please specify: 4"]);
@@ -507,6 +513,7 @@ export async function POST(req: Request) {
           if (jobAt5yr)        userUpdates.jobAt5yr = jobAt5yr;
           if (jobAt8yr)        userUpdates.jobAt8yr = jobAt8yr;
           userUpdates.isEmployed = isEmployed;
+          if (isAbroad !== undefined) userUpdates.isAbroad = isAbroad;
 
           // Recalculate profile completion with merged data
           const merged = { ...existingData, ...userUpdates };
@@ -661,6 +668,7 @@ export async function POST(req: Request) {
           if (jobAt2yr)                    userDoc.jobAt2yr = jobAt2yr;
           if (jobAt5yr)                    userDoc.jobAt5yr = jobAt5yr;
           if (jobAt8yr)                    userDoc.jobAt8yr = jobAt8yr;
+          if (isAbroad !== undefined)      userDoc.isAbroad = isAbroad;
 
           userDoc.profileComplete = calculateProfileComplete({
             firstName, lastName, birthday, sex: sex ?? undefined,

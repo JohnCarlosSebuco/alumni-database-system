@@ -43,8 +43,9 @@ export interface AlumniForOutcome {
   currentPosition?: string;
   // Explicit survey answer — preferred over keyword inference when present
   courseAligned?: boolean;
-  locality?: string;   // residence/work location text
-  isAbroad?: boolean;  // explicit survey flag
+  locality?: string;       // residence/work location text
+  isAbroad?: boolean;      // explicit survey flag
+  companyAddress?: string; // company/organization address — checked for abroad keywords
   researchRaw?: string;            // "Yes: details" or "No"
   communityExtensionRaw?: string;  // "Yes: details" or "No"
   industryType?: string;           // Major line of business
@@ -164,14 +165,22 @@ function hasParticipation(raw?: string): boolean {
   return raw.toLowerCase().startsWith("yes");
 }
 
-const GLOBAL_KEYWORDS = [
+export const GLOBAL_KEYWORDS = [
   "usa", "united states", "new york", "california", "canada", "australia",
-  "singapore", "hong kong", "japan", "korea", "south korea", "uae", "dubai",
-  "qatar", "saudi", "saudi arabia", "kuwait", "bahrain", "oman", "uk",
-  "england", "london", "germany", "france", "italy", "spain", "netherlands",
-  "switzerland", "new zealand", "malaysia", "taiwan", "china", "abroad",
-  "overseas", "international", "expat",
+  "singapore", "hong kong", "japan", "korea", "south korea",
+  "uae", "united arab emirates", "emirates", "dubai", "abu dhabi", "ajman", "sharjah",
+  "qatar", "doha", "saudi", "saudi arabia", "kuwait", "bahrain", "oman",
+  "uk", "england", "london", "germany", "france", "italy", "spain",
+  "netherlands", "switzerland", "new zealand", "malaysia", "taiwan",
+  "china", "beijing", "shanghai", "shenzhen", "abroad", "overseas", "expat",
 ];
+
+/** Returns true if the given address/location text indicates an overseas location. */
+export function isAbroadAddress(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const lower = value.toLowerCase();
+  return GLOBAL_KEYWORDS.some((kw) => lower.includes(kw));
+}
 
 const RESEARCH_KEYWORDS = [
   "research", "r&d", "researcher", "scientist", "innovation", "innovate",
@@ -193,8 +202,11 @@ const COMMUNITY_KEYWORDS = [
 export function isGlobalContext(a: AlumniForOutcome): boolean {
   if (!a.isEmployed) return false;
   if (typeof a.isAbroad === "boolean") return a.isAbroad;
-  const loc = (a.locality ?? "").toLowerCase();
-  return GLOBAL_KEYWORDS.some((kw) => loc.includes(kw));
+  // Only check address/location fields — NOT company name, as names like
+  // "New Zealand Creamery" or "TDH International" are local PH companies.
+  const loc  = (a.locality       ?? "").toLowerCase();
+  const addr = (a.companyAddress ?? "").toLowerCase();
+  return GLOBAL_KEYWORDS.some((kw) => loc.includes(kw) || addr.includes(kw));
 }
 
 export function isResearchInnovation(a: AlumniForOutcome): boolean {

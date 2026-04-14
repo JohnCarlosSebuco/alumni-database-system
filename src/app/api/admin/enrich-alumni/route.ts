@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import admin from "@/lib/firebase/admin";
 import { read, utils } from "xlsx";
+import { isAbroadAddress } from "@/lib/utils/courseAlignment";
 
 // ── Auth helper ───────────────────────────────────────────────────────────────
 async function verifyAdminCaller(req: Request) {
@@ -42,6 +43,22 @@ const ALIASES: Record<string, string[]> = {
     "currently working abroad",
     "overseas worker",
     "ofw",
+  ],
+  companyAddress: [
+    "company   organization address",
+    "company organization address",
+    "company address",
+    "organization address",
+    "office address",
+    "work address",
+  ],
+  locality: [
+    "locality of residence",
+    "locality",
+    "address",
+    "city municipality",
+    "place of residence",
+    "residence",
   ],
   jobAt1yr: [
     "job within 1 year from graduation",
@@ -147,7 +164,13 @@ export async function POST(req: Request) {
 
       const timeToFirstJob = normTimeToFirstJob(resolver.get(row, "timeToFirstJob"));
       const courseAligned  = normBoolOrUndef(resolver.get(row, "courseAligned"));
-      const isAbroad       = normBoolOrUndef(resolver.get(row, "isAbroad"));
+      // Derive isAbroad from explicit column first, then from company/locality address text
+      let isAbroad         = normBoolOrUndef(resolver.get(row, "isAbroad"));
+      if (isAbroad === undefined) {
+        const companyAddr  = normStr(resolver.get(row, "companyAddress"));
+        const loc          = normStr(resolver.get(row, "locality"));
+        if (isAbroadAddress(companyAddr) || isAbroadAddress(loc)) isAbroad = true;
+      }
       const jobAt1yr       = normStr(resolver.get(row, "jobAt1yr"));
       const jobAt2yr       = normStr(resolver.get(row, "jobAt2yr"));
       const jobAt5yr       = normStr(resolver.get(row, "jobAt5yr"));

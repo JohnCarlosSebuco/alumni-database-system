@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Clock,
   ListChecks,
+  RefreshCw,
 } from "lucide-react";
 import {
   BarChart,
@@ -26,6 +27,8 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardBody } from "@/components/ui/Card";
 import { formatDate } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
+import { db, doc, updateDoc } from "@/lib/firebase/firestore";
+import { inferProfilePatch } from "@/lib/utils/surveySyncProfile";
 import type { Survey, SurveyQuestion, SurveyResponse } from "@/lib/types/survey.types";
 
 interface SurveyResponsesProps {
@@ -474,6 +477,29 @@ function IndividualView({
 
 export function SurveyResponses({ survey, responses }: SurveyResponsesProps) {
   const [view, setView] = useState<"summary" | "individual">("summary");
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ updated: number; skipped: number } | null>(null);
+
+  const handleSyncProfiles = async () => {
+    if (survey.type !== "custom" || survey.questions.length === 0) return;
+    setSyncing(true);
+    setSyncResult(null);
+    let updated = 0;
+    let skipped = 0;
+    for (const response of responses) {
+      if (!response.uid || response.source === "google_form") { skipped++; continue; }
+      const patch = inferProfilePatch(survey, response.answers ?? {});
+      if (Object.keys(patch).length === 0) { skipped++; continue; }
+      try {
+        await updateDoc(doc(db, "users", response.uid), patch as Record<string, unknown>);
+        updated++;
+      } catch {
+        skipped++;
+      }
+    }
+    setSyncing(false);
+    setSyncResult({ updated, skipped });
+  };
 
   if (responses.length === 0) {
     return (
@@ -575,15 +601,47 @@ export function SurveyResponses({ survey, responses }: SurveyResponsesProps) {
           </span>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          leftIcon={<Download size={14} />}
-          onClick={() => exportToCSV(survey, responses)}
-        >
-          Export to CSV
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {survey.type === "custom" && survey.questions.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<RefreshCw size={14} className={syncing ? "animate-spin" : ""} />}
+              onClick={handleSyncProfiles}
+              loading={syncing}
+              title="Scan all responses and update alumni profiles (isAbroad, employment, etc.)"
+            >
+              Sync to Profiles
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Download size={14} />}
+            onClick={() => exportToCSV(survey, responses)}
+          >
+            Export to CSV
+          </Button>
+        </div>
       </div>
+
+      {/* Sync result banner */}
+      {syncResult && (
+        <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm">
+          <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" />
+          <span className="text-green-800 font-medium">
+            Sync complete — {syncResult.updated} profile{syncResult.updated !== 1 ? "s" : ""} updated
+            {syncResult.skipped > 0 && `, ${syncResult.skipped} skipped (no matching fields)`}.
+          </span>
+          <button
+            type="button"
+            onClick={() => setSyncResult(null)}
+            className="ml-auto text-green-600 hover:text-green-800 text-xs underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Content */}
       {view === "summary" && (

@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { X, ExternalLink, Star, CheckCircle } from "lucide-react";
-import { setDoc } from "@/lib/firebase/firestore";
+import { setDoc, updateDoc, doc, db } from "@/lib/firebase/firestore";
 import { surveyResponseRef } from "@/lib/firebase/firestore";
+import { inferProfilePatch } from "@/lib/utils/surveySyncProfile";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -98,6 +99,18 @@ export function SurveyModal({ survey, onClose, onComplete }: SurveyModalProps) {
         answers,
         submittedAt: new Date().toISOString(),
       });
+
+      // Sync inferred profile fields (e.g. isAbroad, isEmployed) back to the
+      // alumni's UserDoc so reports stay up-to-date automatically.
+      const patch = inferProfilePatch(survey, answers);
+      if (Object.keys(patch).length > 0) {
+        try {
+          await updateDoc(doc(db, "users", user.uid), patch as Record<string, unknown>);
+        } catch {
+          // Profile sync is best-effort — don't block the success screen.
+        }
+      }
+
       setDone(true);
       setTimeout(() => onComplete(), 2000);
     } catch {
