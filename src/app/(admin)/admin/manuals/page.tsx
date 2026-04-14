@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils/cn";
 
 export const dynamic = "force-dynamic";
 
-type Tab = "system" | "transfer";
+type Tab = "system" | "transfer" | "security" | "storage";
 
 /* ─── Section helper ─── */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -507,6 +507,566 @@ function TransferManual() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   SYSTEM SECURITY DOCUMENTATION CONTENT
+   ═══════════════════════════════════════════════════════════ */
+function SecurityManual() {
+  return (
+    <div className="space-y-8">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <strong>What this document covers:</strong> This guide explains how the AlumNayan system
+        protects your data and keeps the platform secure.
+      </div>
+
+      <Section title="1. How Logging In Works">
+        <p>
+          Think of logging in like using a key to enter a building. Only people with the right key
+          (username and password) can get inside. AlumNayan uses <strong>Firebase Authentication</strong>,
+          a trusted security service by Google, to manage all logins safely.
+        </p>
+        <SubSection title="Email Verification">
+          <p>
+            When someone creates a new account, the system sends a verification email to their inbox.
+            The person must click the link in that email to confirm their identity before they can fully
+            access their account. This prevents fake or typo-filled email addresses from being used.
+          </p>
+          <p>
+            <em>Analogy: It&apos;s like receiving a letter at your home address to prove you really live there.</em>
+          </p>
+        </SubSection>
+        <SubSection title="Password Reset">
+          <p>
+            If someone forgets their password, they can click &quot;Forgot Password&quot; on the login page.
+            The system sends a secure reset link to their email. The old password is immediately invalidated
+            once a new one is set.
+          </p>
+        </SubSection>
+        <SubSection title="Passwords Are Never Stored as Plain Text">
+          <p>
+            AlumNayan never stores anyone&apos;s actual password in the database. Instead, Firebase converts
+            passwords into a scrambled, unreadable code (called a &quot;hash&quot;) before saving them. Even if
+            someone somehow accessed the database, they would not be able to read any passwords.
+          </p>
+          <p>
+            <em>Analogy: Imagine locking your secret message inside a box, melting the key, and keeping only the lock — nobody can re-open it.</em>
+          </p>
+        </SubSection>
+      </Section>
+
+      <Section title="2. Who Can See and Do What (Roles &amp; Permissions)">
+        <p>
+          Not everyone who logs in can do the same things. AlumNayan has three levels of access,
+          like different floors in an office building with different key cards:
+        </p>
+        <SubSection title="Alumni (Ground Floor)">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Can view and update their own profile only</li>
+            <li>Can browse jobs and events posted by admins</li>
+            <li>Can respond to surveys</li>
+            <li>Cannot see other alumni&apos;s private information</li>
+            <li>Cannot access any admin tools or settings</li>
+          </ul>
+        </SubSection>
+        <SubSection title="Admin (Second Floor)">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Can manage the alumni directory, jobs, events, and surveys</li>
+            <li>Can view alumni data for reporting purposes</li>
+            <li>Cannot change system-level settings or assign new admins</li>
+            <li>Cannot delete alumni accounts permanently</li>
+          </ul>
+        </SubSection>
+        <SubSection title="Super Admin (Top Floor)">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Has all Admin permissions</li>
+            <li>Can assign or remove the Admin role from other users</li>
+            <li>Can permanently delete alumni accounts</li>
+            <li>This role should only be given to the most trusted personnel</li>
+          </ul>
+        </SubSection>
+        <p className="text-sm bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-800">
+          <strong>Important:</strong> These rules are enforced by the system automatically. Even if
+          someone tries to access a page they are not allowed to visit, the system will block them
+          and show an &quot;Access Denied&quot; message.
+        </p>
+      </Section>
+
+      <Section title="3. Data Protection (Who Can Read the Database)">
+        <p>
+          The database (where all alumni information is stored) is protected by a set of rules
+          called <strong>Firestore Security Rules</strong>. These rules act like a security guard
+          at the door of the database — they check every request before allowing any data to be
+          read or changed.
+        </p>
+        <SubSection title="How it works in plain terms">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>
+              <strong>Alumni</strong> can only read or update their own personal record. They cannot
+              look up other alumni&apos;s data.
+            </li>
+            <li>
+              <strong>Admins</strong> can read alumni data to generate reports and manage the platform,
+              but they cannot write to records outside their allowed scope.
+            </li>
+            <li>
+              <strong>Anonymous visitors</strong> (people not logged in) cannot access any private data
+              in the database at all.
+            </li>
+          </ul>
+        </SubSection>
+        <p>
+          These security rules are deployed directly to the database and run on Google&apos;s infrastructure,
+          meaning they are enforced even if someone tried to access the database directly — not just through
+          the website.
+        </p>
+      </Section>
+
+      <Section title="4. All Connections Are Encrypted (HTTPS)">
+        <p>
+          Whenever you use AlumNayan — whether logging in, submitting a form, or viewing a report —
+          all the information traveling between your device and the system is <strong>encrypted</strong>.
+          This means it is scrambled so that nobody listening on the network (like on a public Wi-Fi)
+          can read it.
+        </p>
+        <p>
+          This is done through <strong>HTTPS</strong> (the padlock icon you see in your browser&apos;s
+          address bar). All modern hosting platforms like Vercel automatically provide this encryption
+          certificate.
+        </p>
+        <p>
+          <em>Analogy: It&apos;s like sending a letter inside a sealed envelope instead of on a postcard — only the intended recipient can read it.</em>
+        </p>
+      </Section>
+
+      <Section title="5. Admin Actions Are Double-Checked on the Server">
+        <p>
+          Sensitive actions — like importing alumni data, generating reports, or assigning admin roles —
+          are handled through protected server routes. Before any of these actions are performed, the
+          system checks that:
+        </p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>The person is actually logged in (not just claiming to be)</li>
+          <li>They have the correct role (Admin or Super Admin)</li>
+          <li>The request came through the official system, not from an outside source</li>
+        </ul>
+        <p>
+          This prevents attacks where someone might try to trigger admin actions by sending a fake request
+          to the system without proper authorization.
+        </p>
+      </Section>
+
+      <Section title="6. Sessions Stay Secure (Login Cookies)">
+        <p>
+          After you log in, the system creates a short-lived, secure <strong>session</strong> to remember
+          who you are while you browse. Think of it like a wristband at an event — you show it once at
+          the entrance, and the staff can verify it without you having to re-enter your password every
+          few seconds.
+        </p>
+        <p>
+          These session tokens are:
+        </p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li><strong>Short-lived</strong> — they expire automatically after a set time</li>
+          <li><strong>Verified server-side</strong> — the server checks their validity on every admin action</li>
+          <li><strong>Sent securely</strong> — only over encrypted HTTPS connections</li>
+        </ul>
+        <p>
+          When you log out, your session is immediately invalidated so no one else can reuse it.
+        </p>
+      </Section>
+
+      <Section title="7. Image &amp; File Uploads Are Handled Safely">
+        <p>
+          When profile photos or event banners are uploaded, they go to <strong>Cloudinary</strong>,
+          a secure third-party image hosting service. This means:
+        </p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Images are not stored directly inside the main database</li>
+          <li>Only the image&apos;s web address (URL) is saved in the system</li>
+          <li>Cloudinary handles image storage, resizing, and delivery securely</li>
+          <li>Upload permissions are controlled through a preset that only allows specific file types</li>
+        </ul>
+        <p>
+          <em>Analogy: Instead of keeping physical photos in the filing cabinet, you store only the address
+          of where the photo can be found — in a secure, separate photo album.</em>
+        </p>
+      </Section>
+
+      <Section title="8. Summary: Key Security Features at a Glance">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Security Feature</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Plain Language Explanation</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              <tr><td className="px-4 py-2 font-medium">Email Verification</td><td className="px-4 py-2">Confirms identity before allowing full access</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Hashed Passwords</td><td className="px-4 py-2">Passwords are scrambled and can never be read by anyone</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Role-Based Access</td><td className="px-4 py-2">Each user type can only do what they are allowed to</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Firestore Security Rules</td><td className="px-4 py-2">Database access is guarded and enforced automatically</td></tr>
+              <tr><td className="px-4 py-2 font-medium">HTTPS Encryption</td><td className="px-4 py-2">All data in transit is encrypted (padlock in browser)</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Server-Side Auth Checks</td><td className="px-4 py-2">Admin actions require verified login on every request</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Secure Sessions</td><td className="px-4 py-2">Login sessions expire automatically and are verified each time</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Cloudinary File Storage</td><td className="px-4 py-2">Uploaded files are stored safely outside the main database</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </Section>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STORAGE PLAN CONTENT
+   ═══════════════════════════════════════════════════════════ */
+function StoragePlan() {
+  return (
+    <div className="space-y-8">
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
+        <strong>Short Answer:</strong> Based on the estimated number of alumni and usage patterns for a
+        college department system, AlumNayan is very unlikely to exceed Firebase&apos;s free tier limits
+        within the next 5–10 years. This document explains why, and what the plan is if usage grows.
+      </div>
+
+      <Section title="1. What Storage Does the System Use?">
+        <p>
+          AlumNayan uses three different storage services, each for a different purpose:
+        </p>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Service</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">What It Stores</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Provider</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              <tr>
+                <td className="px-4 py-2 font-medium">Database</td>
+                <td className="px-4 py-2">Alumni profiles, jobs, events, surveys, notifications</td>
+                <td className="px-4 py-2">Firebase Firestore (Google)</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">File Storage</td>
+                <td className="px-4 py-2">Uploaded resumes, certificates, documents</td>
+                <td className="px-4 py-2">Firebase Cloud Storage (Google)</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">Image Storage</td>
+                <td className="px-4 py-2">Profile photos, event banners</td>
+                <td className="px-4 py-2">Cloudinary (separate service — not Firebase)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-sm bg-blue-50 border border-blue-200 rounded p-3 text-blue-800">
+          <strong>Note on Images:</strong> Profile photos and event banners are stored on Cloudinary,
+          not on Firebase. Cloudinary&apos;s free tier gives 25 GB of storage and 25 GB bandwidth/month —
+          far more than this system will need. Images do not count against Firebase&apos;s storage limits.
+        </p>
+      </Section>
+
+      <Section title="2. Firebase Free Tier Limits (Spark Plan)">
+        <p>
+          Firebase offers a free plan called the <strong>Spark Plan</strong>. Here are the relevant
+          limits for this system:
+        </p>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Resource</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Free Limit</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Reset Period</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              <tr><td className="px-4 py-2 font-medium">Firestore Storage</td><td className="px-4 py-2">1 GB total</td><td className="px-4 py-2">Cumulative (grows)</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Firestore Reads</td><td className="px-4 py-2">50,000 per day</td><td className="px-4 py-2">Daily</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Firestore Writes</td><td className="px-4 py-2">20,000 per day</td><td className="px-4 py-2">Daily</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Firestore Deletes</td><td className="px-4 py-2">20,000 per day</td><td className="px-4 py-2">Daily</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Firebase Storage (files)</td><td className="px-4 py-2">5 GB total</td><td className="px-4 py-2">Cumulative (grows)</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Storage Downloads</td><td className="px-4 py-2">1 GB per day</td><td className="px-4 py-2">Daily</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Cloud Functions Calls</td><td className="px-4 py-2">125,000 per month</td><td className="px-4 py-2">Monthly</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Authentication (Email)</td><td className="px-4 py-2">Unlimited</td><td className="px-4 py-2">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section title="3. How Much Data Does AlumNayan Actually Use?">
+        <SubSection title="Database (Firestore) — Estimated Sizes">
+          <p>
+            Each piece of data stored in Firestore has an estimated size. Here&apos;s how the system&apos;s
+            data breaks down:
+          </p>
+          <div className="overflow-x-auto mt-2">
+            <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Data Type</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Size per Record</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Estimated Count (5 yrs)</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                <tr><td className="px-4 py-2">Alumni profiles</td><td className="px-4 py-2">~8 KB each</td><td className="px-4 py-2">~2,750</td><td className="px-4 py-2 font-medium">~22 MB</td></tr>
+                <tr><td className="px-4 py-2">Survey responses</td><td className="px-4 py-2">~3 KB each</td><td className="px-4 py-2">~10,000</td><td className="px-4 py-2 font-medium">~30 MB</td></tr>
+                <tr><td className="px-4 py-2">Job postings</td><td className="px-4 py-2">~2 KB each</td><td className="px-4 py-2">~500</td><td className="px-4 py-2 font-medium">~1 MB</td></tr>
+                <tr><td className="px-4 py-2">Events</td><td className="px-4 py-2">~2 KB each</td><td className="px-4 py-2">~250</td><td className="px-4 py-2 font-medium">~500 KB</td></tr>
+                <tr><td className="px-4 py-2">Notifications</td><td className="px-4 py-2">~0.5 KB each</td><td className="px-4 py-2">~50,000</td><td className="px-4 py-2 font-medium">~25 MB</td></tr>
+                <tr className="bg-gray-50 font-semibold"><td className="px-4 py-2" colSpan={3}>Estimated Total Firestore Storage After 5 Years</td><td className="px-4 py-2 text-green-700">~80–100 MB</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="text-sm text-green-700 font-medium mt-2">
+            80–100 MB is only 8–10% of the 1 GB Firestore limit. The system would need roughly 12× more data to come close.
+          </p>
+        </SubSection>
+
+        <SubSection title="File Storage (Firebase Cloud Storage) — Estimated Sizes">
+          <p>
+            Firebase Storage holds uploaded documents like resumes and certificates. Profile photos
+            go to Cloudinary and do not count here.
+          </p>
+          <div className="overflow-x-auto mt-2">
+            <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">File Type</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Avg. Size</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Estimated Uploads (5 yrs)</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                <tr><td className="px-4 py-2">Resumes (PDF)</td><td className="px-4 py-2">~500 KB</td><td className="px-4 py-2">~1,000 (40% adoption)</td><td className="px-4 py-2 font-medium">~500 MB</td></tr>
+                <tr><td className="px-4 py-2">Certificates/Licenses</td><td className="px-4 py-2">~300 KB</td><td className="px-4 py-2">~500</td><td className="px-4 py-2 font-medium">~150 MB</td></tr>
+                <tr className="bg-gray-50 font-semibold"><td className="px-4 py-2" colSpan={3}>Estimated Total Firebase Storage After 5 Years</td><td className="px-4 py-2 text-green-700">~650 MB – 1 GB</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="text-sm text-green-700 font-medium mt-2">
+            650 MB – 1 GB is 13–20% of the 5 GB Firebase Storage limit. Well within the free tier even at 5 years.
+          </p>
+        </SubSection>
+      </Section>
+
+      <Section title="4. 5-Year Growth Projection">
+        <p>
+          Based on an estimated <strong>150 new alumni per year</strong> across 3 departments
+          (approximately 50 graduates per department per year) and assuming the system currently has
+          around 2,000 alumni records:
+        </p>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Year</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Total Alumni</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Firestore Storage</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">File Storage</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">% of 1 GB DB Limit</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">% of 5 GB File Limit</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              <tr><td className="px-4 py-2">2025 (now)</td><td className="px-4 py-2">~2,000</td><td className="px-4 py-2">~60 MB</td><td className="px-4 py-2">~400 MB</td><td className="px-4 py-2 text-green-700">6%</td><td className="px-4 py-2 text-green-700">8%</td></tr>
+              <tr><td className="px-4 py-2">2026</td><td className="px-4 py-2">~2,150</td><td className="px-4 py-2">~65 MB</td><td className="px-4 py-2">~480 MB</td><td className="px-4 py-2 text-green-700">7%</td><td className="px-4 py-2 text-green-700">10%</td></tr>
+              <tr><td className="px-4 py-2">2027</td><td className="px-4 py-2">~2,300</td><td className="px-4 py-2">~72 MB</td><td className="px-4 py-2">~570 MB</td><td className="px-4 py-2 text-green-700">7%</td><td className="px-4 py-2 text-green-700">11%</td></tr>
+              <tr><td className="px-4 py-2">2028</td><td className="px-4 py-2">~2,450</td><td className="px-4 py-2">~79 MB</td><td className="px-4 py-2">~650 MB</td><td className="px-4 py-2 text-green-700">8%</td><td className="px-4 py-2 text-green-700">13%</td></tr>
+              <tr><td className="px-4 py-2">2029</td><td className="px-4 py-2">~2,600</td><td className="px-4 py-2">~86 MB</td><td className="px-4 py-2">~730 MB</td><td className="px-4 py-2 text-green-700">9%</td><td className="px-4 py-2 text-green-700">15%</td></tr>
+              <tr className="bg-gray-50 font-semibold"><td className="px-4 py-2">2030 (Year 5)</td><td className="px-4 py-2">~2,750</td><td className="px-4 py-2">~95 MB</td><td className="px-4 py-2">~820 MB</td><td className="px-4 py-2 text-green-700 font-bold">10%</td><td className="px-4 py-2 text-green-700 font-bold">16%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="font-semibold text-green-800 text-sm">Firestore Database</p>
+            <p className="text-sm text-green-700 mt-1">
+              At current growth, the system would need approximately <strong>30+ more years</strong> of
+              data accumulation to reach the 1 GB Firestore limit.
+            </p>
+          </div>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="font-semibold text-green-800 text-sm">Firebase File Storage</p>
+            <p className="text-sm text-green-700 mt-1">
+              File uploads (resumes, certificates) would take approximately <strong>15–20+ years</strong> to
+              reach the 5 GB Firebase Storage limit.
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="5. What About Daily Usage Limits (Reads &amp; Writes)?">
+        <p>
+          Firebase&apos;s free tier also has limits on how many times the database can be read or written
+          per day. These are more of a daily activity concern than a storage concern.
+        </p>
+        <SubSection title="Estimated Daily Activity">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Activity</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Estimated Reads/Day</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Notes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                <tr><td className="px-4 py-2">Admin dashboard loads</td><td className="px-4 py-2">~200–500</td><td className="px-4 py-2">~5–10 admin logins/day</td></tr>
+                <tr><td className="px-4 py-2">Alumni browsing app</td><td className="px-4 py-2">~500–2,000</td><td className="px-4 py-2">~50–100 alumni active/day</td></tr>
+                <tr><td className="px-4 py-2">Report generation</td><td className="px-4 py-2">~2,000–5,000</td><td className="px-4 py-2">Each report reads all alumni records</td></tr>
+                <tr><td className="px-4 py-2">Survey submissions</td><td className="px-4 py-2">~100–300</td><td className="px-4 py-2">Occasional campaign days</td></tr>
+                <tr className="bg-gray-50 font-semibold"><td className="px-4 py-2">Typical Daily Total</td><td className="px-4 py-2 text-green-700">~3,000–8,000</td><td className="px-4 py-2 text-green-700">6–16% of the 50,000/day limit</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </SubSection>
+        <SubSection title="Peak Risk: Report Generation Days">
+          <p>
+            The highest read activity happens when admins generate outcome reports (which reads all
+            alumni records). If multiple admins generate large reports at the same time, daily reads
+            could temporarily spike. However, for a school department with a small admin team, this
+            is very unlikely to exceed the 50,000 reads/day limit.
+          </p>
+          <p className="text-sm bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-800">
+            <strong>Recommendation:</strong> If reports are generated frequently, consider spacing them
+            out during the day rather than running many at once. This is a precaution, not a current problem.
+          </p>
+        </SubSection>
+      </Section>
+
+      <Section title="6. Cloud Functions Usage">
+        <p>
+          The system has 4 automated Cloud Functions that run in the background:
+        </p>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Function</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">When It Runs</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Est. Calls/Month</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              <tr><td className="px-4 py-2 font-medium">onUserCreated</td><td className="px-4 py-2">When an alumni account is created</td><td className="px-4 py-2">~10–20</td></tr>
+              <tr><td className="px-4 py-2 font-medium">onJobPosted</td><td className="px-4 py-2">When a new job is posted</td><td className="px-4 py-2">~5–20</td></tr>
+              <tr><td className="px-4 py-2 font-medium">onEventPosted</td><td className="px-4 py-2">When a new event is created</td><td className="px-4 py-2">~5–10</td></tr>
+              <tr><td className="px-4 py-2 font-medium">generateReport</td><td className="px-4 py-2">When admin triggers a report</td><td className="px-4 py-2">~10–30</td></tr>
+              <tr className="bg-gray-50 font-semibold"><td className="px-4 py-2">Monthly Total</td><td className="px-4 py-2"></td><td className="px-4 py-2 text-green-700">~30–80 calls (0.06% of 125,000 limit)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-sm text-green-700 font-medium mt-2">
+          These functions only use Firebase&apos;s own services (no external email or API calls), so
+          they are fully compatible with the free Spark plan and have virtually no risk of hitting the limit.
+        </p>
+      </Section>
+
+      <Section title="7. Will the School Need to Pay for Firebase?">
+        <SubSection title="Short Answer: Very Likely Not — For Many Years">
+          <p>
+            Based on all the estimates above, AlumNayan is not expected to reach any Firebase free
+            tier limit within the next 5–10 years under normal usage by a college department.
+          </p>
+        </SubSection>
+        <SubSection title="The Only Scenario That Might Require an Upgrade">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Scenario</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Likelihood</th>
+                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">What to Do</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                <tr>
+                  <td className="px-4 py-2">System expands to all departments in the college (10+ programs)</td>
+                  <td className="px-4 py-2 text-yellow-700">Medium</td>
+                  <td className="px-4 py-2">Monitor Firestore reads; still likely within free tier</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2">Need to send custom email notifications via external email service</td>
+                  <td className="px-4 py-2 text-yellow-700">Medium (future feature)</td>
+                  <td className="px-4 py-2">Upgrade to Blaze (pay-as-you-go) — costs ~₱0–₱100/month</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2">Hundreds of alumni uploading large files daily</td>
+                  <td className="px-4 py-2 text-green-700">Very Low</td>
+                  <td className="px-4 py-2">Would take 15+ years to be an issue at current rates</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2">Database storage hits 1 GB</td>
+                  <td className="px-4 py-2 text-green-700">Extremely Low</td>
+                  <td className="px-4 py-2">Would require 30+ years of growth at current rate</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SubSection>
+        <SubSection title="If an Upgrade Is Ever Needed: Firebase Blaze Plan (Pay-as-you-go)">
+          <p>
+            Firebase&apos;s paid plan (Blaze) is not a fixed subscription. It only charges for what you
+            use above the free tier — and the free tier quota still applies every month. For a school
+            department system:
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Firestore extra reads: $0.06 per 100,000 reads (~₱3.50 per 100K)</li>
+            <li>Firebase Storage extra: $0.026 per GB/month (~₱1.50 per GB/month)</li>
+            <li>Cloud Functions: $0.40 per million extra calls (virtually free for this scale)</li>
+          </ul>
+          <p className="text-sm bg-blue-50 border border-blue-200 rounded p-3 text-blue-800 mt-2">
+            <strong>Realistic cost estimate if upgraded to Blaze:</strong> Based on expected usage,
+            the monthly bill would likely be <strong>₱0–₱150/month</strong> (approximately $0–$3 USD),
+            which is far lower than any traditional server hosting. The Blaze plan also has a
+            monthly budget cap feature to prevent unexpected charges.
+          </p>
+        </SubSection>
+      </Section>
+
+      <Section title="8. Summary &amp; Recommendation">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Resource</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Free Limit</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Est. Usage at Year 5</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Risk of Hitting Limit</th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">Years Until Limit</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              <tr><td className="px-4 py-2 font-medium">Firestore Storage</td><td className="px-4 py-2">1 GB</td><td className="px-4 py-2">~95 MB (10%)</td><td className="px-4 py-2 text-green-700 font-semibold">Very Low</td><td className="px-4 py-2 text-green-700">30+ years</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Firestore Reads/day</td><td className="px-4 py-2">50,000</td><td className="px-4 py-2">~3K–8K (16%)</td><td className="px-4 py-2 text-green-700 font-semibold">Low</td><td className="px-4 py-2 text-green-700">Not data-driven</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Firebase File Storage</td><td className="px-4 py-2">5 GB</td><td className="px-4 py-2">~820 MB (16%)</td><td className="px-4 py-2 text-green-700 font-semibold">Very Low</td><td className="px-4 py-2 text-green-700">15–20+ years</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Cloud Functions</td><td className="px-4 py-2">125K/month</td><td className="px-4 py-2">~80 calls (&lt;1%)</td><td className="px-4 py-2 text-green-700 font-semibold">Negligible</td><td className="px-4 py-2 text-green-700">Not applicable</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Authentication</td><td className="px-4 py-2">Unlimited</td><td className="px-4 py-2">~2,750 users</td><td className="px-4 py-2 text-green-700 font-semibold">None</td><td className="px-4 py-2 text-green-700">No limit</td></tr>
+              <tr><td className="px-4 py-2 font-medium">Cloudinary Images</td><td className="px-4 py-2">25 GB</td><td className="px-4 py-2">~1–2 GB</td><td className="px-4 py-2 text-green-700 font-semibold">Very Low</td><td className="px-4 py-2 text-green-700">10+ years</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+          <p className="font-semibold text-green-800">Recommendation for the School</p>
+          <ul className="list-disc pl-5 space-y-1 text-sm text-green-800 mt-2">
+            <li><strong>No Firebase subscription is needed for at least the next 5–10 years</strong> based on estimated usage for 3 engineering departments.</li>
+            <li>The current Firebase Spark (free) plan is more than sufficient for the system&apos;s scale.</li>
+            <li>If the system ever expands significantly (e.g., covers the entire college with 20+ programs), consider upgrading to the Blaze plan — which would likely cost <strong>less than ₱150/month</strong>.</li>
+            <li>Monitor Firebase usage quarterly from the Firebase Console dashboard to stay informed.</li>
+          </ul>
+        </div>
+      </Section>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
    PDF EXPORT HELPERS
    ═══════════════════════════════════════════════════════════ */
 
@@ -864,6 +1424,342 @@ async function exportTransferManualPDF() {
   doc.save("AlumNayan-Transfer-Guide.pdf");
 }
 
+async function exportSecurityManualPDF() {
+  const { jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
+  const doc = new jsPDF();
+
+  // Title page
+  doc.setFontSize(22); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 41, 82);
+  doc.text("AlumNayan", 14, 40);
+  doc.setFontSize(16); doc.setTextColor(80);
+  doc.text("System Security Documentation", 14, 52);
+  doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(120);
+  doc.text("College of Engineering", 14, 62);
+  doc.text("Electronics, Industrial & Mechanical Engineering", 14, 68);
+  doc.text(`Generated: ${new Date().toLocaleDateString("en-PH")}`, 14, 78);
+  doc.setDrawColor(30, 41, 82); doc.setLineWidth(0.5); doc.line(14, 82, 196, 82);
+
+  doc.addPage();
+  let y = 20;
+
+  // Intro
+  y = addWrappedText(doc, "This document explains how the AlumNayan system protects your data and keeps the platform secure — written in plain language so anyone can understand it, no technical background needed.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 1. Login Security
+  y = addSectionHeader(doc, "1. How Logging In Works", y);
+  y = addWrappedText(doc, "Think of logging in like using a key to enter a building. Only people with the right key (username and password) can get inside. AlumNayan uses Firebase Authentication, a trusted security service by Google, to manage all logins safely.", 14, y, 182, 4.5);
+  y += 3;
+  y = addSubHeader(doc, "Email Verification", y);
+  y = addWrappedText(doc, "When someone creates a new account, the system sends a verification email to their inbox. The person must click the link in that email before they can fully access their account. This prevents fake or typo-filled email addresses from being used.", 14, y, 182, 4.5);
+  y = addWrappedText(doc, "Analogy: It's like receiving a letter at your home address to prove you really live there.", 14, y, 182, 4.5);
+  y += 3;
+  y = addSubHeader(doc, "Password Reset", y);
+  y = addWrappedText(doc, "If someone forgets their password, they can click 'Forgot Password' on the login page. The system sends a secure reset link to their email. The old password is immediately invalidated once a new one is set.", 14, y, 182, 4.5);
+  y += 3;
+  y = addSubHeader(doc, "Passwords Are Never Stored as Plain Text", y);
+  y = addWrappedText(doc, "AlumNayan never stores anyone's actual password in the database. Instead, Firebase converts passwords into a scrambled, unreadable code (called a 'hash') before saving them. Even if someone somehow accessed the database, they would not be able to read any passwords.", 14, y, 182, 4.5);
+  y = addWrappedText(doc, "Analogy: Imagine locking your secret message inside a box, melting the key, and keeping only the lock — nobody can re-open it.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 2. Roles
+  y = addSectionHeader(doc, "2. Who Can See and Do What (Roles & Permissions)", y);
+  y = addWrappedText(doc, "Not everyone who logs in can do the same things. AlumNayan has three levels of access, like different floors in an office building with different key cards:", 14, y, 182, 4.5);
+  y += 3;
+  y = addSubHeader(doc, "Alumni (Ground Floor)", y);
+  y = addBullet(doc, "Can view and update their own profile only", 18, y, 178);
+  y = addBullet(doc, "Can browse jobs and events posted by admins", 18, y, 178);
+  y = addBullet(doc, "Cannot see other alumni's private information", 18, y, 178);
+  y = addBullet(doc, "Cannot access any admin tools or settings", 18, y, 178);
+  y += 3;
+  y = addSubHeader(doc, "Admin (Second Floor)", y);
+  y = addBullet(doc, "Can manage the alumni directory, jobs, events, and surveys", 18, y, 178);
+  y = addBullet(doc, "Can view alumni data for reporting purposes", 18, y, 178);
+  y = addBullet(doc, "Cannot change system-level settings or assign new admins", 18, y, 178);
+  y = addBullet(doc, "Cannot delete alumni accounts permanently", 18, y, 178);
+  y += 3;
+  y = addSubHeader(doc, "Super Admin (Top Floor)", y);
+  y = addBullet(doc, "Has all Admin permissions", 18, y, 178);
+  y = addBullet(doc, "Can assign or remove the Admin role from other users", 18, y, 178);
+  y = addBullet(doc, "Can permanently delete alumni accounts", 18, y, 178);
+  y = addBullet(doc, "This role should only be given to the most trusted personnel", 18, y, 178);
+  y += 3;
+  y = addWrappedText(doc, "Important: These rules are enforced by the system automatically. Even if someone tries to access a page they are not allowed to visit, the system will block them and show an 'Access Denied' message.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 3. Data Protection
+  y = addSectionHeader(doc, "3. Data Protection (Who Can Read the Database)", y);
+  y = addWrappedText(doc, "The database is protected by Firestore Security Rules — these act like a security guard at the door of the database. They check every request before allowing any data to be read or changed.", 14, y, 182, 4.5);
+  y += 3;
+  y = addBullet(doc, "Alumni can only read or update their own personal record. They cannot look up other alumni's data.", 18, y, 178);
+  y = addBullet(doc, "Admins can read alumni data to generate reports, but cannot write outside their allowed scope.", 18, y, 178);
+  y = addBullet(doc, "Anonymous visitors (not logged in) cannot access any private data at all.", 18, y, 178);
+  y += 3;
+  y = addWrappedText(doc, "These security rules are deployed directly to the database and run on Google's infrastructure, meaning they are enforced even if someone tried to access the database directly — not just through the website.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 4. HTTPS
+  y = addSectionHeader(doc, "4. All Connections Are Encrypted (HTTPS)", y);
+  y = addWrappedText(doc, "Whenever you use AlumNayan — whether logging in, submitting a form, or viewing a report — all the information traveling between your device and the system is encrypted. This means it is scrambled so that nobody listening on the network (like on a public Wi-Fi) can read it.", 14, y, 182, 4.5);
+  y = addWrappedText(doc, "This is done through HTTPS (the padlock icon you see in your browser's address bar). All modern hosting platforms like Vercel automatically provide this encryption certificate.", 14, y, 182, 4.5);
+  y = addWrappedText(doc, "Analogy: It's like sending a letter inside a sealed envelope instead of on a postcard — only the intended recipient can read it.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 5. Server-side auth
+  y = addSectionHeader(doc, "5. Admin Actions Are Double-Checked on the Server", y);
+  y = addWrappedText(doc, "Sensitive actions — like importing alumni data, generating reports, or assigning admin roles — are handled through protected server routes. Before any of these actions are performed, the system checks that:", 14, y, 182, 4.5);
+  y += 2;
+  y = addBullet(doc, "The person is actually logged in (not just claiming to be)", 18, y, 178);
+  y = addBullet(doc, "They have the correct role (Admin or Super Admin)", 18, y, 178);
+  y = addBullet(doc, "The request came through the official system, not from an outside source", 18, y, 178);
+  y += 3;
+  y = addWrappedText(doc, "This prevents attacks where someone might try to trigger admin actions by sending a fake request to the system without proper authorization.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 6. Sessions
+  y = addSectionHeader(doc, "6. Sessions Stay Secure (Login Cookies)", y);
+  y = addWrappedText(doc, "After you log in, the system creates a short-lived, secure session to remember who you are while you browse. Think of it like a wristband at an event — you show it once at the entrance, and the staff can verify it without you having to re-enter your password every few seconds.", 14, y, 182, 4.5);
+  y += 2;
+  y = addBullet(doc, "Short-lived — they expire automatically after a set time", 18, y, 178);
+  y = addBullet(doc, "Verified server-side — the server checks their validity on every admin action", 18, y, 178);
+  y = addBullet(doc, "Sent securely — only over encrypted HTTPS connections", 18, y, 178);
+  y = addBullet(doc, "When you log out, your session is immediately invalidated", 18, y, 178);
+  y += 6;
+
+  // 7. Cloudinary
+  y = addSectionHeader(doc, "7. Image & File Uploads Are Handled Safely", y);
+  y = addWrappedText(doc, "When profile photos or event banners are uploaded, they go to Cloudinary, a secure third-party image hosting service. This means:", 14, y, 182, 4.5);
+  y += 2;
+  y = addBullet(doc, "Images are not stored directly inside the main database", 18, y, 178);
+  y = addBullet(doc, "Only the image's web address (URL) is saved in the system", 18, y, 178);
+  y = addBullet(doc, "Cloudinary handles image storage, resizing, and delivery securely", 18, y, 178);
+  y = addBullet(doc, "Upload permissions are controlled through a preset that only allows specific file types", 18, y, 178);
+  y = addWrappedText(doc, "Analogy: Instead of keeping physical photos in the filing cabinet, you store only the address of where the photo can be found — in a secure, separate photo album.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 8. Summary table
+  y = addSectionHeader(doc, "8. Summary: Key Security Features at a Glance", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Security Feature", "Plain Language Explanation"]],
+    body: [
+      ["Email Verification", "Confirms identity before allowing full access"],
+      ["Hashed Passwords", "Passwords are scrambled and can never be read by anyone"],
+      ["Role-Based Access", "Each user type can only do what they are allowed to"],
+      ["Firestore Security Rules", "Database access is guarded and enforced automatically"],
+      ["HTTPS Encryption", "All data in transit is encrypted (padlock in browser)"],
+      ["Server-Side Auth Checks", "Admin actions require verified login on every request"],
+      ["Secure Sessions", "Login sessions expire automatically and are verified each time"],
+      ["Cloudinary File Storage", "Uploaded files are stored safely outside the main database"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    columnStyles: { 0: { cellWidth: 60, fontStyle: "bold" } },
+    margin: { left: 14, right: 14 },
+  });
+
+  doc.save("AlumNayan-Security-Documentation.pdf");
+}
+
+async function exportStoragePlanPDF() {
+  const { jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
+  const doc = new jsPDF();
+
+  // Title page
+  doc.setFontSize(22); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 41, 82);
+  doc.text("AlumNayan", 14, 40);
+  doc.setFontSize(16); doc.setTextColor(80);
+  doc.text("Storage & Scalability Plan", 14, 52);
+  doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(120);
+  doc.text("College of Engineering", 14, 62);
+  doc.text("Electronics, Industrial & Mechanical Engineering", 14, 68);
+  doc.text(`Generated: ${new Date().toLocaleDateString("en-PH")}`, 14, 78);
+  doc.setDrawColor(30, 41, 82); doc.setLineWidth(0.5); doc.line(14, 82, 196, 82);
+
+  doc.addPage();
+  let y = 20;
+
+  // Intro
+  y = addWrappedText(doc, "Short Answer: Based on estimated alumni count and usage patterns for a college department system, AlumNayan is very unlikely to exceed Firebase's free tier limits within the next 5-10 years.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 1. Storage services overview
+  y = addSectionHeader(doc, "1. What Storage Does the System Use?", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Service", "What It Stores", "Provider"]],
+    body: [
+      ["Database", "Alumni profiles, jobs, events, surveys, notifications", "Firebase Firestore (Google)"],
+      ["File Storage", "Uploaded resumes, certificates, documents", "Firebase Cloud Storage (Google)"],
+      ["Image Storage", "Profile photos, event banners", "Cloudinary (separate — not Firebase)"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 4;
+  y = addWrappedText(doc, "Note: Profile photos and event banners go to Cloudinary (25 GB free tier) — they do NOT count against Firebase's storage limits.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 2. Free tier limits
+  y = addSectionHeader(doc, "2. Firebase Free Tier Limits (Spark Plan)", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Resource", "Free Limit", "Reset Period"]],
+    body: [
+      ["Firestore Storage", "1 GB total", "Cumulative (grows)"],
+      ["Firestore Reads", "50,000 per day", "Daily"],
+      ["Firestore Writes", "20,000 per day", "Daily"],
+      ["Firebase Storage (files)", "5 GB total", "Cumulative (grows)"],
+      ["Storage Downloads", "1 GB per day", "Daily"],
+      ["Cloud Functions", "125,000 calls/month", "Monthly"],
+      ["Authentication (Email)", "Unlimited", "—"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // 3. Data size estimates
+  y = addSectionHeader(doc, "3. Estimated Data Sizes (After 5 Years)", y);
+  y = addSubHeader(doc, "Firestore Database", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Data Type", "Size/Record", "Est. Count (5 yrs)", "Total"]],
+    body: [
+      ["Alumni profiles", "~8 KB", "~2,750", "~22 MB"],
+      ["Survey responses", "~3 KB", "~10,000", "~30 MB"],
+      ["Job postings", "~2 KB", "~500", "~1 MB"],
+      ["Events", "~2 KB", "~250", "~500 KB"],
+      ["Notifications", "~0.5 KB", "~50,000", "~25 MB"],
+      ["TOTAL", "", "", "~80–100 MB  (10% of 1 GB limit)"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 4;
+  y = addSubHeader(doc, "Firebase File Storage", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["File Type", "Avg. Size", "Est. Uploads (5 yrs)", "Total"]],
+    body: [
+      ["Resumes (PDF)", "~500 KB", "~1,000 (40% alumni)", "~500 MB"],
+      ["Certificates/Licenses", "~300 KB", "~500", "~150 MB"],
+      ["TOTAL", "", "", "~650 MB – 1 GB  (13–20% of 5 GB limit)"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // 4. 5-Year projection
+  y = addSectionHeader(doc, "4. 5-Year Growth Projection (~150 new alumni/year)", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Year", "Total Alumni", "Firestore", "File Storage", "% DB Limit", "% File Limit"]],
+    body: [
+      ["2025 (now)", "~2,000", "~60 MB", "~400 MB", "6%", "8%"],
+      ["2026", "~2,150", "~65 MB", "~480 MB", "7%", "10%"],
+      ["2027", "~2,300", "~72 MB", "~570 MB", "7%", "11%"],
+      ["2028", "~2,450", "~79 MB", "~650 MB", "8%", "13%"],
+      ["2029", "~2,600", "~86 MB", "~730 MB", "9%", "15%"],
+      ["2030 (Year 5)", "~2,750", "~95 MB", "~820 MB", "10%", "16%"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 4;
+  y = addWrappedText(doc, "Firestore: ~30+ years to reach limit at current growth. File Storage: ~15-20+ years to reach limit.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 5. Daily reads
+  y = addSectionHeader(doc, "5. Estimated Daily Database Activity (Reads)", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Activity", "Estimated Reads/Day", "Notes"]],
+    body: [
+      ["Admin dashboard loads", "~200–500", "~5–10 admin logins/day"],
+      ["Alumni browsing app", "~500–2,000", "~50–100 active alumni/day"],
+      ["Report generation", "~2,000–5,000", "Each report reads all alumni"],
+      ["Survey submissions", "~100–300", "Occasional campaign days"],
+      ["Typical Daily Total", "~3,000–8,000", "6–16% of 50,000/day free limit"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 6;
+
+  // 6. Cloud functions
+  y = addSectionHeader(doc, "6. Cloud Functions Usage", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Function", "When It Runs", "Est. Calls/Month"]],
+    body: [
+      ["onUserCreated", "When an alumni account is created", "~10–20"],
+      ["onJobPosted", "When a new job is posted", "~5–20"],
+      ["onEventPosted", "When a new event is created", "~5–10"],
+      ["generateReport", "When admin triggers a report", "~10–30"],
+      ["Monthly Total", "", "~30–80 calls (<0.1% of 125,000 limit)"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 4;
+  y = addWrappedText(doc, "All functions use only Firebase's own services (no external API calls), so they are fully compatible with the free Spark plan.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 7. Upgrade scenarios
+  y = addSectionHeader(doc, "7. Will the School Need to Pay for Firebase?", y);
+  y = addWrappedText(doc, "Short Answer: Very likely not — for at least 5-10 years. Based on all estimates, no Firebase free tier limit is expected to be reached under normal usage by 3 college departments.", 14, y, 182, 4.5);
+  y += 4;
+  autoTable(doc, {
+    startY: y,
+    head: [["Scenario", "Likelihood", "What to Do"]],
+    body: [
+      ["System expands to 10+ programs", "Medium", "Monitor reads — likely still within free tier"],
+      ["Need external email service in Functions", "Medium (future)", "Upgrade to Blaze — cost ~₱0–₱100/month"],
+      ["Many alumni uploading large files daily", "Very Low", "Takes 15+ years to be an issue"],
+      ["Database storage hits 1 GB", "Extremely Low", "Requires 30+ years at current rate"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 4;
+  y = addWrappedText(doc, "If upgrade is ever needed: Firebase Blaze is pay-as-you-go. Estimated cost for this school system: ₱0–₱150/month (approximately $0–$3 USD). The free quota still applies every month on Blaze.", 14, y, 182, 4.5);
+  y += 6;
+
+  // 8. Summary table
+  y = addSectionHeader(doc, "8. Summary & Recommendation", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Resource", "Free Limit", "Year 5 Usage", "Risk", "Years Until Limit"]],
+    body: [
+      ["Firestore Storage", "1 GB", "~95 MB (10%)", "Very Low", "30+ years"],
+      ["Firestore Reads/day", "50,000", "~3K–8K (16%)", "Low", "Not data-driven"],
+      ["Firebase File Storage", "5 GB", "~820 MB (16%)", "Very Low", "15–20+ years"],
+      ["Cloud Functions", "125K/month", "~80 calls (<1%)", "Negligible", "Not applicable"],
+      ["Authentication", "Unlimited", "~2,750 users", "None", "No limit"],
+      ["Cloudinary (Images)", "25 GB", "~1–2 GB", "Very Low", "10+ years"],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [30, 41, 82] },
+    margin: { left: 14, right: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 6;
+  y = addWrappedText(doc, "Recommendation: No Firebase subscription is needed for at least 5-10 years. If the system expands to the entire college, upgrade to Blaze (pay-as-you-go) — estimated cost less than ₱150/month. Monitor Firebase usage quarterly from the Firebase Console dashboard.", 14, y, 182, 4.5);
+
+  doc.save("AlumNayan-Storage-Plan.pdf");
+}
+
 /* ═══════════════════════════════════════════════════════════
    PAGE COMPONENT
    ═══════════════════════════════════════════════════════════ */
@@ -904,6 +1800,30 @@ export default function ManualsPage() {
           >
             Transfer Guide
           </button>
+          <button
+            type="button"
+            className={cn(
+              "px-4 py-2 text-sm font-medium transition-colors border-l border-gray-200",
+              tab === "security"
+                ? "bg-navy-800 text-white"
+                : "bg-white text-gray-600 hover:bg-gray-50"
+            )}
+            onClick={() => setTab("security")}
+          >
+            System Security
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "px-4 py-2 text-sm font-medium transition-colors border-l border-gray-200",
+              tab === "storage"
+                ? "bg-navy-800 text-white"
+                : "bg-white text-gray-600 hover:bg-gray-50"
+            )}
+            onClick={() => setTab("storage")}
+          >
+            Storage Plan
+          </button>
         </div>
 
         <Button
@@ -913,7 +1833,11 @@ export default function ManualsPage() {
           onClick={() =>
             tab === "system"
               ? exportSystemManualPDF()
-              : exportTransferManualPDF()
+              : tab === "transfer"
+              ? exportTransferManualPDF()
+              : tab === "security"
+              ? exportSecurityManualPDF()
+              : exportStoragePlanPDF()
           }
         >
           Download PDF
@@ -923,7 +1847,10 @@ export default function ManualsPage() {
       {/* Content */}
       <Card>
         <CardBody className="p-6 sm:p-8">
-          {tab === "system" ? <SystemManual /> : <TransferManual />}
+          {tab === "system" ? <SystemManual />
+            : tab === "transfer" ? <TransferManual />
+            : tab === "security" ? <SecurityManual />
+            : <StoragePlan />}
         </CardBody>
       </Card>
     </div>
