@@ -723,7 +723,7 @@ function StoragePlan() {
   return (
     <div className="space-y-8">
       <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
-        <strong>Short Answer:</strong> Based on the estimated number of alumni and usage patterns for a
+        Based on the estimated number of alumni and usage patterns for a
         college department system, AlumNayan is very unlikely to exceed Firebase&apos;s free tier limits
         within the next 5–10 years. This document explains why, and what the plan is if usage grows.
       </div>
@@ -1065,6 +1065,7 @@ function StoragePlan() {
     </div>
   );
 }
+
 
 /* ═══════════════════════════════════════════════════════════
    PDF EXPORT HELPERS
@@ -1759,6 +1760,7 @@ async function exportStoragePlanPDF() {
 
   doc.save("AlumNayan-Storage-Plan.pdf");
 }
+
 
 /* ═══════════════════════════════════════════════════════════
    PAGE COMPONENT
