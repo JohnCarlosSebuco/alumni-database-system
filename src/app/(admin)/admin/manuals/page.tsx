@@ -1347,7 +1347,7 @@ function TroubleshootingGuide() {
 
       <Section title="8. General Tips &amp; When to Contact Support">
         <div className="space-y-3">
-          <p>Before contacting your developer, try these general fixes first — they resolve most common issues:</p>
+          <p>Before contacting your support, try these general fixes first — they resolve most common issues:</p>
           <ul className="list-disc pl-5 space-y-1.5">
             <li><strong>Hard refresh the page</strong> — Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)</li>
             <li><strong>Clear browser cache</strong> — Settings → Clear browsing data → Cached images and files</li>
@@ -1356,7 +1356,7 @@ function TroubleshootingGuide() {
             <li><strong>Check your internet connection</strong> — some features require a stable connection</li>
           </ul>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-2">
-            <p className="font-semibold text-red-800 text-sm">Contact your developer if:</p>
+            <p className="font-semibold text-red-800 text-sm">Contact your support if:</p>
             <ul className="list-disc pl-5 space-y-1 text-sm text-red-700 mt-1">
               <li>The system shows a red error message with a code (e.g., "500 Internal Server Error")</li>
               <li>Data is missing that was previously there</li>
