@@ -2,13 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { jobRef, getDoc, updateDoc } from "@/lib/firebase/firestore";
+import { jobRef, getDoc, updateDoc, deleteDoc } from "@/lib/firebase/firestore";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { JobForm } from "@/components/jobs/JobForm";
 import { PageLoader } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
+import { Button } from "@/components/ui/Button";
+import { Trash2 } from "lucide-react";
 import type { Job } from "@/lib/types/job.types";
 import type { JobFormInput } from "@/lib/utils/validators";
 
@@ -22,6 +24,8 @@ export default function EditJobPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!jobId) return;
@@ -61,6 +65,19 @@ export default function EditJobPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!jobId) return;
+    setDeleting(true);
+    try {
+      await deleteDoc(jobRef(jobId));
+      success("Job posting deleted.");
+      router.push("/admin/jobs");
+    } catch {
+      toastError("Failed to delete job posting.");
+      setDeleting(false);
+    }
+  };
+
   if (loading) return <PageLoader />;
   if (!job) return <p className="p-8 text-gray-500">Job not found.</p>;
 
@@ -69,6 +86,16 @@ export default function EditJobPage() {
       <PageHeader
         title="Edit Job Posting"
         breadcrumbs={[{ label: "Admin" }, { label: "Jobs", href: "/admin/jobs" }, { label: "Edit" }]}
+        actions={
+          <Button
+            variant="danger"
+            size="sm"
+            leftIcon={<Trash2 size={14} />}
+            onClick={() => setDeleteConfirm(true)}
+          >
+            Delete Job
+          </Button>
+        }
       />
       <Card>
         <CardBody>
@@ -83,6 +110,34 @@ export default function EditJobPage() {
           />
         </CardBody>
       </Card>
+
+      {/* Delete confirmation modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 size={18} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Delete Job Posting</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Are you sure you want to delete <span className="font-medium text-gray-700">{job.title}</span>?
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="secondary" size="sm" onClick={() => setDeleteConfirm(false)} disabled={deleting}>
+                Cancel
+              </Button>
+              <Button variant="danger" size="sm" onClick={handleDelete} loading={deleting}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
