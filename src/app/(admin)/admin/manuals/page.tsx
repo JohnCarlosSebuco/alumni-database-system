@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils/cn";
 
 export const dynamic = "force-dynamic";
 
-type Tab = "system" | "transfer" | "security" | "storage";
+type Tab = "system" | "transfer" | "security" | "storage" | "troubleshooting";
 
 /* ─── Section helper ─── */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -1068,6 +1068,310 @@ function StoragePlan() {
 
 
 /* ═══════════════════════════════════════════════════════════
+   TROUBLESHOOTING GUIDE CONTENT
+   ═══════════════════════════════════════════════════════════ */
+
+function Issue({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-200">
+        <p className="text-sm font-semibold text-gray-800">{title}</p>
+      </div>
+      <div className="px-4 py-3 text-sm text-gray-700 leading-relaxed space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function Steps({ items }: { items: string[] }) {
+  return (
+    <ol className="list-decimal pl-5 space-y-1 text-sm text-gray-700">
+      {items.map((item, i) => <li key={i}>{item}</li>)}
+    </ol>
+  );
+}
+
+function TroubleshootingGuide() {
+  return (
+    <div className="space-y-8">
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+        <strong>When to use this guide:</strong> If you encounter an error, unexpected behavior, or something
+        is not working as expected in AlumNayan, find your issue below and follow the steps.
+      </div>
+
+      <Section title="1. Login &amp; Account Access Problems">
+        <div className="space-y-4">
+          <Issue title="Cannot log in — wrong email or password">
+            <Steps items={[
+              'Make sure you are entering the correct email address (check for typos).',
+              'Passwords are case-sensitive — check if Caps Lock is on.',
+              'Click "Forgot Password?" on the login page to receive a reset link by email.',
+              'Check your spam/junk folder if the reset email does not arrive within 2 minutes.',
+              'If you still cannot log in, contact your admin to verify your account exists.',
+            ]} />
+          </Issue>
+
+          <Issue title="Account says email is not verified">
+            <Steps items={[
+              'Check your inbox for a verification email from AlumNayan.',
+              'Check spam/junk folder if it is not in your inbox.',
+              'On the login page, click "Resend Verification Email" to get a new link.',
+              'Click the link in the email — it expires after 24 hours.',
+              'After verifying, refresh the page and try logging in again.',
+            ]} />
+          </Issue>
+
+          <Issue title="Password reset email never arrives">
+            <Steps items={[
+              'Wait 2–3 minutes — email delivery can be delayed.',
+              'Check your spam, junk, and promotions folders.',
+              'Make sure you entered the correct email address associated with your account.',
+              'Try requesting the reset email again from the login page.',
+              'If using a school email address, check if your institution blocks automated emails.',
+            ]} />
+          </Issue>
+
+          <Issue title="Admin says 'Access Denied' or redirects to login">
+            <Steps items={[
+              'Only accounts with the Admin or Super Admin role can access the admin panel.',
+              'Log out and log back in — your session may have expired.',
+              'Ask your Super Admin to verify that your account has been assigned the correct role.',
+              'Clear your browser cookies and cache, then try logging in again.',
+            ]} />
+          </Issue>
+        </div>
+      </Section>
+
+      <Section title="2. Alumni Import Problems">
+        <div className="space-y-4">
+          <Issue title="Excel file upload fails or shows an error">
+            <Steps items={[
+              'Make sure the file is in .xlsx or .xls format — .csv files are not supported.',
+              'Check that the file size is reasonable (under 10 MB for typical alumni data).',
+              'Open the file in Excel to confirm it is not corrupted and can be opened normally.',
+              'Make sure the first row contains column headers (not data).',
+              'Try saving the file as a new .xlsx file and uploading again.',
+            ]} />
+          </Issue>
+
+          <Issue title="Many alumni records show as 'skipped' after import">
+            <p>Records are skipped when:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>The row has no email address — email is required to match or create an account.</li>
+              <li>The email already exists in the system and the data has not changed.</li>
+              <li>The row is completely empty.</li>
+            </ul>
+            <Steps items={[
+              'Check that the email column in your Excel file is filled in for every row.',
+              'Ensure the email column header matches expected names like "Email Address" or "Email".',
+              'Open the import result and look at the "Failed Rows" list for specific error messages.',
+            ]} />
+          </Issue>
+
+          <Issue title="Alumni claim emails are not being received">
+            <Steps items={[
+              'Ask the alumni to check their spam/junk folder.',
+              'Verify the email address in their record is spelled correctly.',
+              'In the admin panel, go to the alumni profile and check if isClaimed is still false.',
+              'The claim link expires — if it has been more than 7 days, the alumni may need a new invite.',
+              'Contact your developer to resend the claim email if the feature is unavailable in the UI.',
+            ]} />
+          </Issue>
+
+          <Issue title="Imported alumni show wrong employment or abroad data">
+            <Steps items={[
+              'Go to the specific alumni profile and manually update the field.',
+              'Re-import the Excel file with corrected data — the system will update existing records.',
+              'For "Working Abroad" detection: make sure the Company Address column contains a country name or city outside the Philippines.',
+              'For course alignment: make sure the survey response column is filled with "Yes" or "No".',
+            ]} />
+          </Issue>
+        </div>
+      </Section>
+
+      <Section title="3. Report Generation Problems">
+        <div className="space-y-4">
+          <Issue title="Report shows 0 or very low employment numbers">
+            <Steps items={[
+              'Check that alumni profiles have the "isEmployed" field filled in (via import or profile update).',
+              'Try changing the filter — select "All Programs" and "All Batch Years" to see the full count.',
+              'Alumni who registered but never filled in their profile may not have employment data.',
+              'Re-import the Excel survey data to populate employment fields from survey responses.',
+            ]} />
+          </Issue>
+
+          <Issue title="PDF or CSV export button does nothing">
+            <Steps items={[
+              'Make sure your browser allows pop-ups and file downloads from this website.',
+              'Check your browser\'s download bar or downloads folder — the file may have downloaded silently.',
+              'Try a different browser (Chrome or Edge are recommended).',
+              'If the page is still loading, wait for it to finish before clicking export.',
+              'Disable browser extensions (especially ad blockers) and try again.',
+            ]} />
+          </Issue>
+
+          <Issue title="College Goals or Graduate Attributes show unexpected numbers">
+            <Steps items={[
+              'These numbers are calculated from employment and survey data — make sure alumni records are up to date.',
+              'For "Working Abroad" (Goal 1): the system checks the company address and locality fields for international keywords.',
+              'Re-import the survey Excel file to refresh all computed fields.',
+              'If a specific alumni appears to be counted incorrectly, check their individual profile.',
+            ]} />
+          </Issue>
+
+          <Issue title="Report generation is very slow">
+            <Steps items={[
+              'Large reports (all programs, all batch years) can take 10–20 seconds.',
+              'Avoid clicking the generate button multiple times — wait for it to finish.',
+              'Try filtering by a specific program or batch year to generate a smaller, faster report.',
+              'If it times out after 30+ seconds, refresh the page and try again.',
+            ]} />
+          </Issue>
+        </div>
+      </Section>
+
+      <Section title="4. File Upload Problems (Photos, Resumes, Certificates)">
+        <div className="space-y-4">
+          <Issue title="Profile photo upload fails or does not appear">
+            <Steps items={[
+              'Photos must be JPG, PNG, or WebP format — other file types are not supported.',
+              'Maximum recommended file size is 5 MB.',
+              'Try a different image or resize the photo before uploading.',
+              'Check your internet connection — slow connections may cause upload timeouts.',
+              'Disable browser extensions and try again.',
+              'If the photo uploads but does not appear, do a hard refresh (Ctrl+Shift+R or Cmd+Shift+R).',
+            ]} />
+          </Issue>
+
+          <Issue title="Resume or certificate upload fails">
+            <Steps items={[
+              'Only PDF files are supported for resumes and certificates.',
+              'Make sure the file is not password-protected or corrupted.',
+              'Try re-saving the PDF using a PDF editor or printing to PDF.',
+              'Maximum file size is typically 10 MB — compress the PDF if it is too large.',
+            ]} />
+          </Issue>
+        </div>
+      </Section>
+
+      <Section title="5. Survey Problems">
+        <div className="space-y-4">
+          <Issue title="Alumni cannot see or access a survey">
+            <Steps items={[
+              'Check that the survey status is set to "Active" — Draft surveys are not visible to alumni.',
+              'Confirm the survey has at least one question before publishing.',
+              'Ask the alumni to log out and log back in to refresh their session.',
+              'Check that the alumni\'s account is active (isActive = true in their profile).',
+            ]} />
+          </Issue>
+
+          <Issue title="Survey responses are not showing in the admin panel">
+            <Steps items={[
+              'Go to Surveys → click the survey → click "View Responses".',
+              'Responses submitted via Google Form must be synced manually — use the "Sync" button if available.',
+              'Refresh the page — responses update in real time but may take a few seconds.',
+              'Confirm the alumni actually completed and submitted the survey (not just opened it).',
+            ]} />
+          </Issue>
+
+          <Issue title="Survey results do not reflect in the outcome reports">
+            <Steps items={[
+              'Survey responses must be synced to alumni profiles to appear in reports.',
+              'In the survey responses view, use the "Sync to Profiles" button to update alumni records.',
+              'After syncing, regenerate the report to see updated numbers.',
+            ]} />
+          </Issue>
+        </div>
+      </Section>
+
+      <Section title="6. Notification Problems">
+        <div className="space-y-4">
+          <Issue title="Alumni are not receiving notifications">
+            <Steps items={[
+              'Check the alumni\'s notification preferences in their profile (jobs and events toggles).',
+              'Notifications are delivered inside the app (bell icon) — they are not sent by SMS or push notification.',
+              'Ask the alumni to check their notifications page inside AlumNayan.',
+              'Verify that the job or event was set to "Active" / "Published" status when created — draft postings do not trigger notifications.',
+            ]} />
+          </Issue>
+
+          <Issue title="Notification count badge is stuck or shows wrong number">
+            <Steps items={[
+              'Log out and log back in to reset the notification count.',
+              'Click each unread notification to mark it as read.',
+              'Do a hard refresh (Ctrl+Shift+R or Cmd+Shift+R) to force reload the page.',
+            ]} />
+          </Issue>
+        </div>
+      </Section>
+
+      <Section title="7. Page Loading &amp; Display Problems">
+        <div className="space-y-4">
+          <Issue title="Page shows a blank screen or spinner that never stops">
+            <Steps items={[
+              'Refresh the page (F5 or Ctrl+R).',
+              'Clear your browser cache and cookies, then try again.',
+              'Try a different browser (Chrome or Edge are recommended).',
+              'Check your internet connection.',
+              'If the blank screen happens consistently, contact your developer — there may be a code error.',
+            ]} />
+          </Issue>
+
+          <Issue title="Data seems outdated or changes are not reflected">
+            <Steps items={[
+              'Do a hard refresh (Ctrl+Shift+R or Cmd+Shift+R) to bypass cached data.',
+              'Log out and log back in.',
+              'Check if someone else may have changed the data — the system updates in real time.',
+              'Wait 10–15 seconds and refresh again — Firestore sometimes has a brief delay.',
+            ]} />
+          </Issue>
+
+          <Issue title="Charts on the dashboard are empty or missing">
+            <Steps items={[
+              'Charts require alumni data — if there are no alumni records, charts will appear empty.',
+              'Make sure alumni have employment status data filled in.',
+              'Refresh the page.',
+              'Try a different browser or disable browser extensions.',
+            ]} />
+          </Issue>
+
+          <Issue title="Mobile layout looks broken or elements overlap">
+            <Steps items={[
+              'Try rotating your device to landscape mode for better table visibility.',
+              'Use a tablet or desktop for the admin panel — it is optimized for wider screens.',
+              'Try zooming out in your browser (Ctrl+- or pinch out).',
+              'Update your browser to the latest version.',
+            ]} />
+          </Issue>
+        </div>
+      </Section>
+
+      <Section title="8. General Tips &amp; When to Contact Support">
+        <div className="space-y-3">
+          <p>Before contacting your developer, try these general fixes first — they resolve most common issues:</p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li><strong>Hard refresh the page</strong> — Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)</li>
+            <li><strong>Clear browser cache</strong> — Settings → Clear browsing data → Cached images and files</li>
+            <li><strong>Log out and log back in</strong> — resolves most session-related issues</li>
+            <li><strong>Try a different browser</strong> — Chrome or Edge are most compatible</li>
+            <li><strong>Check your internet connection</strong> — some features require a stable connection</li>
+          </ul>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-2">
+            <p className="font-semibold text-red-800 text-sm">Contact your developer if:</p>
+            <ul className="list-disc pl-5 space-y-1 text-sm text-red-700 mt-1">
+              <li>The system shows a red error message with a code (e.g., "500 Internal Server Error")</li>
+              <li>Data is missing that was previously there</li>
+              <li>The login page cannot be reached at all</li>
+              <li>An action (import, report, export) consistently fails after multiple attempts</li>
+              <li>Alumni cannot register even after email verification</li>
+            </ul>
+          </div>
+        </div>
+      </Section>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
    PDF EXPORT HELPERS
    ═══════════════════════════════════════════════════════════ */
 
@@ -1761,6 +2065,226 @@ async function exportStoragePlanPDF() {
   doc.save("AlumNayan-Storage-Plan.pdf");
 }
 
+async function exportTroubleshootingPDF() {
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF();
+
+  // Title page
+  doc.setFontSize(22); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 41, 82);
+  doc.text("AlumNayan", 14, 40);
+  doc.setFontSize(16); doc.setTextColor(80);
+  doc.text("Troubleshooting Guide", 14, 52);
+  doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(120);
+  doc.text("College of Engineering", 14, 62);
+  doc.text("Electronics, Industrial & Mechanical Engineering", 14, 68);
+  doc.text(`Generated: ${new Date().toLocaleDateString("en-PH")}`, 14, 78);
+  doc.setDrawColor(30, 41, 82); doc.setLineWidth(0.5); doc.line(14, 82, 196, 82);
+  doc.setFontSize(9); doc.setTextColor(100);
+  doc.text("Use this guide when something is not working as expected in AlumNayan.", 14, 90);
+  doc.text("Try the steps listed under your issue. Contact your developer if the problem persists.", 14, 96);
+
+  doc.addPage();
+  let y = 20;
+
+  const issues: Array<{ section: string; title: string; steps: string[] }> = [
+    {
+      section: "1. Login & Account Access",
+      title: "Cannot log in — wrong email or password",
+      steps: [
+        "Make sure you are entering the correct email address (check for typos).",
+        "Passwords are case-sensitive — check if Caps Lock is on.",
+        "Click 'Forgot Password?' on the login page to receive a reset link by email.",
+        "Check your spam/junk folder if the reset email does not arrive within 2 minutes.",
+        "If you still cannot log in, contact your admin to verify your account exists.",
+      ],
+    },
+    {
+      section: "",
+      title: "Account says email is not verified",
+      steps: [
+        "Check your inbox for a verification email from AlumNayan.",
+        "Check spam/junk folder if it is not in your inbox.",
+        "On the login page, click 'Resend Verification Email' to get a new link.",
+        "Click the link in the email — it expires after 24 hours.",
+        "After verifying, refresh the page and try logging in again.",
+      ],
+    },
+    {
+      section: "",
+      title: "Admin says 'Access Denied' or redirects to login",
+      steps: [
+        "Only accounts with the Admin or Super Admin role can access the admin panel.",
+        "Log out and log back in — your session may have expired.",
+        "Ask your Super Admin to verify that your account has the correct role.",
+        "Clear your browser cookies and cache, then try logging in again.",
+      ],
+    },
+    {
+      section: "2. Alumni Import Problems",
+      title: "Excel file upload fails or shows an error",
+      steps: [
+        "Make sure the file is in .xlsx or .xls format — .csv files are not supported.",
+        "Check that the file size is reasonable (under 10 MB for typical alumni data).",
+        "Open the file in Excel to confirm it is not corrupted.",
+        "Make sure the first row contains column headers (not data).",
+        "Try saving the file as a new .xlsx file and uploading again.",
+      ],
+    },
+    {
+      section: "",
+      title: "Many alumni records show as 'skipped' after import",
+      steps: [
+        "Check that the email column is filled in for every row (email is required).",
+        "Ensure the email column header matches expected names like 'Email Address'.",
+        "Open the import result and look at the 'Failed Rows' list for specific errors.",
+        "Records with no data changes from what is already stored are also skipped.",
+      ],
+    },
+    {
+      section: "",
+      title: "Alumni claim emails are not being received",
+      steps: [
+        "Ask the alumni to check their spam/junk folder.",
+        "Verify the email address in their record is spelled correctly.",
+        "The claim link expires after 7 days — a new invite may be needed.",
+        "Contact your developer to resend the claim email if unavailable in the UI.",
+      ],
+    },
+    {
+      section: "3. Report Generation Problems",
+      title: "Report shows 0 or very low employment numbers",
+      steps: [
+        "Check that alumni profiles have the 'isEmployed' field filled in.",
+        "Try selecting 'All Programs' and 'All Batch Years' to see the full count.",
+        "Alumni who never filled in their profile may not have employment data.",
+        "Re-import the Excel survey data to populate employment fields.",
+      ],
+    },
+    {
+      section: "",
+      title: "PDF or CSV export button does nothing",
+      steps: [
+        "Make sure your browser allows pop-ups and file downloads from this website.",
+        "Check your browser's downloads folder — the file may have downloaded silently.",
+        "Try a different browser (Chrome or Edge are recommended).",
+        "Disable browser extensions (especially ad blockers) and try again.",
+      ],
+    },
+    {
+      section: "",
+      title: "College Goals or Graduate Attributes show unexpected numbers",
+      steps: [
+        "These numbers are calculated from employment and survey data — make sure alumni records are up to date.",
+        "For 'Working Abroad': the system checks company address for international keywords.",
+        "Re-import the survey Excel file to refresh all computed fields.",
+        "If a specific alumni appears incorrectly counted, check their individual profile.",
+      ],
+    },
+    {
+      section: "4. File Upload Problems",
+      title: "Profile photo upload fails or does not appear",
+      steps: [
+        "Photos must be JPG, PNG, or WebP format. Maximum recommended size is 5 MB.",
+        "Try a different image or resize the photo before uploading.",
+        "Check your internet connection — slow connections may cause upload timeouts.",
+        "If the photo uploads but does not appear, do a hard refresh (Ctrl+Shift+R).",
+      ],
+    },
+    {
+      section: "",
+      title: "Resume or certificate upload fails",
+      steps: [
+        "Only PDF files are supported for resumes and certificates.",
+        "Make sure the file is not password-protected or corrupted.",
+        "Maximum file size is typically 10 MB — compress the PDF if it is too large.",
+      ],
+    },
+    {
+      section: "5. Survey Problems",
+      title: "Alumni cannot see or access a survey",
+      steps: [
+        "Check that the survey status is set to 'Active' — Draft surveys are not visible to alumni.",
+        "Confirm the survey has at least one question before publishing.",
+        "Ask the alumni to log out and log back in to refresh their session.",
+      ],
+    },
+    {
+      section: "",
+      title: "Survey results do not reflect in outcome reports",
+      steps: [
+        "Survey responses must be synced to alumni profiles to appear in reports.",
+        "In the survey responses view, use the 'Sync to Profiles' button to update alumni records.",
+        "After syncing, regenerate the report to see updated numbers.",
+      ],
+    },
+    {
+      section: "6. Notification Problems",
+      title: "Alumni are not receiving notifications",
+      steps: [
+        "Check the alumni's notification preferences in their profile (jobs and events toggles).",
+        "Notifications are delivered inside the app (bell icon) — not by SMS or push notification.",
+        "Verify the job or event was set to Active/Published — drafts do not trigger notifications.",
+      ],
+    },
+    {
+      section: "7. Page Loading & Display Problems",
+      title: "Page shows a blank screen or spinner that never stops",
+      steps: [
+        "Refresh the page (F5 or Ctrl+R).",
+        "Clear your browser cache and cookies, then try again.",
+        "Try a different browser (Chrome or Edge are recommended).",
+        "If it consistently happens, contact your developer — there may be a code error.",
+      ],
+    },
+    {
+      section: "",
+      title: "Data seems outdated or changes are not reflected",
+      steps: [
+        "Do a hard refresh (Ctrl+Shift+R or Cmd+Shift+R) to bypass cached data.",
+        "Log out and log back in.",
+        "Wait 10–15 seconds and refresh again — the database sometimes has a brief delay.",
+      ],
+    },
+  ];
+
+  let currentSection = "";
+
+  for (const issue of issues) {
+    if (issue.section && issue.section !== currentSection) {
+      if (y > 250) { doc.addPage(); y = 20; }
+      y = addSectionHeader(doc, issue.section, y);
+      currentSection = issue.section;
+    }
+
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = addSubHeader(doc, issue.title, y);
+    for (let i = 0; i < issue.steps.length; i++) {
+      if (y > 275) { doc.addPage(); y = 20; }
+      y = addWrappedText(doc, `${i + 1}. ${issue.steps[i]}`, 18, y, 175, 4.5);
+    }
+    y += 4;
+  }
+
+  // General tips
+  if (y > 230) { doc.addPage(); y = 20; }
+  y = addSectionHeader(doc, "8. General Tips & When to Contact Support", y);
+  y = addWrappedText(doc, "Before contacting your developer, try these general fixes first:", 14, y, 182, 4.5);
+  y += 2;
+  y = addBullet(doc, "Hard refresh the page — Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)", 18, y, 178);
+  y = addBullet(doc, "Clear browser cache — Settings > Clear browsing data > Cached images and files", 18, y, 178);
+  y = addBullet(doc, "Log out and log back in — resolves most session-related issues", 18, y, 178);
+  y = addBullet(doc, "Try a different browser — Chrome or Edge are most compatible", 18, y, 178);
+  y = addBullet(doc, "Check your internet connection — some features require a stable connection", 18, y, 178);
+  y += 4;
+  y = addSubHeader(doc, "Contact your developer if:", y);
+  y = addBullet(doc, "The system shows a red error message with a code (e.g., '500 Internal Server Error')", 18, y, 178);
+  y = addBullet(doc, "Data is missing that was previously there", 18, y, 178);
+  y = addBullet(doc, "The login page cannot be reached at all", 18, y, 178);
+  y = addBullet(doc, "An action (import, report, export) consistently fails after multiple attempts", 18, y, 178);
+  y = addBullet(doc, "Alumni cannot register even after email verification", 18, y, 178);
+
+  doc.save("AlumNayan-Troubleshooting-Guide.pdf");
+}
 
 /* ═══════════════════════════════════════════════════════════
    PAGE COMPONENT
@@ -1826,6 +2350,18 @@ export default function ManualsPage() {
           >
             Storage Plan
           </button>
+          <button
+            type="button"
+            className={cn(
+              "px-4 py-2 text-sm font-medium transition-colors border-l border-gray-200",
+              tab === "troubleshooting"
+                ? "bg-navy-800 text-white"
+                : "bg-white text-gray-600 hover:bg-gray-50"
+            )}
+            onClick={() => setTab("troubleshooting")}
+          >
+            Troubleshooting
+          </button>
         </div>
 
         <Button
@@ -1839,7 +2375,9 @@ export default function ManualsPage() {
               ? exportTransferManualPDF()
               : tab === "security"
               ? exportSecurityManualPDF()
-              : exportStoragePlanPDF()
+              : tab === "storage"
+              ? exportStoragePlanPDF()
+              : exportTroubleshootingPDF()
           }
         >
           Download PDF
@@ -1852,7 +2390,8 @@ export default function ManualsPage() {
           {tab === "system" ? <SystemManual />
             : tab === "transfer" ? <TransferManual />
             : tab === "security" ? <SecurityManual />
-            : <StoragePlan />}
+            : tab === "storage" ? <StoragePlan />
+            : <TroubleshootingGuide />}
         </CardBody>
       </Card>
     </div>
