@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import admin from "@/lib/firebase/admin";
 import crypto from "crypto";
-import { read, utils } from "xlsx";
 import { calculateProfileComplete } from "@/lib/utils/profileComplete";
 import { isAbroadAddress } from "@/lib/utils/courseAlignment";
 
@@ -347,6 +346,8 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    const { read, utils } = await import("xlsx");
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const workbook = read(buffer, { type: "buffer" });

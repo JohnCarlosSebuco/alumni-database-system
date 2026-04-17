@@ -1,0 +1,844 @@
+{
+  "created": [
+    {
+      "email": "desilvareignjansen@gmail.com",
+      "uid": "muNfRzFE94XpbykT1rafPLiEU6F2"
+    },
+    {
+      "email": "jhonmichaelcosejo@gmail.com",
+      "uid": "6ucxkLHKB4XY5pY1nkBd6XU5srR2"
+    },
+    {
+      "email": "karen.salvador@drydocks.gov.ae",
+      "uid": "i2BMzZaOmOMEf0ZZvfW43zU3Qh92"
+    },
+    {
+      "email": "kayceelynporte@gmail.com",
+      "uid": "OkiyFWHUpDMJYP0w5febAWzGGDk2"
+    },
+    {
+      "email": "patricederamos@gmail.com",
+      "uid": "NzTZA4OBm5hnBFqJf90teICZGS12"
+    },
+    {
+      "email": "cleogliane@gmail.com",
+      "uid": "JPbeMESdyMX0ycUrACnO8B3iJQ82"
+    },
+    {
+      "email": "lorbita122120@gmail.com",
+      "uid": "VFpwEB1QHRQjCRQj4fnTctIXtFX2"
+    },
+    {
+      "email": "jerone.orijuela@gmail.com",
+      "uid": "8BLFTsTftwSYKCnnHZ8iPQg5ZvA2"
+    },
+    {
+      "email": "warrencabunyag@gmail.com",
+      "uid": "UPajhzJinPVabKU7kxibyTLL18q2"
+    },
+    {
+      "email": "ella.recalde2@gmail.com",
+      "uid": "FCnmmKiRT6RAbVRGMScD1LZACAW2"
+    },
+    {
+      "email": "delnewww09@gmail.com",
+      "uid": "btypjl8seBdfmKdkpsHfExY1yPs2"
+    },
+    {
+      "email": "michellelagumay509@gmail.com",
+      "uid": "1FcAFXO6yxU2WtNSMhIFsdZSoD42"
+    },
+    {
+      "email": "fatimacluce@gmail.com",
+      "uid": "eALR2TUsSGhshJ5KW5scQIO3yhe2"
+    },
+    {
+      "email": "michillamaemagboo@gmail.com",
+      "uid": "k1dhxgUsQkVCKjdEB9dJu3oH9Kq1"
+    },
+    {
+      "email": "raymartcostales3@gmail.com",
+      "uid": "gyKe3LDWbsd6Jk6JOxKjgKoowVw1"
+    },
+    {
+      "email": "yuanyagyagan@gmail.com",
+      "uid": "HF2Fl4V45HUFrtsORQwqTU6kkth1"
+    },
+    {
+      "email": "bellemegino@gmail.com",
+      "uid": "tBM9WTykl1eYOiy9irxDBAY5yy63"
+    },
+    {
+      "email": "padillajoana02@gmail.com",
+      "uid": "7pZYySjX1CPcSV7RyiyyhuTKJnt2"
+    },
+    {
+      "email": "johnmark.altez26@gmail.com",
+      "uid": "Hzj4W1wjKOZyYRIDpQpofr5G6wo2"
+    },
+    {
+      "email": "caringalkingaljon@gmail.com",
+      "uid": "1DObu7jKbBTNp6bGslnnJBAO2sl1"
+    },
+    {
+      "email": "aljericonarte@gmail.com",
+      "uid": "prIazEgjc2QgVlpKwI8FXbnxLzx1"
+    },
+    {
+      "email": "annespinosa2225@gmail.com",
+      "uid": "riMgkGozzoUU6kYJHsA2R4fx0Sq2"
+    },
+    {
+      "email": "brianredendcustodio@gmail.com",
+      "uid": "OUD1FbvpzYOVK0ITaWTHMnabBmu1"
+    },
+    {
+      "email": "judyannemapa@gmail.com",
+      "uid": "vYlhM1K3e1Wh7Dval241SBiiX9m1"
+    },
+    {
+      "email": "vargaschristian969@gmail.com",
+      "uid": "fvykIsQEQfgdOOv3WQW2XuqU2yS2"
+    }
+  ],
+  "skipped": [
+    {
+      "email": "amiel.estremera65@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "viincejerehmielmontiel@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "lxademi@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jancawlolacorte@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "ajxmapa@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "joenellbien@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "lmmalmonte@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "alchonbanayo@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "caballemia9@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "batisvinzon@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "marykaiylinahernandez@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "patricklopinac@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "mrodon2021@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "anjiel.lejana@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "gdelasalaspharmol@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "ellajane.villamayor@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "eunicealdehermogino@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "aerol.bandoy@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jarewynepureza80@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "zetaqt21@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "abelricomanuel03@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "allenobciana1000@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "johnpatrickremo@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "icar062001@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "mariannemheyfaller@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "whestlyclacio@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "lennercambal@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "alerocary@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "johnkerry256@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "coortillano@slsu.edu.ph",
+      "reason": "already exists"
+    },
+    {
+      "email": "christelle.t.donato@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "zenabelar@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jmrzamora314@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "lmmalabanan.pagasa@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "vincecaesarsamorano@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "mariellabella1023@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "alocjudyann@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "romerojayvee0@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "rinaayeshapalma@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "delimaralphmonsour@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jayfersonlaracas1@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "daniel.dionisio.velo09@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "lourdceustolentino@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "johnrayostonalpastorfide@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "benzonjoseph97@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "prbmanabat27@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "cydeveluz@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "wendymarieedano@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "alleo1997@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "sumala.eton@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "rivera.jemuel09@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "cathnanola@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "leegeralduestravo@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "mesales@slsu.edu.ph",
+      "reason": "already exists"
+    },
+    {
+      "email": "kristeldiannemahayag@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "cma.ajal@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "zyruz.zurbano@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "iamrayharvey@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jabezjohnrveluz@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "leopartechrisjansen06@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jaluaguenetnet@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "janvikimraneg@gmail.con",
+      "reason": "already exists"
+    },
+    {
+      "email": "reyessteve324@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "leslielagar06@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "cherishbugtong29@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "magdanganluris@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "briggsamora8@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "joshuasalvan95@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "bryanalva826@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "marinela.cademia@chittick.ph",
+      "reason": "already exists"
+    },
+    {
+      "email": "jayzone05@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "deaperarusselroy@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "abiartillera@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "delunarodel5678@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "joanaesquieresz@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jennyroseoabel03@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "pcristobal29@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "kennethsepillo1@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jfnracelis@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "darchchavez06@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jayveebaasispadua@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "andreejaysarmiento@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "sairacabalsa71823253@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "maryquijano0416@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "ugaypatriciaandrea@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "marielpaduada791@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "migolabila@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "chrisjohngutierrez5@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "justinejoycelancetahari@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "saludesjanmelo@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "maverick.caballes@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "davamichaeljoseph@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "lycadaya.ldd@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "brucalnickole@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "rjrbajar@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "gatajaninagayle@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "kyl.perez@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "merrievillalonsolares@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "archie.araya517@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "lianajellenaguilan@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "tim.zarsadias@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "tanyaaadlanyvel@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "abejojohnmichael@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "alvergelhernandez28@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "markchristianracelis2023@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "rpiol@hondaph.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "kristofferkaw@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "deligentelordandrei@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "danlemuel.pajarillo@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "andreipalentinos@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jefffabricante@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "pmbuenaciframms@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "carlo.abanilla08@yahoo.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "roman.georgebill@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "eydyay@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "rlantenor07@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "rovicbandonillo123@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "zvembat@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jldeapera2021@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "carla.castilloleila@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "tumambingjm19@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "dave.delatorre2001@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "iglesiaemmanuel007@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "ktalavera121@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "dechavezkentelizer@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "isabelbanatlao@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "leidurwin22@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "kposmasdero@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "pallemarkedisongm@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "wdinglasan2021@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jwlabj@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "sustrinaangel@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "altheanicolelacuarin@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "tmmanalo2021@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "kenankaizerzaracena@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "oblenatrisha@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "pullaroste.ynamae@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jestonipenaverde1@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "mariejoyabanilla@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "mechengr.ramiro@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "pjcosejo@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "danmarkcabriga013@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "marco.laqueo@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "piesalamat@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "drextermendoza123@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "engralchjamyll@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "caiglemuel@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "maremoroza12@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "kristineannabraham@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "earldealday1417@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "tampocjaylord5@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "ruthkathleenalbunan@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "rn.nadera112000@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jlescanofernandez19@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "tjcastillo94@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jonhmarkd79@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "redamparo08@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "rodalieneradovan@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "georgiebenosa11@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "shairaadefuinxx@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jisika.capistrano@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "ranielayu@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "trinidadkervby@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "jaymmorjaval031@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "o.aubreymae@gmail.com",
+      "reason": "already exists"
+    },
+    {
+      "email": "andreipalentinos@gmail.com",
+      "reason": "already exists"
+    }
+  ],
+  "failed": [
+    {
+      "email": "cristel.mapacpac@fill_in.com",
+      "reason": "The email address is improperly formatted."
+    },
+    {
+      "email": "arguelles.johnpeejhay@fill_in.com",
+      "reason": "The email address is improperly formatted."
+    },
+    {
+      "email": "jeweladarlo@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "riegeorgeandrada@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "tanangelqueen@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "zckalayongomez@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "rubelynmamalayan14@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "arbyraizadecastro@gmail.con",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "jumawan.johncarlo@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "tymgabito26@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "jjaelabdon@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "dalitjoseleo@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "rodriguezvj27@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "jeornieg@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "emmanuelcampita@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "jpabrigonda@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "carreonbethrina@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    },
+    {
+      "email": "chloeemanalo@gmail.com",
+      "reason": "QUOTA_EXCEEDED : Email quota exceeded"
+    }
+  ]
+}

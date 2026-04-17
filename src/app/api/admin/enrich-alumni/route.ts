@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import admin from "@/lib/firebase/admin";
-import { read, utils } from "xlsx";
 import { isAbroadAddress } from "@/lib/utils/courseAlignment";
 
 // ── Auth helper ───────────────────────────────────────────────────────────────
@@ -136,6 +135,8 @@ export async function POST(req: Request) {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (!["xlsx", "xls"].includes(ext ?? ""))
       return NextResponse.json({ error: "Only .xlsx and .xls files are supported." }, { status: 400 });
+
+    const { read, utils } = await import("xlsx");
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const workbook = read(buffer, { type: "buffer" });

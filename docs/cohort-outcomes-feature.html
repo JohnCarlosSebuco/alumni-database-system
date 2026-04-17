@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cohort Outcomes Feature — Technical Documentation</title>
+  <style>
+    /* ── Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #1a1a2e;
+      background: #fff;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 40px;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      border-left: 5px solid #1e2952;
+      padding: 32px 28px;
+      margin-bottom: 40px;
+      background: #f5f7ff;
+      border-radius: 0 8px 8px 0;
+    }
+    .cover .badge {
+      display: inline-block;
+      background: #1e2952;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+    .cover h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1e2952;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .cover .sub {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 18px;
+    }
+    .cover .meta {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .cover .meta span {
+      font-size: 11px;
+      color: #374151;
+      background: #e8ecf8;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* ── Headings ── */
+    h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1e2952;
+      margin: 36px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #374151;
+      margin: 22px 0 8px;
+    }
+    h4 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 16px 0 6px;
+    }
+
+    /* ── Body text ── */
+    p { margin-bottom: 10px; }
+    ul, ol { padding-left: 20px; margin-bottom: 10px; }
+    li { margin-bottom: 4px; }
+    strong { font-weight: 700; }
+    em { font-style: italic; color: #374151; }
+
+    /* ── Callout boxes ── */
+    .callout {
+      border-left: 4px solid #6366f1;
+      background: #f5f3ff;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0;
+      font-size: 12px;
+      color: #374151;
+    }
+    .callout.green {
+      border-color: #22c55e;
+      background: #f0fdf4;
+    }
+    .callout.amber {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .callout.blue {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+    .callout strong { display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* ── Code blocks ── */
+    pre {
+      background: #1e2952;
+      color: #e2e8f0;
+      padding: 16px 18px;
+      border-radius: 8px;
+      font-family: "Cascadia Code", "Fira Code", "Courier New", monospace;
+      font-size: 11.5px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    code {
+      font-family: "Cascadia Code", "Fira Code", "Courier New", monospace;
+      font-size: 11px;
+      background: #e8ecf8;
+      color: #1e2952;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* keyword colors inside pre */
+    .kw  { color: #93c5fd; }
+    .ty  { color: #6ee7b7; }
+    .str { color: #fde68a; }
+    .cm  { color: #94a3b8; font-style: italic; }
+    .fn  { color: #f9a8d4; }
+    .nu  { color: #c4b5fd; }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 12px;
+    }
+    thead { background: #1e2952; color: #fff; }
+    thead th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    tbody tr:nth-child(even) { background: #f9fafb; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+    td.center { text-align: center; }
+    td.mono { font-family: monospace; font-size: 11px; }
+    td.green { color: #15803d; font-weight: 700; }
+    td.indigo { color: #4338ca; font-weight: 700; }
+
+    /* ── Section divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 32px 0;
+    }
+
+    /* ── Formula box ── */
+    .formula {
+      text-align: center;
+      font-size: 13px;
+      font-style: italic;
+      margin: 16px 0;
+      color: #1e2952;
+      padding: 10px;
+      background: #f0f4ff;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    /* ── Flow diagram (ASCII-style) ── */
+    .flow {
+      background: #1e2952;
+      color: #e2e8f0;
+      font-family: monospace;
+      font-size: 11.5px;
+      padding: 20px 24px;
+      border-radius: 8px;
+      line-height: 1.8;
+      margin: 12px 0;
+    }
+    .flow .box { color: #93c5fd; }
+    .flow .arr { color: #6ee7b7; }
+
+    /* ── Print ── */
+    @media print {
+      body { padding: 24px 28px; font-size: 12px; }
+      pre { font-size: 10.5px; }
+      h2 { page-break-before: auto; }
+      .no-break { page-break-inside: avoid; }
+      @page { margin: 18mm 16mm; }
+    }
+
+    /* ── TOC ── */
+    .toc {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 36px;
+    }
+    .toc h3 { margin-top: 0; font-size: 13px; color: #1e2952; margin-bottom: 10px; }
+    .toc ol { list-style: decimal; padding-left: 18px; }
+    .toc li { font-size: 12px; margin-bottom: 3px; color: #374151; }
+    .toc li span { color: #9ca3af; font-size: 11px; margin-left: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="badge">AlumNayan · Technical Documentation</div>
+    <h1>Cohort Outcomes Feature</h1>
+    <p class="sub">Per-Batch-Year Breakdown of Employment &amp; Course-Alignment Rates</p>
+    <div class="meta">
+      <span>System: AlumNayan Alumni Database</span>
+      <span>Module: Dashboard · Reports · PDF Export</span>
+      <span>Date: March 2026</span>
+      <span>Version: 1.0</span>
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h3>Table of Contents</h3>
+    <ol>
+      <li>Purpose &amp; Background <span>pg. 1</span></li>
+      <li>Key Concepts &amp; Definitions <span>pg. 1</span></li>
+      <li>Computation Logic <span>pg. 2</span></li>
+      <li>Column Definitions <span>pg. 3</span></li>
+      <li>Data Flow &amp; Architecture <span>pg. 3</span></li>
+      <li>Files Modified <span>pg. 4</span></li>
+      <li>Core Utility: <code>computeCohortBreakdown()</code> <span>pg. 4</span></li>
+      <li>Dashboard Integration <span>pg. 5</span></li>
+      <li>Reports Page Integration <span>pg. 6</span></li>
+      <li>PDF Export — Section C <span>pg. 6</span></li>
+      <li>Edge Cases &amp; Limitations <span>pg. 7</span></li>
+      <li>Sample Output <span>pg. 7</span></li>
+    </ol>
+  </div>
+
+
+  <!-- 1 -->
+  <h2>1. Purpose &amp; Background</h2>
+
+  <p>
+    The professor needs to track alumni employment and course-alignment outcomes
+    <strong>grouped by graduation cohort</strong> (batch year), not just by broad career
+    stage buckets. The goal is to answer questions like:
+  </p>
+  <ul>
+    <li><em>"Batch 2018 — what is their employment status 5 years after graduation (2023)?"</em></li>
+    <li><em>"Batch 2019 — 5-year check-in is due in 2024. What is the current data?"</em></li>
+    <li><em>"Which cohort has the highest course-alignment rate?"</em></li>
+  </ul>
+
+  <div class="callout amber">
+    <strong>Important Design Decision</strong>
+    The system stores only the <strong>current</strong> employment status of each alumni — there are
+    no historical snapshots. Therefore, the table shows each cohort's <em>current recorded status</em>
+    while framing it with a "5-Year Evaluation Year" column (batch year + 5) that tells the professor
+    when a formal survey was due for that cohort.
+  </div>
+
+  <p>
+    The feature was added to three areas of the system: the <strong>Admin Dashboard</strong>,
+    the <strong>Reports Page</strong> (UI table), and the <strong>PDF Export</strong> (Section C).
+  </p>
+
+
+  <!-- 2 -->
+  <h2>2. Key Concepts &amp; Definitions</h2>
+
+  <h3>Batch Year</h3>
+  <p>
+    The year an alumni graduated (or the cohort year they are associated with). Stored as an
+    integer in Firestore under the <code>batchYear</code> field on each user document.
+  </p>
+
+  <h3>5-Year Evaluation Year (Eval Year)</h3>
+  <p>
+    The year a cohort is due for a formal 5-year outcome survey, computed as:
+  </p>
+  <div class="formula">Eval Year = Batch Year + 5</div>
+  <p>
+    Example: Batch 2018 → Eval Year 2023. This matches the institution's survey cycle where
+    graduates are formally tracked 5 years after their graduation.
+  </p>
+
+  <h3>Years Out</h3>
+  <p>
+    How many years have passed since the cohort's graduation as of the current year:
+  </p>
+  <div class="formula">Years Out = Current Year − Batch Year</div>
+  <p>
+    This gives context about how mature the cohort is (e.g., a batch year of 2020 is currently
+    6 years out in 2026).
+  </p>
+
+  <h3>Course-Aligned Employment</h3>
+  <p>
+    An alumni is considered <strong>course-aligned</strong> if they are both employed <em>and</em>
+    their job is related to their engineering program. Alignment is determined by:
+  </p>
+  <ol>
+    <li>
+      <strong>Direct survey answer</strong> — if the alumni explicitly answered a
+      <code>courseAligned</code> yes/no field in their profile, that answer takes priority.
+    </li>
+    <li>
+      <strong>Keyword matching (fallback)</strong> — if no direct answer exists, the system
+      checks the alumni's <code>currentPosition</code> job title against a predefined keyword
+      list for their program (e.g., "logistics", "lean" for Industrial Engineering).
+    </li>
+  </ol>
+
+  <div class="callout green">
+    <strong>Why Survey Answer Takes Priority</strong>
+    Keyword matching can produce false positives (e.g., a job title that mentions "industrial"
+    but is unrelated to IE). When alumni explicitly confirm alignment, that signal is more
+    accurate. Keyword matching serves as a fallback for older records.
+  </div>
+
+
+  <!-- 3 -->
+  <h2>3. Computation Logic</h2>
+
+  <h3>Step 1 — Group alumni by batch year</h3>
+  <p>
+    The function iterates over all alumni documents. Alumni with no <code>batchYear</code>
+    are skipped. For each valid alumni, a running tally is maintained per batch year:
+  </p>
+  <ul>
+    <li><strong>total</strong> — count of all alumni in that cohort</li>
+    <li><strong>employed</strong> — count where <code>isEmployed === true</code></li>
+    <li><strong>aligned</strong> — count where the alumni is both employed and course-aligned
+      (via the <code>isAligned()</code> helper)</li>
+  </ul>
+
+  <h3>Step 2 — Compute rates</h3>
+  <p>Both rates are rounded to the nearest whole percent:</p>
+
+  <div class="formula">Employment Rate = round( employed / total × 100 )</div>
+  <div class="formula">Alignment Rate = round( aligned / total × 100 )</div>
+
+  <div class="callout blue">
+    <strong>Denominator Note</strong>
+    The <strong>Alignment Rate</strong> denominator is the full cohort (<code>total</code>),
+    not just employed alumni. This means it represents the percentage of all graduates in
+    that cohort who are both employed and in a course-aligned job — a more conservative and
+    meaningful metric for accreditation purposes.
+  </div>
+
+  <h3>Step 3 — Sort and return</h3>
+  <p>
+    Rows are sorted <strong>newest batch year first</strong> (descending), so the most recent
+    cohorts appear at the top of the table.
+  </p>
+
+
+  <!-- 4 -->
+  <h2>4. Column Definitions</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Column</th>
+        <th>Source / Formula</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Batch Year</strong></td>
+        <td class="mono">alumni.batchYear</td>
+        <td>The graduation cohort year</td>
+      </tr>
+      <tr>
+        <td><strong>5-yr Eval Year</strong></td>
+        <td class="mono">batchYear + 5</td>
+        <td>Year the 5-year survey is due for this cohort</td>
+      </tr>
+      <tr>
+        <td><strong>Years Out</strong></td>
+        <td class="mono">currentYear − batchYear</td>
+        <td>How many years since graduation (as of today)</td>
+      </tr>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td class="mono">count(alumni where batchYear = N)</td>
+        <td>Number of alumni in the cohort</td>
+      </tr>
+      <tr>
+        <td><strong>Employed</strong></td>
+        <td class="mono">count(isEmployed === true)</td>
+        <td>Alumni confirmed as currently employed</td>
+      </tr>
+      <tr>
+        <td><strong>Employment Rate</strong></td>
+        <td class="mono">round(employed / total × 100)</td>
+        <td class="green">% of cohort that is employed</td>
+      </tr>
+      <tr>
+        <td><strong>Course-Aligned</strong></td>
+        <td class="mono">count(isAligned(a) === true)</td>
+        <td>Employed alumni whose job matches their program</td>
+      </tr>
+      <tr>
+        <td><strong>Alignment Rate</strong></td>
+        <td class="mono">round(aligned / total × 100)</td>
+        <td class="indigo">% of cohort that is employed and course-aligned</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <!-- 5 -->
+  <h2>5. Data Flow &amp; Architecture</h2>
+
+  <div class="flow">
+<span class="cm">// High-level data flow</span>
+
+<span class="box">[ Firestore "users" collection ]</span>
+        <span class="arr">│  getDocs(query(where("role","==","alumni")))</span>
+        <span class="arr">▼</span>
+<span class="box">[ alumniDocs: UserDoc[] ]</span>
+        <span class="arr">│  computeCohortBreakdown(alumniDocs)</span>
+        <span class="arr">▼</span>
+<span class="box">[ Group by batchYear → Map&lt;number, {total, employed, aligned}&gt; ]</span>
+        <span class="arr">│  isAligned(a) — survey answer or keyword match</span>
+        <span class="arr">▼</span>
+<span class="box">[ CohortRow[] — sorted newest first ]</span>
+        <span class="arr">│</span>
+        <span class="arr">├─▶  Dashboard: setCohortRows()  →  &lt;table&gt; render</span>
+        <span class="arr">│</span>
+        <span class="arr">├─▶  Reports UI: useMemo(cohortRows)  →  &lt;table&gt; render</span>
+        <span class="arr">│</span>
+        <span class="arr">└─▶  PDF Export: autoTable(doc, { body: cohortRows.map(...) })</span>
+  </div>
+
+  <h3>isAligned() Helper</h3>
+  <p>This private function (in <code>courseAlignment.ts</code>) implements the alignment check:</p>
+  <pre><code><span class="kw">function</span> <span class="fn">isAligned</span>(a: <span class="ty">AlumniForOutcome</span>): <span class="ty">boolean</span> {
+  <span class="kw">if</span> (!a.isEmployed) <span class="kw">return false</span>;          <span class="cm">// not employed → never aligned</span>
+  <span class="kw">if</span> (<span class="kw">typeof</span> a.courseAligned === <span class="str">"boolean"</span>)  <span class="cm">// explicit survey answer?</span>
+    <span class="kw">return</span> a.courseAligned;
+  <span class="cm">// fallback: keyword match on job title</span>
+  <span class="kw">return</span> <span class="fn">isCourseAligned</span>(a.currentPosition ?? <span class="str">""</span>, a.course);
+}</code></pre>
+
+
+  <!-- 6 -->
+  <h2>6. Files Modified</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Change</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">src/lib/utils/courseAlignment.ts</td>
+        <td>Added <code>CohortRow</code> interface and <code>computeCohortBreakdown()</code> function</td>
+      </tr>
+      <tr>
+        <td class="mono">src/app/(admin)/admin/dashboard/page.tsx</td>
+        <td>Import new utilities; added <code>cohortRows</code> state; call <code>computeCohortBreakdown</code> in <code>load()</code>; added Cohort Outcomes table card</td>
+      </tr>
+      <tr>
+        <td class="mono">src/app/(admin)/admin/reports/page.tsx</td>
+        <td>Import new utilities; <code>cohortRows</code> via <code>useMemo</code>; added Cohort Outcomes UI card; added Section C to PDF export</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <!-- 7 -->
+  <h2>7. Core Utility: <code>computeCohortBreakdown()</code></h2>
+
+  <p>Located in <code>src/lib/utils/courseAlignment.ts</code>. Full implementation:</p>
+
+  <pre><code><span class="kw">export interface</span> <span class="ty">CohortRow</span> {
+  batchYear:      <span class="ty">number</span>;   <span class="cm">// graduation cohort year</span>
+  evalYear:       <span class="ty">number</span>;   <span class="cm">// batchYear + 5</span>
+  yearsOut:       <span class="ty">number</span>;   <span class="cm">// currentYear - batchYear</span>
+  total:          <span class="ty">number</span>;   <span class="cm">// all alumni in cohort</span>
+  employed:       <span class="ty">number</span>;   <span class="cm">// isEmployed === true</span>
+  employmentRate: <span class="ty">number</span>;   <span class="cm">// % employed (0–100)</span>
+  aligned:        <span class="ty">number</span>;   <span class="cm">// employed + course-aligned</span>
+  alignmentRate:  <span class="ty">number</span>;   <span class="cm">// % aligned of total (0–100)</span>
+}
+
+<span class="kw">export function</span> <span class="fn">computeCohortBreakdown</span>(
+  alumni: <span class="ty">AlumniForOutcome</span>[]
+): <span class="ty">CohortRow</span>[] {
+  <span class="kw">const</span> currentYear = <span class="kw">new</span> <span class="ty">Date</span>().<span class="fn">getFullYear</span>();
+  <span class="kw">const</span> map = <span class="kw">new</span> <span class="ty">Map</span>&lt;<span class="ty">number</span>, { total: <span class="ty">number</span>; employed: <span class="ty">number</span>; aligned: <span class="ty">number</span> }&gt;();
+
+  <span class="kw">for</span> (<span class="kw">const</span> a <span class="kw">of</span> alumni) {
+    <span class="kw">if</span> (!a.batchYear) <span class="kw">continue</span>;          <span class="cm">// skip alumni with no batch year</span>
+    <span class="kw">if</span> (!map.<span class="fn">has</span>(a.batchYear))
+      map.<span class="fn">set</span>(a.batchYear, { total: <span class="nu">0</span>, employed: <span class="nu">0</span>, aligned: <span class="nu">0</span> });
+    <span class="kw">const</span> row = map.<span class="fn">get</span>(a.batchYear)!;
+    row.total++;
+    <span class="kw">if</span> (a.isEmployed === <span class="kw">true</span>) row.employed++;
+    <span class="kw">if</span> (<span class="fn">isAligned</span>(a))              row.aligned++;
+  }
+
+  <span class="kw">return</span> <span class="ty">Array</span>.<span class="fn">from</span>(map.<span class="fn">entries</span>())
+    .<span class="fn">sort</span>(([a], [b]) =&gt; b - a)           <span class="cm">// newest batch year first</span>
+    .<span class="fn">map</span>(([batchYear, row]) =&gt; ({
+      batchYear,
+      evalYear:       batchYear + <span class="nu">5</span>,
+      yearsOut:       currentYear - batchYear,
+      total:          row.total,
+      employed:       row.employed,
+      employmentRate: row.total &gt; <span class="nu">0</span>
+        ? <span class="ty">Math</span>.<span class="fn">round</span>((row.employed / row.total) * <span class="nu">100</span>)
+        : <span class="nu">0</span>,
+      aligned:        row.aligned,
+      alignmentRate:  row.total &gt; <span class="nu">0</span>
+        ? <span class="ty">Math</span>.<span class="fn">round</span>((row.aligned / row.total) * <span class="nu">100</span>)
+        : <span class="nu">0</span>,
+    }));
+}</code></pre>
+
+  <h3>Input type: <code>AlumniForOutcome</code></h3>
+  <table>
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Usage</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">batchYear</td><td class="mono">number | null</td><td>Groups the alumni into a cohort row. Null → skipped.</td></tr>
+      <tr><td class="mono">course</td><td class="mono">string | null</td><td>Used by keyword-matching fallback for alignment.</td></tr>
+      <tr><td class="mono">isEmployed</td><td class="mono">boolean | undefined</td><td>Counted toward <code>employed</code>.</td></tr>
+      <tr><td class="mono">currentPosition</td><td class="mono">string | undefined</td><td>Job title for keyword-matching alignment fallback.</td></tr>
+      <tr><td class="mono">courseAligned</td><td class="mono">boolean | undefined</td><td>Explicit survey answer for alignment (highest priority).</td></tr>
+    </tbody>
+  </table>
+
+
+  <!-- 8 -->
+  <h2>8. Dashboard Integration</h2>
+
+  <p>File: <code>src/app/(admin)/admin/dashboard/page.tsx</code></p>
+
+  <h4>State</h4>
+  <pre><code><span class="kw">const</span> [cohortRows, <span class="fn">setCohortRows</span>] = <span class="fn">useState</span>&lt;<span class="ty">CohortRow</span>[]&gt;([]);</code></pre>
+
+  <h4>Data loading (inside useEffect → load())</h4>
+  <pre><code><span class="cm">// After fetching all alumni docs:</span>
+<span class="fn">setOutcomeRates</span>(<span class="fn">computeOutcomeRates</span>(alumniDocs));
+<span class="fn">setCohortRows</span>(<span class="fn">computeCohortBreakdown</span>(alumniDocs));  <span class="cm">// &lt;-- new</span></code></pre>
+
+  <h4>Render location</h4>
+  <p>
+    The Cohort Outcomes card is placed <strong>between the Charts section and the Recent
+    Sign-ups card</strong>. It is only rendered when <code>cohortRows.length &gt; 0</code>
+    (i.e., there is at least one alumni with a batch year).
+  </p>
+
+  <div class="callout">
+    <strong>Layout Order on Dashboard</strong>
+    KPI cards → Employment Overview / Course-Aligned Outcome Rates →
+    Alumni by Course chart / Employment by Course chart →
+    <strong>Cohort Outcomes by Batch Year</strong> (new) → Recent Sign-ups
+  </div>
+
+
+  <!-- 9 -->
+  <h2>9. Reports Page Integration</h2>
+
+  <p>File: <code>src/app/(admin)/admin/reports/page.tsx</code></p>
+
+  <h4>Memoized computation</h4>
+  <pre><code><span class="kw">const</span> cohortRows = <span class="fn">useMemo</span>(
+  () =&gt; <span class="fn">computeCohortBreakdown</span>(results),
+  [results]
+);</code></pre>
+
+  <p>
+    <code>results</code> is the array of <code>UserDoc</code> objects returned from Firestore
+    after the user clicks <strong>Generate Report</strong>. The memo recalculates whenever
+    the results change.
+  </p>
+
+  <h4>Filter behavior</h4>
+  <table>
+    <thead>
+      <tr><th>Filter applied</th><th>Cohort table shows</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>All years, all programs</td><td>One row per batch year that has data</td></tr>
+      <tr><td>Specific batch year (e.g., 2018)</td><td>Single row for Batch 2018 only</td></tr>
+      <tr><td>Specific program, all years</td><td>Per-batch-year rows for that program only</td></tr>
+      <tr><td>Program + batch year</td><td>Single row for that program + year combination</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Render location</h4>
+  <p>
+    The Cohort Outcomes card appears <strong>between the 7 stat-cards and the Preview
+    (alumni registry) card</strong>, inside the <code>generated &amp;&amp; results.length &gt; 0</code>
+    conditional block.
+  </p>
+
+
+  <!-- 10 -->
+  <h2>10. PDF Export — Section C</h2>
+
+  <p>
+    The PDF export in <code>exportPDF()</code> is structured in three sections on Page 1,
+    followed by the Alumni Registry on Page 2+.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Section</th><th>Content</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>A</strong></td><td>Employment Summary — Employed / Unemployed / Total with counts and rates</td></tr>
+      <tr><td><strong>B</strong></td><td>Course-Aligned Placement Rates — by career stage bucket (0–2 yrs, 3–5 yrs, 6+ yrs)</td></tr>
+      <tr><td><strong>C</strong> (new)</td><td>Cohort Outcomes by Batch Year — the per-batch breakdown table</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Placement in the PDF</h4>
+  <pre><code><span class="cm">// Section C starts immediately after Section B's last row</span>
+<span class="kw">const</span> afterB = (doc <span class="kw">as any</span>).lastAutoTable.finalY + <span class="nu">8</span>;
+doc.<span class="fn">text</span>(<span class="str">"C. Cohort Outcomes by Batch Year"</span>, <span class="nu">14</span>, afterB);
+<span class="fn">autoTable</span>(doc, {
+  startY: afterB + <span class="nu">3</span>,
+  head: [[<span class="str">"Batch Year"</span>, <span class="str">"5-yr Eval Year"</span>, <span class="str">"Years Out"</span>,
+          <span class="str">"Total"</span>, <span class="str">"Employed"</span>, <span class="str">"Employment Rate"</span>,
+          <span class="str">"Course-Aligned"</span>, <span class="str">"Alignment Rate"</span>]],
+  body: cohortRows.<span class="fn">map</span>((row) =&gt; [
+    <span class="ty">String</span>(row.batchYear),  <span class="ty">String</span>(row.evalYear),
+    <span class="str">`${row.yearsOut} yrs`</span>,  <span class="ty">String</span>(row.total),
+    <span class="ty">String</span>(row.employed),   <span class="str">`${row.employmentRate}%`</span>,
+    <span class="ty">String</span>(row.aligned),    <span class="str">`${row.alignmentRate}%`</span>,
+  ]),
+  styles:     { fontSize: <span class="nu">8</span> },
+  headStyles: { fillColor: [<span class="nu">30</span>, <span class="nu">41</span>, <span class="nu">82</span>] },   <span class="cm">// navy</span>
+  columnStyles: {
+    <span class="nu">5</span>: { fontStyle: <span class="str">"bold"</span> },   <span class="cm">// Employment Rate — bold</span>
+    <span class="nu">7</span>: { fontStyle: <span class="str">"bold"</span> },   <span class="cm">// Alignment Rate — bold</span>
+  },
+});</code></pre>
+
+  <div class="callout">
+    <strong>Page overflow behaviour</strong>
+    <code>jspdf-autotable</code> automatically adds new pages if Section C overflows the
+    first page. The footer note is fixed at y = 285 on page 1, so it may overlap the table
+    if there are many batch year rows. This is acceptable for typical cohort sizes (&lt; 20 rows).
+  </div>
+
+
+  <!-- 11 -->
+  <h2>11. Edge Cases &amp; Limitations</h2>
+
+  <table>
+    <thead>
+      <tr><th>Scenario</th><th>Behaviour</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Alumni with no <code>batchYear</code></td>
+        <td>Skipped entirely — not included in any cohort row</td>
+      </tr>
+      <tr>
+        <td>Alumni with <code>isEmployed</code> not set (undefined)</td>
+        <td>Not counted as employed; not counted as aligned</td>
+      </tr>
+      <tr>
+        <td>Cohort with 0 alumni (after filtering)</td>
+        <td>No row produced (division by zero is guarded: rate returns 0)</td>
+      </tr>
+      <tr>
+        <td>Current year cohort (graduated this year)</td>
+        <td>Years Out = 0, Eval Year = current year + 5; included normally</td>
+      </tr>
+      <tr>
+        <td>Future batch years in the database</td>
+        <td>Years Out would be negative — included as-is; no filtering is applied</td>
+      </tr>
+      <tr>
+        <td>No alumni have batch years at all</td>
+        <td>Dashboard: table card is not rendered (<code>cohortRows.length === 0</code>)</td>
+      </tr>
+      <tr>
+        <td>Keyword matching ambiguity</td>
+        <td>Mitigated by prioritising the explicit <code>courseAligned</code> survey field</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout amber">
+    <strong>No Historical Snapshots</strong>
+    Because the system only stores current status, the "5-Year Evaluation Year" column is
+    informational only. The data shown for Batch 2018 reflects their status <em>today</em>,
+    not what it was in 2023. Future versions may introduce snapshot storage to capture
+    point-in-time data.
+  </div>
+
+
+  <!-- 12 -->
+  <h2>12. Sample Output</h2>
+
+  <p>
+    Example cohort table for an institution with alumni from Batch 2018–2022
+    (as of 2026, using hypothetical data):
+  </p>
+
+  <table class="no-break">
+    <thead>
+      <tr>
+        <th>Batch Year</th>
+        <th>5-yr Eval Year</th>
+        <th>Years Out</th>
+        <th>Total</th>
+        <th>Employed</th>
+        <th>Employment Rate</th>
+        <th>Course-Aligned</th>
+        <th>Alignment Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center"><strong>2022</strong></td>
+        <td class="center">2027</td>
+        <td class="center">4 yrs</td>
+        <td class="center">18</td>
+        <td class="center">12</td>
+        <td class="center green">67%</td>
+        <td class="center">8</td>
+        <td class="center indigo">44%</td>
+      </tr>
+      <tr>
+        <td class="center"><strong>2021</strong></td>
+        <td class="center">2026</td>
+        <td class="center">5 yrs</td>
+        <td class="center">24</td>
+        <td class="center">20</td>
+        <td class="center green">83%</td>
+        <td class="center">15</td>
+        <td class="center indigo">63%</td>
+      </tr>
+      <tr>
+        <td class="center"><strong>2020</strong></td>
+        <td class="center">2025</td>
+        <td class="center">6 yrs</td>
+        <td class="center">31</td>
+        <td class="center">27</td>
+        <td class="center green">87%</td>
+        <td class="center">19</td>
+        <td class="center indigo">61%</td>
+      </tr>
+      <tr>
+        <td class="center"><strong>2019</strong></td>
+        <td class="center">2024</td>
+        <td class="center">7 yrs</td>
+        <td class="center">28</td>
+        <td class="center">25</td>
+        <td class="center green">89%</td>
+        <td class="center">17</td>
+        <td class="center indigo">61%</td>
+      </tr>
+      <tr>
+        <td class="center"><strong>2018</strong></td>
+        <td class="center">2023</td>
+        <td class="center">8 yrs</td>
+        <td class="center">22</td>
+        <td class="center">20</td>
+        <td class="center green">91%</td>
+        <td class="center">14</td>
+        <td class="center indigo">64%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:14px;">
+    Reading the table: <em>"Batch 2021's 5-year check-in was due in 2026. As of today,
+    83% are employed and 63% of the entire cohort is employed in a course-aligned position."</em>
+  </p>
+
+  <hr />
+
+  <p style="text-align:center; font-size:11px; color:#9ca3af; margin-top:24px;">
+    AlumNayan · College of Engineering Alumni Database System ·
+    Documentation generated March 2026
+  </p>
+
+</body>
+</html>

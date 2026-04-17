@@ -7,6 +7,13 @@ import {
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 
+async function safeJson(res: Response): Promise<unknown> {
+  const ct = res.headers.get("content-type") ?? "";
+  if (ct.includes("application/json")) return res.json();
+  const text = await res.text();
+  throw new Error(text || `Server error (HTTP ${res.status})`);
+}
+
 interface ImportResult {
   created: number;
   updated: number;
@@ -29,6 +36,8 @@ interface Props {
   onClose: () => void;
   onSuccess: (count: number) => void;
 }
+
+type ServerResponse = { error?: string } & Record<string, unknown>;
 
 export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,10 +88,10 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
         credentials: "include",
         body: fd,
       });
-      const data = await res.json();
+      const data = await safeJson(res) as ServerResponse;
       if (!res.ok) throw new Error(data.error ?? "Import failed");
-      setResult(data as ImportResult);
-      const r = data as ImportResult;
+      setResult(data as unknown as ImportResult);
+      const r = data as unknown as ImportResult;
       if (r.created > 0 || r.updated > 0) onSuccess(r.created + r.updated);
     } catch (e) {
       setError((e as Error).message);
@@ -104,9 +113,9 @@ export function ImportAlumniModal({ open, onClose, onSuccess }: Props) {
         credentials: "include",
         body: fd,
       });
-      const data = await res.json();
+      const data = await safeJson(res) as ServerResponse;
       if (!res.ok) throw new Error(data.error ?? "Update failed");
-      setEnrichResult(data as EnrichResult);
+      setEnrichResult(data as unknown as EnrichResult);
     } catch (e) {
       setError((e as Error).message);
     } finally {
