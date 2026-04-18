@@ -298,11 +298,11 @@ export default function ReportsPage() {
       margin: { left: 14, right: 14 },
     });
 
-    // Section H — Employment Outcomes by Year Interval
+    // Section H — Alignment Rate by Year Interval
     let afterG = (doc as any).lastAutoTable.finalY + 8;
     if (afterG > 240) { doc.addPage(); afterG = 20; }
     const fmtBucket = (b: IntervalBucket) =>
-      b.responded > 0 ? `${b.rate}% (${b.employed}/${b.responded})` : "\u2014";
+      b.responded > 0 ? `${b.rate}% (${b.aligned}/${b.responded})` : "\u2014";
 
     if (intervalView === "batch") {
       const intervalRows = intervalOutcomes.filter(
@@ -310,9 +310,9 @@ export default function ReportsPage() {
       );
       if (intervalRows.length > 0) {
         doc.setFontSize(10); doc.setFont("helvetica", "bold");
-        doc.text("H. Employment Outcomes by Year Interval", 14, afterG);
+        doc.text("H. Alignment Rate by Year Interval", 14, afterG);
         doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
-        doc.text("Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses).", 14, afterG + 5);
+        doc.text("Alignment rate at 1, 2, 5, and 8 years after graduation (% with course-aligned job).", 14, afterG + 5);
         doc.setTextColor(0);
         autoTable(doc, {
           startY: afterG + 9,
@@ -341,9 +341,9 @@ export default function ReportsPage() {
     } else {
       if (intervalByDept.length > 0) {
         doc.setFontSize(10); doc.setFont("helvetica", "bold");
-        doc.text("H. Employment Outcomes by Year Interval (by Department)", 14, afterG);
+        doc.text("H. Alignment Rate by Year Interval (by Department)", 14, afterG);
         doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
-        doc.text("Employment rate at 1, 2, 5, and 8 years after graduation, grouped by department.", 14, afterG + 5);
+        doc.text("Alignment rate at 1, 2, 5, and 8 years after graduation, grouped by department.", 14, afterG + 5);
         doc.setTextColor(0);
         const deptBody: (string | { content: string; colSpan: number; styles: Record<string, unknown> })[][] = [];
         for (const dept of intervalByDept) {
@@ -547,11 +547,11 @@ export default function ReportsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
                   <div>
                     <div className="flex items-center gap-1">
-                      <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
-                      <InfoTooltip text="Employment rate at 1, 2, 5, and 8 years after graduation based on survey fields. Rate = (employed at interval / responded at interval) x 100." position="bottom" />
+                      <h2 className="font-semibold text-gray-900">Alignment Rate by Year Interval</h2>
+                      <InfoTooltip text="Alignment rate at 1, 2, 5, and 8 years after graduation. Determines if their job at each interval was aligned with their course. Rate = (aligned jobs / responded) x 100." position="bottom" />
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
+                      % with course-aligned job at 1, 2, 5, and 8 years after graduation (based on survey responses)
                     </p>
                   </div>
                   <div className="flex rounded-lg border border-gray-200 overflow-hidden self-start">
@@ -595,7 +595,7 @@ export default function ReportsPage() {
                               <td key={i} className="px-3 sm:px-4 py-3 text-center text-xs">
                                 {b.responded > 0 ? (
                                   <span className="font-semibold text-green-700">
-                                    {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                                    {b.rate}% <span className="font-normal text-gray-400">({b.aligned}/{b.responded})</span>
                                   </span>
                                 ) : (
                                   <span className="text-gray-300">&mdash;</span>
@@ -620,7 +620,7 @@ export default function ReportsPage() {
                                   <td key={i} className="px-3 sm:px-4 py-3 text-center text-xs">
                                     {b.responded > 0 ? (
                                       <span className="font-semibold text-green-700">
-                                        {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                                        {b.rate}% <span className="font-normal text-gray-400">({b.aligned}/{b.responded})</span>
                                       </span>
                                     ) : (
                                       <span className="text-gray-300">&mdash;</span>

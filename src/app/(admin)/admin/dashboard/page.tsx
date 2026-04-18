@@ -539,7 +539,7 @@ export default function AdminDashboardPage() {
                           <td key={i} className="px-3 sm:px-4 py-3 text-center text-xs">
                             {b.responded > 0 ? (
                               <span className="font-semibold text-green-700">
-                                {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                                {b.rate}% <span className="font-normal text-gray-400">({b.aligned}/{b.responded})</span>
                               </span>
                             ) : (
                               <span className="text-gray-300">&mdash;</span>
@@ -564,7 +564,7 @@ export default function AdminDashboardPage() {
                               <td key={i} className="px-3 sm:px-4 py-3 text-center text-xs">
                                 {b.responded > 0 ? (
                                   <span className="font-semibold text-green-700">
-                                    {b.rate}% <span className="font-normal text-gray-400">({b.employed}/{b.responded})</span>
+                                    {b.rate}% <span className="font-normal text-gray-400">({b.aligned}/{b.responded})</span>
                                   </span>
                                 ) : (
                                   <span className="text-gray-300">&mdash;</span>
