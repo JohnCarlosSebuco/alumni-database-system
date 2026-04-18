@@ -306,9 +306,41 @@ function isEmployedAtInterval(raw?: string): boolean | null {
   return true; // has actual job description
 }
 
+function parseAlignedAtInterval(raw?: string): boolean | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  const lower = s.toLowerCase();
+  // Skip clearly null/N/A responses (but NOT "yes" or "no" — those are valid 2-3 char answers)
+  if (["n/a", "na", "none", "not applicable", "not yet", "--", "x"].includes(lower)) return null;
+
+  let yes = 0, no = 0;
+
+  // Primary: structured "Is this job related to your degree? ...: Yes/No"
+  const relPattern = /(?:related to your degree|is this job related)[^:]*:\s*(yes|no)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = relPattern.exec(s)) !== null) {
+    m[1].toLowerCase() === "yes" ? yes++ : no++;
+  }
+
+  // If structured pattern found any answers, use those counts (majority rule)
+  if (yes > 0 || no > 0) return yes > no;
+
+  // Fallback for unstructured text — strip template labels first to avoid false-matching
+  // "No. of months worked on this job:" would otherwise match \bno\b
+  const stripped = s
+    .replace(/no\.\s*of months[^:\n]*/gi, "")   // remove "No. of months worked on this job:"
+    .replace(/\(yes\/no\)/gi, "");               // remove "(Yes/No)" label in column header text
+
+  yes = (stripped.match(/\byes\b/gi) ?? []).length;
+  no  = (stripped.match(/\bno\b/gi)  ?? []).length;
+  if (yes > 0 || no > 0) return yes > no;
+
+  return null; // can't determine alignment from this entry
+}
+
 export interface IntervalBucket {
   responded: number;
-  employed: number;
+  aligned: number;
   rate: number;
 }
 
@@ -348,10 +380,10 @@ export function computeIntervalOutcomesByDept(alumni: AlumniForOutcome[]): Inter
 export function computeIntervalOutcomes(alumni: AlumniForOutcome[]): IntervalOutcomeRow[] {
   const map = new Map<number, {
     total: number;
-    at1yr: { responded: number; employed: number };
-    at2yr: { responded: number; employed: number };
-    at5yr: { responded: number; employed: number };
-    at8yr: { responded: number; employed: number };
+    at1yr: { responded: number; aligned: number };
+    at2yr: { responded: number; aligned: number };
+    at5yr: { responded: number; aligned: number };
+    at8yr: { responded: number; aligned: number };
   }>();
 
   for (const a of alumni) {
@@ -359,10 +391,10 @@ export function computeIntervalOutcomes(alumni: AlumniForOutcome[]): IntervalOut
     if (!map.has(a.batchYear)) {
       map.set(a.batchYear, {
         total: 0,
-        at1yr: { responded: 0, employed: 0 },
-        at2yr: { responded: 0, employed: 0 },
-        at5yr: { responded: 0, employed: 0 },
-        at8yr: { responded: 0, employed: 0 },
+        at1yr: { responded: 0, aligned: 0 },
+        at2yr: { responded: 0, aligned: 0 },
+        at5yr: { responded: 0, aligned: 0 },
+        at8yr: { responded: 0, aligned: 0 },
       });
     }
     const row = map.get(a.batchYear)!;
@@ -376,16 +408,16 @@ export function computeIntervalOutcomes(alumni: AlumniForOutcome[]): IntervalOut
     ];
 
     for (const { field, bucket } of intervals) {
-      const employed = isEmployedAtInterval(field);
-      if (employed !== null) {
+      const aligned = parseAlignedAtInterval(field);
+      if (aligned !== null) {
         bucket.responded++;
-        if (employed) bucket.employed++;
+        if (aligned) bucket.aligned++;
       }
     }
   }
 
-  const rate = (b: { responded: number; employed: number }): number =>
-    b.responded > 0 ? Math.round((b.employed / b.responded) * 100) : 0;
+  const rate = (b: { responded: number; aligned: number }): number =>
+    b.responded > 0 ? Math.round((b.aligned / b.responded) * 100) : 0;
 
   return Array.from(map.entries())
     .sort(([a], [b]) => b - a)
