@@ -11,15 +11,17 @@ import {
   CheckCircle2,
   Clock3,
   XCircle,
+  Trash2,
 } from "lucide-react";
-import { getDocs } from "@/lib/firebase/firestore";
-import { surveysRef } from "@/lib/firebase/firestore";
+import { getDocs, deleteDoc } from "@/lib/firebase/firestore";
+import { surveysRef, surveyRef } from "@/lib/firebase/firestore";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatDate } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
+import { useToast } from "@/components/ui/Toast";
 import type { Survey, SurveyStatus } from "@/lib/types/survey.types";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +56,11 @@ export default function AdminSurveysPage() {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const { success, error: toastError } = useToast();
 
   useEffect(() => {
     getDocs(surveysRef()).then((snap) => {
@@ -76,6 +83,62 @@ export default function AdminSurveysPage() {
     () => (filter === "all" ? surveys : surveys.filter((s) => s.status === filter)),
     [surveys, filter]
   );
+
+  const allVisibleSelected =
+    visible.length > 0 && visible.every((s) => selected.has(s.id));
+
+  function toggleAll() {
+    if (allVisibleSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        visible.forEach((s) => next.delete(s.id));
+        return next;
+      });
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        visible.forEach((s) => next.add(s.id));
+        return next;
+      });
+    }
+  }
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  async function handleDeleteOne() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteDoc(surveyRef(deleteTarget.id));
+      setSelected((prev) => { const n = new Set(prev); n.delete(deleteTarget.id); return n; });
+      success("Survey deleted.");
+    } catch {
+      toastError("Failed to delete survey.");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  }
+
+  async function handleBulkDelete() {
+    setDeleting(true);
+    try {
+      await Promise.all(Array.from(selected).map((id) => deleteDoc(surveyRef(id))));
+      success(`${selected.size} survey${selected.size > 1 ? "s" : ""} deleted.`);
+      setSelected(new Set());
+    } catch {
+      toastError("Failed to delete some surveys.");
+    } finally {
+      setDeleting(false);
+      setBulkConfirm(false);
+    }
+  }
 
   const filterTabs: { key: FilterKey; label: string; count: number }[] = [
     { key: "all",    label: "All",    count: counts.all },
@@ -139,6 +202,23 @@ export default function AdminSurveysPage() {
         />
       ) : (
         <div className="rounded-xl border border-gray-100 bg-white overflow-hidden">
+          {/* ── Bulk action bar ── */}
+          {selected.size > 0 && (
+            <div className="flex items-center justify-between gap-3 px-5 py-2.5 bg-red-50 border-b border-red-100">
+              <span className="text-sm font-medium text-red-700">
+                {selected.size} survey{selected.size > 1 ? "s" : ""} selected
+              </span>
+              <Button
+                variant="danger"
+                size="sm"
+                leftIcon={<Trash2 size={13} />}
+                onClick={() => setBulkConfirm(true)}
+              >
+                Delete Selected
+              </Button>
+            </div>
+          )}
+
           {/* ── Filter tabs ── */}
           <div className="flex items-center gap-0 border-b border-gray-100 overflow-x-auto">
             {filterTabs.map((tab) => (
@@ -180,6 +260,14 @@ export default function AdminSurveysPage() {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="bg-gray-50/60">
+                  <th className="px-4 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleAll}
+                      className="rounded border-gray-300 text-navy-800 focus:ring-navy-700"
+                    />
+                  </th>
                   <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                     Survey
                   </th>
@@ -192,7 +280,7 @@ export default function AdminSurveysPage() {
                   <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">
                     Created
                   </th>
-                  <th className="px-5 py-3 w-10" />
+                  <th className="px-5 py-3 w-16" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -204,8 +292,21 @@ export default function AdminSurveysPage() {
                   return (
                     <tr
                       key={survey.id}
-                      className="group hover:bg-gray-50/80 transition-colors"
+                      className={cn(
+                        "group transition-colors",
+                        selected.has(survey.id) ? "bg-red-50/50" : "hover:bg-gray-50/80"
+                      )}
                     >
+                      {/* Checkbox */}
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(survey.id)}
+                          onChange={() => toggleOne(survey.id)}
+                          className="rounded border-gray-300 text-navy-800 focus:ring-navy-700"
+                        />
+                      </td>
+
                       {/* Title + description + question count */}
                       <td className="px-5 py-4">
                         <Link
@@ -265,15 +366,24 @@ export default function AdminSurveysPage() {
                         {formatDate(survey.createdAt)}
                       </td>
 
-                      {/* Action */}
-                      <td className="px-5 py-4">
-                        <Link
-                          href={`/admin/surveys/${survey.id}`}
-                          className="flex items-center justify-end text-gray-300 group-hover:text-navy-700 transition-colors"
-                          title="Open survey"
-                        >
-                          <ChevronRight size={16} />
-                        </Link>
+                      {/* Actions */}
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget({ id: survey.id, title: survey.title })}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                            title="Delete survey"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          <Link
+                            href={`/admin/surveys/${survey.id}`}
+                            className="flex items-center justify-end text-gray-300 group-hover:text-navy-700 transition-colors p-1"
+                          >
+                            <ChevronRight size={16} />
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -282,6 +392,63 @@ export default function AdminSurveysPage() {
             </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Single delete modal ── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 size={18} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Delete Survey</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Are you sure you want to delete{" "}
+                  <span className="font-medium text-gray-700">{deleteTarget.title}</span>?
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="secondary" size="sm" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+                Cancel
+              </Button>
+              <Button variant="danger" size="sm" onClick={handleDeleteOne} loading={deleting}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Bulk delete modal ── */}
+      {bulkConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 size={18} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Delete {selected.size} Survey{selected.size > 1 ? "s" : ""}</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  This will permanently delete {selected.size} selected survey{selected.size > 1 ? "s" : ""}.
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="secondary" size="sm" onClick={() => setBulkConfirm(false)} disabled={deleting}>
+                Cancel
+              </Button>
+              <Button variant="danger" size="sm" onClick={handleBulkDelete} loading={deleting}>
+                Delete {selected.size}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
