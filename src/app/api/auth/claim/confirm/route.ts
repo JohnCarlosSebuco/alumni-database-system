@@ -47,6 +47,10 @@ export async function POST(req: Request) {
 
   try {
     await admin.auth().updateUser(uid, { password });
+    await admin.firestore().collection("users").doc(uid).update({
+      isClaimed: true,
+      claimedAt: new Date().toISOString(),
+    });
     const customToken = await admin.auth().createCustomToken(uid);
     return NextResponse.json({ customToken });
   } catch (err: unknown) {
