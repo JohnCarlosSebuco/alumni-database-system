@@ -79,6 +79,7 @@ export default function EditProfilePage() {
   const [timeToFirstJob, setTimeToFirstJob] = useState<string>("");
   const [courseAligned, setCourseAligned] = useState<boolean | undefined>(undefined);
   const [isAbroad, setIsAbroad] = useState<boolean | undefined>(undefined);
+  const [companyAddress, setCompanyAddress] = useState<string>("");
 
   // Read initial step from URL ?step= param
   useEffect(() => {
@@ -158,6 +159,7 @@ export default function EditProfilePage() {
         startDate:      profile.currentEmployment.startDate,
         city:           profile.currentEmployment.city,
       });
+      setCompanyAddress(userDoc?.companyAddress ?? "");
     } else if (!loading && !profile && userDoc) {
       form3.reset({
         isEmployed:     userDoc.isEmployed      ?? false,
@@ -168,6 +170,7 @@ export default function EditProfilePage() {
         startDate:      "",
         city:           "",
       });
+      setCompanyAddress(userDoc?.companyAddress ?? "");
     }
   }, [profile, loading, userDoc]); // eslint-disable-line
 
@@ -233,6 +236,10 @@ export default function EditProfilePage() {
         department: d2.department,
         course: d2.course,
         displayName: `${d1.firstName} ${d1.lastName}`,
+        locality: d1.address,
+        sex: d1.gender || "",
+        birthday: d1.birthDate || "",
+        contactNumber: d1.contactNumber || "",
         profileComplete: calculateProfileComplete({
           firstName: d1.firstName, lastName: d1.lastName,
           birthDate: d1.birthDate, gender: d1.gender,
@@ -247,12 +254,20 @@ export default function EditProfilePage() {
         }),
         isEmployed: d3.isEmployed,
         currentPosition: d3.isEmployed ? (d3.position ?? "") : "",
+        currentCompany: d3.isEmployed ? (d3.employerName || "") : "",
+        industryType: d3.industry || "",
         updatedAt: new Date().toISOString(),
         ...jobAtUpdates,
       };
       if (timeToFirstJob) userUpdates.timeToFirstJob = timeToFirstJob;
       if (courseAligned !== undefined) userUpdates.courseAligned = courseAligned;
       if (isAbroad !== undefined) userUpdates.isAbroad = isAbroad;
+      if (d3.isEmployed && companyAddress) userUpdates.companyAddress = companyAddress;
+
+      if (research.length > 0 && !userDoc.researchRaw) userUpdates.researchRaw = "Yes";
+      if (communityExtension.length > 0 && !userDoc.communityExtensionRaw) userUpdates.communityExtensionRaw = "Yes";
+      if (licenses.length > 0 && !userDoc.licensesRaw) userUpdates.licensesRaw = "Yes";
+
       await updateDoc(userDocRef(user.uid), userUpdates);
 
       success("Profile saved successfully!");
@@ -405,6 +420,7 @@ export default function EditProfilePage() {
                   ]} value={form3.watch("employmentType") ?? ""} {...form3.register("employmentType")} />
                   <Input label="Start Date" type="date" {...form3.register("startDate")} />
                   <Input label="City" {...form3.register("city")} />
+                  <Textarea label="Company/Organization Address (Optional)" placeholder="Full address including country for abroad jobs" rows={2} value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} className="sm:col-span-2" />
                 </div>
               )}
               <Select
