@@ -390,11 +390,18 @@ export async function POST(req: Request) {
         continue;
       }
 
-      // Check if user already exists
+      // Check if user already exists — in both Auth AND Firestore
       let existingUid: string | null = null;
+      let isOrphan = false;
       try {
         const existingUser = await admin.auth().getUserByEmail(email);
-        existingUid = existingUser.uid;
+        const fsSnap = await admin.firestore().collection("users").doc(existingUser.uid).get();
+        if (fsSnap.exists) {
+          existingUid = existingUser.uid; // truly exists in both → skip
+        } else {
+          isOrphan = true;
+          existingUid = existingUser.uid; // orphan: Auth exists but Firestore missing → repair
+        }
       } catch (e: unknown) {
         if ((e as { code?: string }).code !== "auth/user-not-found") {
           failed.push({ email, reason: "Error checking account" });
@@ -477,28 +484,36 @@ export async function POST(req: Request) {
       if (trainingDetail) trainingArr.push({ id: crypto.randomBytes(10).toString("hex"), title: trainingDetail, provider: "", dateCompleted: "", certificateURL: "", description: "" });
 
       try {
-        if (existingUid) {
+        if (existingUid && !isOrphan) {
           // Skip existing alumni — Import New mode only creates new records
           skipped.push({ email, reason: "Already exists" });
         } else {
-          // ── CREATE new alumni ──
-          const tempPassword = crypto.randomBytes(32).toString("hex");
-          const userRecord = await admin.auth().createUser({
-            email,
-            password: tempPassword,
-            displayName,
-            emailVerified: true,
-          });
+          // ── CREATE new alumni or REPAIR orphan ──
+          let uid: string;
+          if (isOrphan) {
+            // Reuse existing Auth UID, just create missing Firestore doc
+            uid = existingUid!;
+          } else {
+            // Create new Auth user
+            const tempPassword = crypto.randomBytes(32).toString("hex");
+            const userRecord = await admin.auth().createUser({
+              email,
+              password: tempPassword,
+              displayName,
+              emailVerified: true,
+            });
 
-          await admin.auth().setCustomUserClaims(userRecord.uid, { role: "alumni" });
+            uid = userRecord.uid;
+            await admin.auth().setCustomUserClaims(uid, { role: "alumni" });
+          }
 
           const userDoc: Record<string, unknown> = {
-            uid: userRecord.uid,
+            uid,
             email,
             role: "alumni",
             displayName,
             photoURL: null,
-            createdAt: now,
+            createdAt: isOrphan ? now : now, // keep original createdAt if orphan repair
             updatedAt: now,
             isActive: true,
             profileComplete: 0,
@@ -553,30 +568,38 @@ export async function POST(req: Request) {
             Object.entries(userDoc).filter(([, v]) => v !== null)
           );
 
-          await admin.firestore().collection("users").doc(userRecord.uid).set(cleanDoc);
+          try {
+            await admin.firestore().collection("users").doc(uid).set(cleanDoc);
 
-          await admin
-            .firestore()
-            .collection("users").doc(userRecord.uid)
-            .collection("profile").doc("data")
-            .set({
-              firstName, lastName,
-              birthDate: birthday ?? "", gender: sex ?? "",
-              civilStatus: civilStatus ?? "", contactNumber: contactNumber ?? "",
-              address: locality ?? "",
-              currentEmployment: {
-                isEmployed: isEmployed ?? false,
-                employerName: currentCompany ?? "", position: currentPosition ?? "",
-                industry: industryType ?? "", employmentType: employmentStatus ?? "",
-                startDate: "", city: companyAddress ?? "",
-              },
-              education: educationArr, employmentHistory: [],
-              licenses: licensesArr, awards: awardsArr,
-              research: researchArr, communityExtension: communityArr,
-              training: trainingArr,
-            });
+            await admin
+              .firestore()
+              .collection("users").doc(uid)
+              .collection("profile").doc("data")
+              .set({
+                firstName, lastName,
+                birthDate: birthday ?? "", gender: sex ?? "",
+                civilStatus: civilStatus ?? "", contactNumber: contactNumber ?? "",
+                address: locality ?? "",
+                currentEmployment: {
+                  isEmployed: isEmployed ?? false,
+                  employerName: currentCompany ?? "", position: currentPosition ?? "",
+                  industry: industryType ?? "", employmentType: employmentStatus ?? "",
+                  startDate: "", city: companyAddress ?? "",
+                },
+                education: educationArr, employmentHistory: [],
+                licenses: licensesArr, awards: awardsArr,
+                research: researchArr, communityExtension: communityArr,
+                training: trainingArr,
+              });
 
-          created.push({ email, uid: userRecord.uid });
+            created.push({ email, uid });
+          } catch (fsErr: unknown) {
+            // Rollback: if we just created the Auth user but Firestore write failed, delete the Auth user
+            if (!isOrphan) {
+              await admin.auth().deleteUser(uid).catch(() => {});
+            }
+            throw fsErr;
+          }
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Unknown error";
