@@ -509,10 +509,10 @@ export async function POST(req: Request) {
           if (communityExtensionRaw) userUpdates.communityExtensionRaw = communityExtensionRaw;
           if (awardsRaw)       userUpdates.awardsRaw = awardsRaw;
           if (trainingRaw)     userUpdates.trainingRaw = trainingRaw;
-          if (jobAt1yr)        userUpdates.jobAt1yr = jobAt1yr;
-          if (jobAt2yr)        userUpdates.jobAt2yr = jobAt2yr;
-          if (jobAt5yr)        userUpdates.jobAt5yr = jobAt5yr;
-          if (jobAt8yr)        userUpdates.jobAt8yr = jobAt8yr;
+          userUpdates.jobAt1yr = jobAt1yr || admin.firestore.FieldValue.delete();
+          userUpdates.jobAt2yr = jobAt2yr || admin.firestore.FieldValue.delete();
+          userUpdates.jobAt5yr = jobAt5yr || admin.firestore.FieldValue.delete();
+          userUpdates.jobAt8yr = jobAt8yr || admin.firestore.FieldValue.delete();
           userUpdates.isEmployed = isEmployed;
           if (isAbroad !== undefined) userUpdates.isAbroad = isAbroad;
 
