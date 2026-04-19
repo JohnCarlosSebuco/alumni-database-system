@@ -491,11 +491,11 @@ export default function AdminDashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
               <div>
                 <div className="flex items-center gap-1">
-                  <h2 className="font-semibold text-gray-900">Employment Outcomes by Year Interval</h2>
-                  <InfoTooltip text="Employment rate at 1, 2, 5, and 8 years after graduation based on survey fields. Rate = (employed at interval / responded at interval) x 100." position="bottom" />
+                  <h2 className="font-semibold text-gray-900">Alignment Rate by Year Interval</h2>
+                  <InfoTooltip text="% with course-aligned job at 1, 2, 5, and 8 years after graduation based on survey fields. Rate = (aligned at interval / responded at interval) x 100." position="bottom" />
                 </div>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Employment rate at 1, 2, 5, and 8 years after graduation (based on survey responses)
+                  % with course-aligned job at 1, 2, 5, and 8 years after graduation (based on survey responses)
                 </p>
               </div>
               <div className="flex rounded-lg border border-gray-200 overflow-hidden self-start flex-shrink-0">
