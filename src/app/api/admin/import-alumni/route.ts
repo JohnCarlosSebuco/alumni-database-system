@@ -510,18 +510,15 @@ export async function POST(req: Request) {
           if (awardsRaw)       userUpdates.awardsRaw = awardsRaw;
           if (trainingRaw)     userUpdates.trainingRaw = trainingRaw;
           if (jobAt1yr) userUpdates.jobAt1yr = jobAt1yr;
-          else userUpdates.jobAt1yr = admin.firestore.FieldValue.delete();
           if (jobAt2yr) userUpdates.jobAt2yr = jobAt2yr;
-          else userUpdates.jobAt2yr = admin.firestore.FieldValue.delete();
           if (jobAt5yr) userUpdates.jobAt5yr = jobAt5yr;
-          else userUpdates.jobAt5yr = admin.firestore.FieldValue.delete();
           if (jobAt8yr) userUpdates.jobAt8yr = jobAt8yr;
-          else userUpdates.jobAt8yr = admin.firestore.FieldValue.delete();
           userUpdates.isEmployed = isEmployed;
           if (isAbroad !== undefined) userUpdates.isAbroad = isAbroad;
 
-          // Recalculate profile completion with merged data
-          const merged = { ...existingData, ...userUpdates };
+          // Recalculate profile completion with merged data (excluding job fields for now)
+          const { jobAt1yr: _, jobAt2yr: __, jobAt5yr: ___, jobAt8yr: ____, ...existingDataWithoutJobs } = existingData;
+          const merged = { ...existingDataWithoutJobs, ...userUpdates };
           userUpdates.profileComplete = calculateProfileComplete({
             firstName: firstName || merged.displayName?.split(" ")[0] || "",
             lastName: lastName || merged.displayName?.split(" ").slice(1).join(" ") || "",
@@ -540,7 +537,21 @@ export async function POST(req: Request) {
             communityExtensionRaw: (communityExtensionRaw ?? merged.communityExtensionRaw) as string | undefined,
           });
 
-          await docRef.update(userUpdates);
+          // Separate job fields for deletion handling
+          const jobUpdates: Record<string, unknown> = {};
+          const deleteUpdates: Record<string, unknown> = {};
+
+          if (jobAt1yr) jobUpdates.jobAt1yr = jobAt1yr;
+          else deleteUpdates.jobAt1yr = admin.firestore.FieldValue.delete();
+          if (jobAt2yr) jobUpdates.jobAt2yr = jobAt2yr;
+          else deleteUpdates.jobAt2yr = admin.firestore.FieldValue.delete();
+          if (jobAt5yr) jobUpdates.jobAt5yr = jobAt5yr;
+          else deleteUpdates.jobAt5yr = admin.firestore.FieldValue.delete();
+          if (jobAt8yr) jobUpdates.jobAt8yr = jobAt8yr;
+          else deleteUpdates.jobAt8yr = admin.firestore.FieldValue.delete();
+
+          const finalUpdates = { ...userUpdates, ...jobUpdates, ...deleteUpdates };
+          await docRef.update(finalUpdates);
 
           // ── Patch profile subcollection — seed empty arrays ──
           const profileRef = admin.firestore().collection("users").doc(uid).collection("profile").doc("data");
