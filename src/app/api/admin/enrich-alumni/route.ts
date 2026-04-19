@@ -172,14 +172,30 @@ export async function POST(req: Request) {
         const loc          = normStr(resolver.get(row, "locality"));
         if (isAbroadAddress(companyAddr) || isAbroadAddress(loc)) isAbroad = true;
       }
-      const jobAt1yr       = normStr(resolver.get(row, "jobAt1yr"));
-      const jobAt2yr       = normStr(resolver.get(row, "jobAt2yr"));
-      const jobAt5yr       = normStr(resolver.get(row, "jobAt5yr"));
-      const jobAt8yr       = normStr(resolver.get(row, "jobAt8yr"));
 
-      // Nothing to update from this row
-      if (timeToFirstJob === undefined && courseAligned === undefined && isAbroad === undefined
-          && !jobAt1yr && !jobAt2yr && !jobAt5yr && !jobAt8yr) { skipped++; continue; }
+      // Store raw resolver values to distinguish "column absent" from "column present but N/A"
+      const rawJobAt1yr = resolver.get(row, "jobAt1yr");
+      const rawJobAt2yr = resolver.get(row, "jobAt2yr");
+      const rawJobAt5yr = resolver.get(row, "jobAt5yr");
+      const rawJobAt8yr = resolver.get(row, "jobAt8yr");
+      const jobAt1yr    = normStr(rawJobAt1yr);
+      const jobAt2yr    = normStr(rawJobAt2yr);
+      const jobAt5yr    = normStr(rawJobAt5yr);
+      const jobAt8yr    = normStr(rawJobAt8yr);
+
+      // Check if we have any work to do: present column + (undefined value OR non-null value)
+      // rawJobAtXyr === undefined → column not detected → no action
+      // rawJobAtXyr !== undefined → column present → has work (either set or delete)
+      const hasWork =
+        timeToFirstJob !== undefined ||
+        courseAligned !== undefined ||
+        isAbroad !== undefined ||
+        rawJobAt1yr !== undefined ||
+        rawJobAt2yr !== undefined ||
+        rawJobAt5yr !== undefined ||
+        rawJobAt8yr !== undefined;
+
+      if (!hasWork) { skipped++; continue; }
 
       try {
         // Find user by email in Firestore
@@ -191,14 +207,17 @@ export async function POST(req: Request) {
 
         if (snap.empty) { skipped++; continue; }
 
+        const deleteValue = admin.firestore.FieldValue.delete();
         const updates: Record<string, unknown> = { updatedAt: now };
         if (timeToFirstJob !== undefined) updates.timeToFirstJob = timeToFirstJob;
         if (courseAligned !== undefined)  updates.courseAligned  = courseAligned;
         if (isAbroad !== undefined)       updates.isAbroad       = isAbroad;
-        if (jobAt1yr)                    updates.jobAt1yr       = jobAt1yr;
-        if (jobAt2yr)                    updates.jobAt2yr       = jobAt2yr;
-        if (jobAt5yr)                    updates.jobAt5yr       = jobAt5yr;
-        if (jobAt8yr)                    updates.jobAt8yr       = jobAt8yr;
+
+        // For jobAt fields: if column present in XLSX, set value or delete if N/A/empty
+        if (rawJobAt1yr !== undefined) updates.jobAt1yr = jobAt1yr ?? deleteValue;
+        if (rawJobAt2yr !== undefined) updates.jobAt2yr = jobAt2yr ?? deleteValue;
+        if (rawJobAt5yr !== undefined) updates.jobAt5yr = jobAt5yr ?? deleteValue;
+        if (rawJobAt8yr !== undefined) updates.jobAt8yr = jobAt8yr ?? deleteValue;
 
         await snap.docs[0].ref.update(updates);
         updated++;
