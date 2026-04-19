@@ -32,11 +32,25 @@ export function EmploymentHistoryTab({ profile, userDoc }: Props) {
         <div className="space-y-4">
           {profile.employmentHistory.map((h) => (
             <div key={h.id} className="rounded-xl border border-gray-100 p-4">
-              <p className="font-semibold text-gray-900">{h.position}</p>
-              <p className="text-sm text-gray-600">{h.employerName}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {formatDate(h.startDate)} — {h.endDate ? formatDate(h.endDate) : "Present"}
-              </p>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-gray-900">{h.position}</p>
+                  <p className="text-sm text-gray-600">{h.employerName}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {formatDate(h.startDate)} — {h.endDate ? formatDate(h.endDate) : "Present"}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {h.isCourseAligned !== undefined && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${h.isCourseAligned ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
+                      {h.isCourseAligned ? "Course-aligned" : "Not aligned"}
+                    </span>
+                  )}
+                  {h.isAbroad && (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">Abroad</span>
+                  )}
+                </div>
+              </div>
               {h.responsibilities && (
                 <p className="text-sm text-gray-600 mt-2 whitespace-pre-line">{h.responsibilities}</p>
               )}

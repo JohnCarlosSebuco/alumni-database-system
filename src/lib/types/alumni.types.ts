@@ -80,6 +80,8 @@ export interface EmploymentHistory {
   startDate: string;
   endDate: string;
   responsibilities: string;
+  isCourseAligned?: boolean; // Is this job related to your course?
+  isAbroad?: boolean;        // Is this job abroad?
 }
 
 export interface License {

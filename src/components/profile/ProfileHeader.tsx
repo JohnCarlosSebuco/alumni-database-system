@@ -14,6 +14,7 @@ interface ProfileHeaderProps {
   userDoc: UserDoc;
   profile: AlumniProfile | null;
   editable?: boolean;
+  editHref?: string;
 }
 
 function CompletionRing({ percent }: { percent: number }) {
@@ -36,7 +37,7 @@ function CompletionRing({ percent }: { percent: number }) {
   );
 }
 
-export function ProfileHeader({ userDoc, profile, editable }: ProfileHeaderProps) {
+export function ProfileHeader({ userDoc, profile, editable, editHref = "/profile/edit" }: ProfileHeaderProps) {
   const fullName =
     userDoc.displayName ||
     [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") ||
@@ -106,7 +107,7 @@ export function ProfileHeader({ userDoc, profile, editable }: ProfileHeaderProps
           <span className="text-xs text-navy-300">Profile</span>
         </div>
         {editable && (
-          <Link href="/profile/edit" className="w-full sm:w-auto">
+          <Link href={editHref} className="w-full sm:w-auto">
             <Button variant="secondary" size="sm" leftIcon={<Edit2 size={14} />} className="w-full sm:w-auto">
               Edit Profile
             </Button>

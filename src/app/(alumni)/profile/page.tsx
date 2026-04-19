@@ -36,6 +36,18 @@ const TABS = [
   { key: "community",  label: "Community",  icon: <Heart size={14} /> },
 ];
 
+const TAB_TO_STEP: Record<string, number> = {
+  personal: 0,
+  education: 3,
+  training: 3,
+  employment: 2,
+  history: 3,
+  licenses: 4,
+  awards: 5,
+  research: 6,
+  community: 7,
+};
+
 export default function ProfilePage() {
   const { userDoc, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
@@ -51,7 +63,7 @@ export default function ProfilePage() {
         breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Profile" }]}
       />
 
-      <ProfileHeader userDoc={userDoc} profile={profile} editable />
+      <ProfileHeader userDoc={userDoc} profile={profile} editable editHref={`/profile/edit?step=${TAB_TO_STEP[activeTab] ?? 0}`} />
 
       <Card>
         <Tabs tabs={TABS} activeKey={activeTab} onChange={setActiveTab} className="px-2" />
@@ -63,15 +75,22 @@ export default function ProfilePage() {
               employmentHistory: [], licenses: [], awards: [], research: [], communityExtension: [], training: [],
             };
             const hasSurveyData = userDoc?.licensesRaw || userDoc?.researchRaw || userDoc?.communityExtensionRaw || userDoc?.awardsRaw || userDoc?.trainingRaw;
+            const editStep = TAB_TO_STEP[activeTab] ?? 0;
             if (!profile && !hasSurveyData) {
               return (
                 <p className="text-sm text-gray-500 py-8 text-center">
-                  Your profile is empty. <a href="/profile/edit" className="text-navy-800 underline">Fill it in now</a>.
+                  Your profile is empty. <a href={`/profile/edit?step=${editStep}`} className="text-navy-800 underline">Fill it in now</a>.
                 </p>
               );
             }
             return (
               <>
+                <div className="mb-6 flex justify-end">
+                  <a href={`/profile/edit?step=${editStep}`} className="inline-flex items-center gap-1 text-sm text-navy-700 hover:text-navy-900 underline">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    Edit this section
+                  </a>
+                </div>
                 {activeTab === "personal"   && <PersonalInfoTab profile={p} />}
                 {activeTab === "education"  && <EducationTab profile={p} />}
                 {activeTab === "training"   && <TrainingTab profile={p} userDoc={userDoc} />}

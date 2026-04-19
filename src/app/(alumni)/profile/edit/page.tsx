@@ -37,7 +37,6 @@ const STEPS = [
   "Awards & Recognition",
   "Research & Projects",
   "Community Extension",
-  "Review & Save",
 ];
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
@@ -78,6 +77,18 @@ export default function EditProfilePage() {
   const [communityExtension, setCommunityExtension] = useState<CommunityExtension[]>([]);
   const [training, setTraining] = useState<Training[]>([]);
   const [timeToFirstJob, setTimeToFirstJob] = useState<string>("");
+  const [courseAligned, setCourseAligned] = useState<boolean | undefined>(undefined);
+  const [isAbroad, setIsAbroad] = useState<boolean | undefined>(undefined);
+
+  // Read initial step from URL ?step= param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const p = params.get("step");
+    if (p !== null) {
+      const n = parseInt(p, 10);
+      if (!isNaN(n) && n >= 0 && n < STEPS.length) setStep(n);
+    }
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (profile) {
@@ -130,6 +141,8 @@ export default function EditProfilePage() {
         course: userDoc.course ?? "",
       });
       setTimeToFirstJob(userDoc.timeToFirstJob ?? "");
+      if (userDoc.courseAligned !== undefined) setCourseAligned(userDoc.courseAligned);
+      if (userDoc.isAbroad !== undefined) setIsAbroad(userDoc.isAbroad);
     }
   }, [userDoc]); // eslint-disable-line
 
@@ -192,6 +205,29 @@ export default function EditProfilePage() {
         training,
       }, { merge: true });
 
+      // Compute jobAt1yr/2yr/5yr/8yr from employment history alignment answers
+      const jobAtUpdates: Record<string, string | null> = {};
+      if (d2.batchYear) {
+        for (const [field, offset] of [["jobAt1yr", 1], ["jobAt2yr", 2], ["jobAt5yr", 5], ["jobAt8yr", 8]] as [string, number][]) {
+          const cutoff = d2.batchYear + offset;
+          const jobsInWindow = employmentHistory.filter((h) => {
+            if (!h.startDate) return false;
+            const startYear = new Date(h.startDate).getFullYear();
+            if (startYear > cutoff) return false;
+            if (h.endDate) {
+              const endYear = new Date(h.endDate).getFullYear();
+              if (endYear < cutoff) return false;
+            }
+            return true;
+          });
+          if (jobsInWindow.length > 0) {
+            jobAtUpdates[field] = jobsInWindow.some((j) => j.isCourseAligned === true) ? "Yes" : "No";
+          } else {
+            jobAtUpdates[field] = null; // Explicitly clear if no jobs in this interval
+          }
+        }
+      }
+
       const userUpdates: Record<string, unknown> = {
         batchYear: d2.batchYear,
         department: d2.department,
@@ -212,8 +248,11 @@ export default function EditProfilePage() {
         isEmployed: d3.isEmployed,
         currentPosition: d3.isEmployed ? (d3.position ?? "") : "",
         updatedAt: new Date().toISOString(),
+        ...jobAtUpdates,
       };
       if (timeToFirstJob) userUpdates.timeToFirstJob = timeToFirstJob;
+      if (courseAligned !== undefined) userUpdates.courseAligned = courseAligned;
+      if (isAbroad !== undefined) userUpdates.isAbroad = isAbroad;
       await updateDoc(userDocRef(user.uid), userUpdates);
 
       success("Profile saved successfully!");
@@ -381,6 +420,35 @@ export default function EditProfilePage() {
                 value={timeToFirstJob}
                 onChange={(e) => setTimeToFirstJob(e.target.value)}
               />
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Is your first/current job related to your course?</label>
+                <div className="flex flex-wrap gap-4">
+                  {([["yes", true, "Yes"], ["no", false, "No"], ["na", undefined, "Not sure / N/A"]] as [string, boolean | undefined, string][]).map(([val, bool, lbl]) => (
+                    <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        name="courseAligned"
+                        className="h-4 w-4 text-navy-800"
+                        checked={courseAligned === bool}
+                        onChange={() => setCourseAligned(bool)}
+                      />
+                      {lbl}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isAbroad"
+                  className="h-4 w-4 rounded border-gray-300 text-navy-800"
+                  checked={isAbroad ?? false}
+                  onChange={(e) => setIsAbroad(e.target.checked || undefined)}
+                />
+                <label htmlFor="isAbroad" className="text-sm font-medium text-gray-700">Currently working abroad</label>
+              </div>
             </div>
           )}
 
@@ -464,9 +532,36 @@ export default function EditProfilePage() {
                         <Input label="Employer" value={h.employerName} onChange={(e) => setEmploymentHistory((prev) => prev.map((h2) => h2.id === h.id ? { ...h2, employerName: e.target.value } : h2))} />
                         <Input label="Position" value={h.position} onChange={(e) => setEmploymentHistory((prev) => prev.map((h2) => h2.id === h.id ? { ...h2, position: e.target.value } : h2))} />
                         <Input label="Start Date" type="date" value={h.startDate} onChange={(e) => setEmploymentHistory((prev) => prev.map((h2) => h2.id === h.id ? { ...h2, startDate: e.target.value } : h2))} />
-                        <Input label="End Date" type="date" value={h.endDate} onChange={(e) => setEmploymentHistory((prev) => prev.map((h2) => h2.id === h.id ? { ...h2, endDate: e.target.value } : h2))} />
+                        <Input label="End Date" type="date" placeholder="Leave blank if current" value={h.endDate} onChange={(e) => setEmploymentHistory((prev) => prev.map((h2) => h2.id === h.id ? { ...h2, endDate: e.target.value } : h2))} />
                       </div>
                       <Textarea label="Key Responsibilities" rows={3} value={h.responsibilities} onChange={(e) => setEmploymentHistory((prev) => prev.map((h2) => h2.id === h.id ? { ...h2, responsibilities: e.target.value } : h2))} />
+                      <div className="space-y-1 pt-1 border-t border-gray-100">
+                        <label className="text-sm font-medium text-gray-700">Is this job related to your course?</label>
+                        <div className="flex flex-wrap gap-4">
+                          {([["yes", true, "Yes"], ["no", false, "No"], ["na", undefined, "Not sure"]] as [string, boolean | undefined, string][]).map(([val, bool, lbl]) => (
+                            <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`aligned-${h.id}`}
+                                className="h-4 w-4 text-navy-800"
+                                checked={h.isCourseAligned === bool}
+                                onChange={() => setEmploymentHistory((prev) => prev.map((h2) => h2.id === h.id ? { ...h2, isCourseAligned: bool } : h2))}
+                              />
+                              {lbl}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          id={`abroad-${h.id}`}
+                          className="h-4 w-4 rounded border-gray-300 text-navy-800"
+                          checked={h.isAbroad ?? false}
+                          onChange={(e) => setEmploymentHistory((prev) => prev.map((h2) => h2.id === h.id ? { ...h2, isAbroad: e.target.checked || undefined } : h2))}
+                        />
+                        <label htmlFor={`abroad-${h.id}`} className="text-sm text-gray-700">This job was/is abroad</label>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -597,42 +692,35 @@ export default function EditProfilePage() {
             </div>
           )}
 
-          {/* Step 8 — Review & Save */}
-          {step === 8 && (
-            <div className="space-y-4 text-center py-8">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mx-auto">
-                <span className="text-3xl">✓</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900">Ready to save?</h3>
-              <p className="text-gray-600 text-sm max-w-md mx-auto">
-                Review your information in the previous steps, then click Save Profile to update your AlumNayan profile.
-              </p>
-            </div>
-          )}
-
           {/* Navigation */}
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
-            <Button
-              variant="ghost"
-              leftIcon={<ChevronLeft size={16} />}
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
-              disabled={step === 0}
-            >
-              Previous
-            </Button>
-            {step < STEPS.length - 1 ? (
+            <div className="flex items-center gap-2">
               <Button
-                variant="primary"
-                rightIcon={<ChevronRight size={16} />}
-                onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
+                variant="ghost"
+                leftIcon={<ChevronLeft size={16} />}
+                onClick={() => setStep((s) => Math.max(0, s - 1))}
+                disabled={step === 0}
               >
-                Next
+                Previous
               </Button>
-            ) : (
+              <a href="/profile" className="text-sm text-navy-700 hover:text-navy-900 underline">
+                Back to Profile
+              </a>
+            </div>
+            <div className="flex items-center gap-2">
               <Button variant="secondary" loading={saving} onClick={handleSave}>
-                Save Profile
+                Save
               </Button>
-            )}
+              {step < STEPS.length - 1 && (
+                <Button
+                  variant="primary"
+                  rightIcon={<ChevronRight size={16} />}
+                  onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
+                >
+                  Next
+                </Button>
+              )}
+            </div>
           </div>
         </CardBody>
       </Card>
