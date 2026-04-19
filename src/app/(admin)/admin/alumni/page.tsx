@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Plus, Mail, ShieldCheck, ShieldAlert, Send, FileSpreadsheet } from "lucide-react";
+import { Search, Plus, Mail, ShieldCheck, ShieldAlert, Copy, FileSpreadsheet } from "lucide-react";
 import { useAlumni } from "@/lib/hooks/useAlumni";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -372,25 +372,31 @@ export default function AdminAlumniPage() {
     }
   }
 
-  // ── Resend all unclaimed ───────────────────────────────────────────────────
-  const [resendAllLoading, setResendAllLoading] = useState(false);
+  // ── Email copy helpers ────────────────────────────────────────────────────
+  function copyEmails(group: "all" | "claimed" | "unclaimed") {
+    const emails = allAlumni
+      .filter((a) => {
+        if (group === "claimed")   return a.isClaimed === true;
+        if (group === "unclaimed") return a.importedByAdmin === true && !a.isClaimed;
+        return true;
+      })
+      .map((a) => a.email)
+      .filter(Boolean)
+      .join(",");
 
-  async function handleResendAll() {
-    setResendAllLoading(true);
-    try {
-      const res = await fetch("/api/admin/alumni/resend-all", {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed");
-      success(`Sent to ${data.sent} unclaimed account${data.sent !== 1 ? "s" : ""}.${data.failed ? ` (${data.failed} failed)` : ""}`);
-    } catch (e) {
-      toastError((e as Error).message);
-    } finally {
-      setResendAllLoading(false);
-    }
+    navigator.clipboard.writeText(emails).then(() => {
+      const count = emails.split(",").length;
+      success(`${count} email address${count !== 1 ? "es" : ""} copied to clipboard`);
+    }).catch(() => {
+      toastError("Failed to copy emails. Please try again.");
+    });
   }
+
+  function openGmail() {
+    window.open("https://mail.google.com/mail/#compose", "_blank");
+  }
+
+  const singleAlumniEmail = filtered.length === 1 ? filtered[0].email : null;
 
   // ── Delete confirm ─────────────────────────────────────────────────────────
   const [deleteTarget,  setDeleteTarget]  = useState<UserDoc | null>(null);
@@ -432,12 +438,52 @@ export default function AdminAlumniPage() {
           isAdmin ? (
             <div className="flex items-center gap-2 flex-wrap">
               <Button
-                variant="ghost"
-                leftIcon={<Send size={16} />}
-                loading={resendAllLoading}
-                onClick={handleResendAll}
+                variant="outline"
+                size="sm"
+                leftIcon={<Copy size={14} />}
+                onClick={() => copyEmails("all")}
               >
-                Resend Setup Emails
+                Copy All
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Copy size={14} />}
+                onClick={() => copyEmails("claimed")}
+              >
+                Copy Claimed
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Copy size={14} />}
+                onClick={() => copyEmails("unclaimed")}
+              >
+                Copy Unclaimed
+              </Button>
+              {singleAlumniEmail && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<Copy size={14} />}
+                  onClick={() => {
+                    navigator.clipboard.writeText(singleAlumniEmail).then(() => {
+                      success("Email copied to clipboard");
+                    }).catch(() => {
+                      toastError("Failed to copy email");
+                    });
+                  }}
+                >
+                  Copy Email
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Mail size={14} />}
+                onClick={openGmail}
+              >
+                Gmail
               </Button>
               <Button
                 variant="ghost"
