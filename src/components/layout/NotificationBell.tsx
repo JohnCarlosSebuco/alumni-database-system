@@ -2,15 +2,20 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { useNotifications } from "@/lib/hooks/useNotifications";
 import { formatRelativeTime } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
 
 export function NotificationBell() {
-  const { notifications, unreadCount } = useNotifications(5);
+  const { notifications, unreadCount, markAsRead } = useNotifications(20);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  // Show only unread notifications in the dropdown
+  const unread = notifications.filter((n) => !n.isRead);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -19,6 +24,12 @@ export function NotificationBell() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  async function handleNotifClick(id: string, link: string) {
+    setOpen(false);
+    await markAsRead(id);
+    router.push(link);
+  }
 
   return (
     <div className="relative" ref={ref}>
@@ -57,11 +68,12 @@ export function NotificationBell() {
                 <p className="px-4 py-6 text-center text-sm text-gray-500">No notifications yet</p>
               ) : (
                 notifications.map((n) => (
-                  <div
+                  <button
                     key={n.id}
+                    onClick={() => handleNotifClick(n.id, n.link)}
                     className={cn(
-                      "flex gap-3 px-4 py-3 border-b border-gray-50 last:border-b-0",
-                      !n.isRead && "bg-navy-50"
+                      "w-full flex gap-3 px-4 py-3 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors text-left",
+                      !n.isRead && "bg-navy-50 hover:bg-navy-100"
                     )}
                   >
                     <div
@@ -75,7 +87,7 @@ export function NotificationBell() {
                       <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.body}</p>
                       <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(n.createdAt)}</p>
                     </div>
-                  </div>
+                  </button>
                 ))
               )}
             </div>

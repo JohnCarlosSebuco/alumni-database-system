@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import {
   db,
   collection,
+  doc,
   query,
   where,
   limit,
   onSnapshot,
+  updateDoc,
 } from "@/lib/firebase/firestore";
 import { useAuth } from "./useAuth";
 import type { Notification } from "@/lib/types/notification.types";
@@ -55,5 +57,9 @@ export function useNotifications(maxItems = 20) {
     return () => unsub();
   }, [user, maxItems]);
 
-  return { notifications, unreadCount, loading };
+  async function markAsRead(id: string) {
+    await updateDoc(doc(db, "notifications", id), { isRead: true });
+  }
+
+  return { notifications, unreadCount, loading, markAsRead };
 }
