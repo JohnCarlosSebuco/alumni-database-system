@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { FileDown, Table, Printer } from "lucide-react";
+import Link from "next/link";
+import { FileDown, Table, Printer, CheckCircle } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import {
   db, collection, query, where, getDocs,
@@ -430,6 +431,14 @@ export default function ReportsPage() {
         title="Reports & Export"
         breadcrumbs={[{ label: "Admin" }, { label: "Reports" }]}
       />
+
+      <div className="mb-6">
+        <Link href="/admin/reports/verify">
+          <Button variant="outline" size="sm" leftIcon={<CheckCircle size={14} />}>
+            Verify Metrics & Audit Data
+          </Button>
+        </Link>
+      </div>
 
       {/* Filters */}
       <Card>
