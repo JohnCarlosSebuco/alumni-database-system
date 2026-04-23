@@ -49,7 +49,9 @@ export async function POST(req: Request) {
     }
 
     const data = await res.json();
-    return NextResponse.json({ url: data.secure_url });
+    // Add fl_inline flag to allow PDFs/DOCs to open in browser
+    const url = data.secure_url.replace("/upload/", "/upload/fl_inline/");
+    return NextResponse.json({ url });
   } catch (err) {
     console.error("Resume upload error:", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
