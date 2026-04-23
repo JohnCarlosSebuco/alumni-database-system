@@ -23,25 +23,35 @@ export async function POST(req: Request) {
   if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
   if (!jobId) return NextResponse.json({ error: "No jobId provided" }, { status: 400 });
 
-  const storage = admin.storage().bucket();
-  const filePath = `jobs/${jobId}/resumes/${decoded.uid}/${file.name}`;
-  const fileRef = storage.file(filePath);
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+  if (!cloudName || !preset) {
+    console.error("Cloudinary not configured");
+    return NextResponse.json({ error: "Upload service not configured" }, { status: 500 });
+  }
 
   try {
-    const buffer = await file.arrayBuffer();
-    await fileRef.save(Buffer.from(buffer), {
-      metadata: { contentType: file.type },
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+    uploadFormData.append("upload_preset", preset);
+    uploadFormData.append("folder", `alumnayan/resumes/${decoded.uid}/${jobId}`);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+      method: "POST",
+      body: uploadFormData,
     });
 
-    const [url] = await fileRef.getSignedUrl({
-      version: "v4",
-      action: "read",
-      expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
-    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error("Cloudinary upload failed:", err);
+      return NextResponse.json({ error: "Cloudinary upload failed" }, { status: 500 });
+    }
 
-    return NextResponse.json({ url });
+    const data = await res.json();
+    return NextResponse.json({ url: data.secure_url });
   } catch (err) {
-    console.error("Resume upload failed:", err);
+    console.error("Resume upload error:", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
