@@ -49,8 +49,8 @@ export async function POST(req: Request) {
     }
 
     const data = await res.json();
-    // Add fl_inline flag to allow PDFs/DOCs to open in browser
-    const url = data.secure_url.replace("/upload/", "/upload/fl_inline/");
+    // Add fl_attachment flag to force download instead of browser view
+    const url = data.secure_url.replace("/upload/", "/upload/fl_attachment/");
     return NextResponse.json({ url });
   } catch (err) {
     console.error("Resume upload error:", err instanceof Error ? err.message : err);

@@ -114,11 +114,10 @@ export default function ApplicantsPage() {
                       {a.resumeURL ? (
                         <a
                           href={a.resumeURL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-navy-800 hover:text-navy-600 text-xs"
+                          download
+                          className="flex items-center gap-1 text-navy-800 hover:text-navy-600 text-xs font-medium"
                         >
-                          View <ExternalLink size={12} />
+                          Download <ExternalLink size={12} />
                         </a>
                       ) : (
                         <span className="text-xs text-gray-400">No resume</span>
