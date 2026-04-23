@@ -7,7 +7,6 @@ import {
   MapPin, Clock, Users, Briefcase, ArrowLeft, Upload, Pencil, XCircle,
 } from "lucide-react";
 import { doc, getDoc, updateDoc, applicantRef, jobRef } from "@/lib/firebase/firestore";
-import { uploadResume } from "@/lib/firebase/storage";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -56,9 +55,25 @@ export default function JobDetailPage() {
     }
     setApplying(true);
     try {
-      const resumeURL = await uploadResume(user.uid, jobId, resumeFile);
+      // Upload resume via backend to avoid CORS issues
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", resumeFile);
+      uploadFormData.append("jobId", jobId);
 
-      const res = await fetch(`/api/jobs/${jobId}/apply`, {
+      const uploadRes = await fetch("/api/upload/resume", {
+        method: "POST",
+        body: uploadFormData,
+      });
+
+      if (!uploadRes.ok) {
+        const data = await uploadRes.json().catch(() => ({}));
+        throw new Error(data.error ?? "Resume upload failed");
+      }
+
+      const { url: resumeURL } = await uploadRes.json();
+
+      // Submit application with resume URL
+      const applyRes = await fetch(`/api/jobs/${jobId}/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -70,8 +85,8 @@ export default function JobDetailPage() {
         }),
       });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
+      if (!applyRes.ok) {
+        const data = await applyRes.json().catch(() => ({}));
         throw new Error(data.error ?? "Failed");
       }
 
