@@ -23,35 +23,26 @@ export async function POST(req: Request) {
   if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
   if (!jobId) return NextResponse.json({ error: "No jobId provided" }, { status: 400 });
 
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-
-  if (!cloudName || !preset) {
-    console.error("Cloudinary not configured");
-    return NextResponse.json({ error: "Upload service not configured" }, { status: 500 });
-  }
-
   try {
-    const uploadFormData = new FormData();
-    uploadFormData.append("file", file);
-    uploadFormData.append("upload_preset", preset);
-    uploadFormData.append("folder", `alumnayan/resumes/${decoded.uid}/${jobId}`);
+    const bucket = admin.storage().bucket();
+    const filePath = `jobs/${jobId}/resumes/${decoded.uid}/${file.name}`;
+    const fileRef = bucket.file(filePath);
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-      method: "POST",
-      body: uploadFormData,
+    const buffer = await file.arrayBuffer();
+    await fileRef.save(Buffer.from(buffer), {
+      metadata: {
+        contentType: file.type,
+      },
     });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error("Cloudinary upload failed:", err);
-      return NextResponse.json({ error: "Cloudinary upload failed" }, { status: 500 });
-    }
+    const signedUrl = await fileRef.getSignedUrl({
+      version: "v4",
+      action: "read",
+      expires: Date.now() + 15 * 24 * 60 * 60 * 1000, // 15 days
+    });
 
-    const data = await res.json();
-    // Add fl_attachment flag to force download instead of browser view
-    const url = data.secure_url.replace("/upload/", "/upload/fl_attachment/");
-    return NextResponse.json({ url });
+    console.log("Resume URL stored:", signedUrl[0]);
+    return NextResponse.json({ url: signedUrl[0] });
   } catch (err) {
     console.error("Resume upload error:", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
