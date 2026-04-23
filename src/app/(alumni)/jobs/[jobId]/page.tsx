@@ -6,8 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import {
   MapPin, Clock, Users, Briefcase, ArrowLeft, Upload, Pencil, XCircle,
 } from "lucide-react";
-import { db, doc, getDoc, setDoc, updateDoc, increment, applicantRef, jobRef } from "@/lib/firebase/firestore";
-import { uploadResume } from "@/lib/cloudinary/upload";
+import { doc, getDoc, updateDoc, applicantRef, jobRef } from "@/lib/firebase/firestore";
+import { uploadResume } from "@/lib/firebase/storage";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -57,17 +57,24 @@ export default function JobDetailPage() {
     setApplying(true);
     try {
       const resumeURL = await uploadResume(user.uid, jobId, resumeFile);
-      await setDoc(applicantRef(jobId, user.uid), {
-        userId: user.uid,
-        displayName: userDoc.displayName,
-        email: userDoc.email,
-        batchYear: userDoc.batchYear ?? null,
-        appliedAt: new Date().toISOString(),
-        resumeURL,
-        coverNote,
-        status: "pending",
+
+      const res = await fetch(`/api/jobs/${jobId}/apply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeURL,
+          coverNote,
+          displayName: userDoc.displayName,
+          email: userDoc.email,
+          batchYear: userDoc.batchYear ?? null,
+        }),
       });
-      await updateDoc(jobRef(jobId), { applicantCount: increment(1) });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed");
+      }
+
       success("Application submitted successfully!");
       setApplied(true);
       setShowModal(false);
