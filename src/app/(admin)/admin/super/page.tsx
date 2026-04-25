@@ -24,7 +24,7 @@ type PendingAction = {
 };
 
 function roleBadge(role: UserRole) {
-  if (role === "super_admin") return <Badge variant="warning">Super Admin</Badge>;
+  if (role === "super_admin") return <Badge variant="warning">Overall Admin</Badge>;
   if (role === "admin") return <Badge variant="navy">Admin</Badge>;
   return <Badge variant="default">Alumni</Badge>;
 }
@@ -98,8 +98,8 @@ export default function SuperAdminPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Super Admin Panel"
-        breadcrumbs={[{ label: "Admin" }, { label: "Super Admin" }]}
+        title="Overall Admin Panel"
+        breadcrumbs={[{ label: "Admin" }, { label: "Overall Admin" }]}
       />
 
       {/* Section A — Manage Admins */}
@@ -151,7 +151,7 @@ export default function SuperAdminPage() {
                                       })
                                     }
                                   >
-                                    Promote to Super Admin
+                                    Promote to Overall Admin
                                   </Button>
                                   <Button
                                     size="sm"
@@ -165,7 +165,7 @@ export default function SuperAdminPage() {
                                       })
                                     }
                                   >
-                                    Demote to Alumni
+                                    Remove as Admin
                                   </Button>
                                 </>
                               )}
@@ -182,7 +182,7 @@ export default function SuperAdminPage() {
                                     })
                                   }
                                 >
-                                  Demote to Admin
+                                  Change as Admin
                                 </Button>
                               )}
                             </div>

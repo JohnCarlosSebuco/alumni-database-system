@@ -118,7 +118,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
             <>
               {!collapsed && (
                 <p className="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-widest text-navy-400">
-                  Super Admin
+                  Overall Admin
                 </p>
               )}
               {superAdminNav.map((item) => {
