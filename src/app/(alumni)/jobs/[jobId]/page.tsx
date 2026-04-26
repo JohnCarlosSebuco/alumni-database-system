@@ -34,6 +34,7 @@ export default function JobDetailPage() {
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
 
   useEffect(() => {
     if (!jobId) return;
@@ -116,6 +117,28 @@ export default function JobDetailPage() {
     }
   };
 
+  const handleWithdraw = async () => {
+    if (!jobId) return;
+    setWithdrawing(true);
+    try {
+      const res = await fetch(`/api/jobs/${jobId}/apply`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed");
+      }
+
+      success("Application withdrawn successfully!");
+      setApplied(false);
+    } catch {
+      toastError("Failed to withdraw application. Please try again.");
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
   if (loading) return <PageLoader />;
   if (!job) return <p className="p-8 text-gray-500">Job not found.</p>;
 
@@ -190,9 +213,20 @@ export default function JobDetailPage() {
                   )}
                 </>
               ) : applied ? (
-                <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800 font-medium text-center">
-                  ✓ You have applied
-                </div>
+                <>
+                  <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800 font-medium text-center">
+                    ✓ You have applied
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="w-full text-error hover:text-error"
+                    leftIcon={<XCircle size={14} />}
+                    loading={withdrawing}
+                    onClick={handleWithdraw}
+                  >
+                    Withdraw Application
+                  </Button>
+                </>
               ) : (
                 <Button
                   variant="primary"

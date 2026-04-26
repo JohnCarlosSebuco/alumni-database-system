@@ -16,9 +16,13 @@ async function uploadToCloudinary(file: File, folder: string): Promise<string> {
   formData.append("file", file);
   formData.append("upload_preset", preset);
   formData.append("folder", folder);
+  formData.append("access_control", JSON.stringify([{ access_type: "public" }]));
+
+  const isDocument = file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".doc") || file.name.endsWith(".docx");
+  const endpoint = isDocument ? "raw/upload" : "auto/upload";
 
   const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+    `https://api.cloudinary.com/v1_1/${cloudName}/${endpoint}`,
     { method: "POST", body: formData }
   );
 
@@ -28,7 +32,14 @@ async function uploadToCloudinary(file: File, folder: string): Promise<string> {
   }
 
   const data = await res.json();
-  return data.secure_url as string;
+  const url = data.secure_url as string;
+
+  // For documents, add attachment flag to ensure proper download behavior
+  if (isDocument && url) {
+    return url.replace('/upload/', '/upload/fl_attachment/');
+  }
+
+  return url;
 }
 
 export async function uploadProfilePhoto(uid: string, file: File): Promise<string> {

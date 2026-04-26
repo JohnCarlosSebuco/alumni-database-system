@@ -9,9 +9,11 @@ import { Badge } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Select";
 import { PageLoader } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate } from "@/lib/utils/formatters";
-import { Users, ExternalLink } from "lucide-react";
+import { Users, ExternalLink, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import type { Job, JobApplicant, ApplicantStatus } from "@/lib/types/job.types";
 import { db } from "@/lib/firebase/firestore";
 
@@ -30,6 +32,9 @@ export default function ApplicantsPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [applicants, setApplicants] = useState<(JobApplicant & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteName, setConfirmDeleteName] = useState<string>("");
 
   useEffect(() => {
     if (!jobId) return;
@@ -51,6 +56,38 @@ export default function ApplicantsPage() {
       success("Status updated.");
     } catch {
       toastError("Failed to update status.");
+    }
+  };
+
+  const openDeleteModal = (applicantId: string, displayName: string) => {
+    setConfirmDeleteId(applicantId);
+    setConfirmDeleteName(displayName);
+  };
+
+  const confirmDelete = async () => {
+    if (!jobId || !confirmDeleteId) return;
+
+    setDeletingId(confirmDeleteId);
+    try {
+      const res = await fetch(`/api/jobs/${jobId}/apply`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicantId: confirmDeleteId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to delete");
+      }
+
+      setApplicants((prev) => prev.filter((a) => a.id !== confirmDeleteId));
+      success("Application deleted.");
+      setConfirmDeleteId(null);
+      setConfirmDeleteName("");
+    } catch {
+      toastError("Failed to delete application.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -84,6 +121,7 @@ export default function ApplicantsPage() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Applied</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Resume</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -123,6 +161,18 @@ export default function ApplicantsPage() {
                         <span className="text-xs text-gray-400">No resume</span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-error hover:text-error"
+                        leftIcon={<Trash2 size={14} />}
+                        loading={deletingId === a.id}
+                        onClick={() => openDeleteModal(a.id, a.displayName)}
+                      >
+                        Delete
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -130,6 +180,42 @@ export default function ApplicantsPage() {
           )}
         </CardBody>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={confirmDeleteId !== null}
+        onClose={() => {
+          setConfirmDeleteId(null);
+          setConfirmDeleteName("");
+        }}
+        title="Delete Application"
+        size="sm"
+      >
+        <div className="p-6 space-y-6">
+          <p className="text-gray-700">
+            Are you sure you want to delete the application from <span className="font-semibold">{confirmDeleteName}</span>? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setConfirmDeleteId(null);
+                setConfirmDeleteName("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              className="bg-error hover:bg-error/90"
+              loading={deletingId === confirmDeleteId}
+              onClick={confirmDelete}
+            >
+              Delete Application
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

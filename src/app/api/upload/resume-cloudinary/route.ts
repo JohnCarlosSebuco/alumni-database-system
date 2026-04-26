@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { v2 as cloudinary } from "cloudinary";
 import admin from "@/lib/firebase/admin";
+import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -40,11 +40,12 @@ export async function POST(req: Request) {
       folder: `alumnayan/resumes/${decoded.uid}/${jobId}`,
       public_id: file.name.replace(/\.[^/.]+$/, ""),
       flags: "attachment",
-      access_control: [{ access_type: "anonymous" }],
+      access_control: [{ access_type: "public" }],
     });
 
-    console.log("Resume URL stored:", result.secure_url);
-    return NextResponse.json({ url: result.secure_url });
+    const url = result.secure_url;
+    console.log("Resume uploaded:", url);
+    return NextResponse.json({ url });
   } catch (err) {
     console.error("Resume upload error:", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
