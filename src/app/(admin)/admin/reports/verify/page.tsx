@@ -17,35 +17,57 @@ import {
 } from "@/lib/utils/courseAlignment";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Select } from "@/components/ui/Select";
 import { Tabs } from "@/components/ui/Tabs";
 import { Spinner } from "@/components/ui/Spinner";
 import { Badge } from "@/components/ui/Badge";
 import type { UserDoc } from "@/lib/types/alumni.types";
 import { cn } from "@/lib/utils/cn";
 
+const CURRENT_YEAR = new Date().getFullYear();
+const BATCH_YEARS = Array.from({ length: CURRENT_YEAR - 1979 }, (_, i) => {
+  const y = CURRENT_YEAR - i;
+  return { value: String(y), label: String(y) };
+});
+
+const COE_COURSES = [
+  { value: "", label: "All programs" },
+  { value: "Bachelor of Science in Industrial Engineering", label: "BS Industrial Engineering" },
+  { value: "Bachelor of Science in Electronics Engineering", label: "BS Electronics Engineering" },
+  { value: "Bachelor of Science in Mechanical Engineering", label: "BS Mechanical Engineering" },
+];
+
 export default function VerifyMetricsPage() {
   const { alumni, loading } = useAlumni();
   const currentYear = new Date().getFullYear();
   const [activeTab, setActiveTab] = React.useState("poe1");
+  const [filters, setFilters] = React.useState({ course: "", batchYear: "" });
+
+  const filteredAlumni = useMemo(() => {
+    let result = alumni;
+    if (filters.course) result = result.filter((a) => a.course === filters.course);
+    if (filters.batchYear) result = result.filter((a) => a.batchYear === Number(filters.batchYear));
+    return result;
+  }, [alumni, filters]);
 
   const stats = useMemo(() => {
-    if (!alumni.length) return null;
+    if (!filteredAlumni.length) return null;
 
-    const total = alumni.length;
-    const poe1 = alumni.filter(isPOE1);
-    const poe2 = alumni.filter(isPOE2);
-    const poe3 = alumni.filter(isPOE3);
+    const total = filteredAlumni.length;
+    const poe1 = filteredAlumni.filter(isPOE1);
+    const poe2 = filteredAlumni.filter(isPOE2);
+    const poe3 = filteredAlumni.filter(isPOE3);
 
-    const recent = alumni.filter(
+    const recent = filteredAlumni.filter(
       (a) => a.batchYear != null && a.batchYear >= currentYear - 2
     );
-    const midCareer = alumni.filter(
+    const midCareer = filteredAlumni.filter(
       (a) =>
         a.batchYear != null &&
         a.batchYear >= currentYear - 5 &&
         a.batchYear <= currentYear - 3
     );
-    const established = alumni.filter(
+    const established = filteredAlumni.filter(
       (a) => a.batchYear != null && a.batchYear <= currentYear - 6
     );
 
@@ -89,7 +111,7 @@ export default function VerifyMetricsPage() {
       },
       isAlignedForOutcome,
     };
-  }, [alumni, currentYear]);
+  }, [filteredAlumni, currentYear]);
 
   const getPOE1Reason = (a: UserDoc): string => {
     const reasons = [];
@@ -321,14 +343,6 @@ export default function VerifyMetricsPage() {
     );
   }
 
-  if (!stats) {
-    return (
-      <div className="p-6">
-        <p className="text-gray-500">No alumni data found.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6">
       <Link href="/admin/reports">
@@ -338,57 +352,89 @@ export default function VerifyMetricsPage() {
         </Button>
       </Link>
 
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Metrics Verification & Audit
-          </h1>
-          <p className="text-sm text-gray-600 mt-2">
-            Denominator = all alumni (including unemployed). Percentages are
-            computed independently per category — they do not sum to 100%. Each
-            row shows the specific reason why an alumni was counted.
-          </p>
-          <p className="text-xs text-gray-500 mt-3 italic">
-            Click on each tab below to see which Excel columns feed each metric,
-            how they are processed, and the complete list of alumni counted in
-            each category.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => window.print()}>
-            Print
-          </Button>
-          <Button variant="primary" onClick={exportPDF}>
-            Export PDF
-          </Button>
-        </div>
-      </div>
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardHeader><h2 className="font-semibold text-gray-900">Filter Alumni Data</h2></CardHeader>
+        <CardBody className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Select
+              label="Program"
+              options={COE_COURSES}
+              value={filters.course}
+              onChange={(e) => setFilters((f) => ({ ...f, course: e.target.value }))}
+            />
+            <Select
+              label="Batch Year"
+              options={[{ value: "", label: "All years" }, ...BATCH_YEARS]}
+              value={filters.batchYear}
+              onChange={(e) => setFilters((f) => ({ ...f, batchYear: e.target.value }))}
+            />
+          </div>
+        </CardBody>
+      </Card>
 
-      <Tabs
-        tabs={[
-          { key: "poe1", label: "POE1 / GA1" },
-          { key: "poe2", label: "POE2 / GA2" },
-          { key: "poe3", label: "POE3 / GA3" },
-          { key: "outcomes", label: "Outcome Rates" },
-        ]}
-        activeKey={activeTab}
-        onChange={setActiveTab}
-      />
+      {!stats ? (
+        <Card>
+          <CardBody className="text-center py-12">
+            <p className="text-gray-500 text-lg">No alumni match the selected filters.</p>
+            <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or selecting "All programs" and "All years".</p>
+          </CardBody>
+        </Card>
+      ) : (
+        <>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Metrics Verification & Audit
+              </h1>
+              <p className="text-sm text-gray-600 mt-2">
+                Denominator = all alumni (including unemployed). Percentages are
+                computed independently per category — they do not sum to 100%. Each
+                row shows the specific reason why an alumni was counted.
+              </p>
+              <p className="text-xs text-gray-500 mt-3 italic">
+                Click on each tab below to see which Excel columns feed each metric,
+                how they are processed, and the complete list of alumni counted in
+                each category.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => window.print()}>
+                Print
+              </Button>
+              <Button variant="primary" onClick={exportPDF}>
+                Export PDF
+              </Button>
+            </div>
+          </div>
 
-      <div className="mt-6">
-        {activeTab === "poe1" && (
-          <POETab1 stats={stats} getReason={getPOE1Reason} />
-        )}
-        {activeTab === "poe2" && (
-          <POETab2 stats={stats} getReason={getPOE2Reason} />
-        )}
-        {activeTab === "poe3" && (
-          <POETab3 stats={stats} getReason={getPOE3Reason} />
-        )}
-        {activeTab === "outcomes" && (
-          <OutcomeRatesTab stats={stats} currentYear={currentYear} />
-        )}
-      </div>
+          <Tabs
+            tabs={[
+              { key: "poe1", label: "POE1 / GA1" },
+              { key: "poe2", label: "POE2 / GA2" },
+              { key: "poe3", label: "POE3 / GA3" },
+              { key: "outcomes", label: "Outcome Rates" },
+            ]}
+            activeKey={activeTab}
+            onChange={setActiveTab}
+          />
+
+          <div className="mt-6">
+            {activeTab === "poe1" && (
+              <POETab1 stats={stats} getReason={getPOE1Reason} />
+            )}
+            {activeTab === "poe2" && (
+              <POETab2 stats={stats} getReason={getPOE2Reason} />
+            )}
+            {activeTab === "poe3" && (
+              <POETab3 stats={stats} getReason={getPOE3Reason} />
+            )}
+            {activeTab === "outcomes" && (
+              <OutcomeRatesTab stats={stats} currentYear={currentYear} />
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
