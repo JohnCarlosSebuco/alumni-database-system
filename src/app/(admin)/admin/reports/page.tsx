@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate, batchYearLabel } from "@/lib/utils/formatters";
-import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals, computePOEStats, computeGAStats, computeIntervalOutcomes, computeIntervalOutcomesByDept } from "@/lib/utils/courseAlignment";
+import { computeOutcomeRates, computeCohortBreakdown, computeWaitingTimeBreakdown, computeCollegeGoals, computePOEStats, computeIntervalOutcomes, computeIntervalOutcomesByDept } from "@/lib/utils/courseAlignment";
 import type { WaitingTimeRow, IntervalOutcomeRow, IntervalBucket, IntervalOutcomeByDept } from "@/lib/utils/courseAlignment";
 import { WaitingTimeChart } from "@/components/dashboard/WaitingTimeChart";
 import type { UserDoc } from "@/lib/types/alumni.types";
@@ -61,7 +61,6 @@ export default function ReportsPage() {
   const waitingTimeRows = useMemo(() => computeWaitingTimeBreakdown(results), [results]);
   const collegeGoals = useMemo(() => computeCollegeGoals(results), [results]);
   const poeStats = useMemo(() => computePOEStats(results), [results]);
-  const gaStats = useMemo(() => computeGAStats(results), [results]);
   const intervalOutcomes = useMemo(() => computeIntervalOutcomes(results), [results]);
   const intervalByDept = useMemo(() => computeIntervalOutcomesByDept(results), [results]);
 
@@ -261,47 +260,52 @@ export default function ReportsPage() {
       margin: { left: 14, right: 14 },
     });
 
-    // Section F — POE Summary
+    // Section F — Classification by POE and GA
     let afterE = (doc as any).lastAutoTable.finalY + 8;
     if (afterE > 240) { doc.addPage(); afterE = 20; }
     doc.setFontSize(10); doc.setFont("helvetica", "bold");
-    doc.text("F. Program Educational Objectives (POE)", 14, afterE);
+    doc.text("F. Classification of Graduates by POE and GA", 14, afterE);
     autoTable(doc, {
       startY: afterE + 3,
-      head: [["POE", "Description", "Count", "Percentage"]],
+      head: [["#", "Graduate Attributes", "POE 1", "POE 2", "POE 3"]],
       body: [
-        ["POE 1", "Professional & Technical Competence", String(poeStats.poe1.count), `${poeStats.poe1.percentage}%`],
-        ["POE 2", "Ethical, Social & Leadership Responsibility", String(poeStats.poe2.count), `${poeStats.poe2.percentage}%`],
-        ["POE 3", "Innovation, Research & Sustainability", String(poeStats.poe3.count), `${poeStats.poe3.percentage}%`],
+        [
+          "1",
+          "Professional & Technical Competence. Applies advance knowledge and technical expertise to identify, analyze, and solve complex problems in their field, demonstrating innovation, excellence, and lifelong learning consistent with global and industry standards.",
+          `${poeStats.poe1.count}(${poeStats.poe1.percentage}%)`,
+          "—",
+          "—",
+        ],
+        [
+          "2",
+          "Ethical, Social, and Leadership Responsibility. Demonstrates moral integrity, professional ethics, and social accountability through inclusive leadership and active participation in community development and nation-building.",
+          "—",
+          `${poeStats.poe2.count}(${poeStats.poe2.percentage}%)`,
+          "—",
+        ],
+        [
+          "3",
+          "Innovation, Research and Sustainability Orientation. Creates and applies innovative, research based, and sustainable solutions addressing societal and environmental challenges through collaboration with local and global stakeholders.",
+          "—",
+          "—",
+          `${poeStats.poe3.count}(${poeStats.poe3.percentage}%)`,
+        ],
       ],
-      styles: { fontSize: 9 },
+      styles: { fontSize: 8 },
       headStyles: { fillColor: [30, 41, 82] },
-      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 80 }, 2: { halign: "center" }, 3: { halign: "center" } },
+      columnStyles: {
+        0: { cellWidth: 8, halign: "center" },
+        1: { cellWidth: 90 },
+        2: { halign: "center" },
+        3: { halign: "center" },
+        4: { halign: "center" },
+      },
       margin: { left: 14, right: 14 },
     });
 
-    // Section G — GA Summary
+    // Section G — Alignment Rate by Year Interval
     let afterF = (doc as any).lastAutoTable.finalY + 8;
     if (afterF > 240) { doc.addPage(); afterF = 20; }
-    doc.setFontSize(10); doc.setFont("helvetica", "bold");
-    doc.text("G. Graduate Attributes (GA)", 14, afterF);
-    autoTable(doc, {
-      startY: afterF + 3,
-      head: [["GA", "Description", "Count", "Percentage"]],
-      body: [
-        ["GA 1", "Professional & Technical Competence", String(gaStats.poe1.count), `${gaStats.poe1.percentage}%`],
-        ["GA 2", "Ethical, Social, and Leadership Responsibility", String(gaStats.poe2.count), `${gaStats.poe2.percentage}%`],
-        ["GA 3", "Innovation, Research, and Sustainability Orientation", String(gaStats.poe3.count), `${gaStats.poe3.percentage}%`],
-      ],
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [30, 41, 82] },
-      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 80 }, 2: { halign: "center" }, 3: { halign: "center" } },
-      margin: { left: 14, right: 14 },
-    });
-
-    // Section H — Alignment Rate by Year Interval
-    let afterG = (doc as any).lastAutoTable.finalY + 8;
-    if (afterG > 240) { doc.addPage(); afterG = 20; }
     const fmtBucket = (b: IntervalBucket) =>
       b.responded > 0 ? `${b.rate}% (${b.aligned}/${b.responded})` : "\u2014";
 
@@ -311,12 +315,12 @@ export default function ReportsPage() {
       );
       if (intervalRows.length > 0) {
         doc.setFontSize(10); doc.setFont("helvetica", "bold");
-        doc.text("H. Alignment Rate by Year Interval", 14, afterG);
+        doc.text("G. Alignment Rate by Year Interval", 14, afterF);
         doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
-        doc.text("Alignment rate at 1, 2, 5, and 8 years after graduation (% with course-aligned job).", 14, afterG + 5);
+        doc.text("Alignment rate at 1, 2, 5, and 8 years after graduation (% with course-aligned job).", 14, afterF + 5);
         doc.setTextColor(0);
         autoTable(doc, {
-          startY: afterG + 9,
+          startY: afterF + 9,
           head: [["Batch Year", "Total", "1 Year", "2 Years", "5 Years", "8 Years"]],
           body: intervalRows.map((row) => [
             String(row.batchYear),
@@ -342,9 +346,9 @@ export default function ReportsPage() {
     } else {
       if (intervalByDept.length > 0) {
         doc.setFontSize(10); doc.setFont("helvetica", "bold");
-        doc.text("H. Alignment Rate by Year Interval (by Department)", 14, afterG);
+        doc.text("G. Alignment Rate by Year Interval (by Department)", 14, afterF);
         doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
-        doc.text("Alignment rate at 1, 2, 5, and 8 years after graduation, grouped by department.", 14, afterG + 5);
+        doc.text("Alignment rate at 1, 2, 5, and 8 years after graduation, grouped by department.", 14, afterF + 5);
         doc.setTextColor(0);
         const deptBody: (string | { content: string; colSpan: number; styles: Record<string, unknown> })[][] = [];
         for (const dept of intervalByDept) {
@@ -365,7 +369,7 @@ export default function ReportsPage() {
           }
         }
         autoTable(doc, {
-          startY: afterG + 9,
+          startY: afterF + 9,
           head: [["Batch Year", "Total", "1 Year", "2 Years", "5 Years", "8 Years"]],
           body: deptBody,
           styles: { fontSize: 8 },
@@ -746,11 +750,11 @@ export default function ReportsPage() {
           <CardHeader>
             <div>
               <div className="flex items-center gap-1">
-                <h2 className="font-semibold text-gray-900">Program Educational Objectives (POE)</h2>
-                <InfoTooltip text="Classification of graduates by Program Educational Objectives. POE 1 = course-aligned or global context. POE 2 = leadership/management or community work. POE 3 = research/innovation or research industries. Percentage = (count / total) x 100." position="bottom" />
+                <h2 className="font-semibold text-gray-900">Classification of Graduates by POE and GA</h2>
+                <InfoTooltip text="Cross-reference table showing Graduate Attributes (rows) mapped to Program Educational Objectives (columns). Counts appear only in the matching PEO column; other cells show dashes." position="bottom" />
               </div>
               <p className="text-xs text-gray-400 mt-0.5">
-                Classification of graduates by POE — total count and percentage
+                Graduate Attributes classification by POE — total count and percentage
               </p>
             </div>
           </CardHeader>
@@ -759,78 +763,40 @@ export default function ReportsPage() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">POE</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Description</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Count</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Percentage</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase w-8">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Graduate Attributes</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">POE 1</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">POE 2</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">POE 3</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 1</td>
-                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Professional &amp; Technical Competence</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe1.count}</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe1.percentage}%</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-gray-900">1</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">
+                      <span className="font-semibold">Professional &amp; Technical Competence.</span> Applies advance knowledge and technical expertise to identify, analyze, and solve complex problems in their field, demonstrating innovation, excellence, and lifelong learning consistent with global and industry standards.
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe1.count}({poeStats.poe1.percentage}%)</td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-400">—</td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-400">—</td>
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 2</td>
-                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Ethical, Social &amp; Leadership Responsibility</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe2.count}</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe2.percentage}%</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-gray-900">2</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">
+                      <span className="font-semibold">Ethical, Social, and Leadership Responsibility.</span> Demonstrates moral integrity, professional ethics, and social accountability through inclusive leadership and active participation in community development and nation-building.
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-400">—</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe2.count}({poeStats.poe2.percentage}%)</td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-400">—</td>
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">POE 3</td>
-                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Innovation, Research &amp; Sustainability</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe3.count}</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe3.percentage}%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div>
-              <div className="flex items-center gap-1">
-                <h2 className="font-semibold text-gray-900">Graduate Attributes (GA)</h2>
-                <InfoTooltip text="Graduate Attributes - uses the same classification logic as POE. GA 1 = Professional & Technical Competence. GA 2 = Ethical, Social & Leadership Responsibility. GA 3 = Innovation, Research & Sustainability." position="bottom" />
-              </div>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Classification of graduates by GA — total count and percentage
-              </p>
-            </div>
-          </CardHeader>
-          <CardBody className="p-0">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">GA</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Description</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Count</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Percentage</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 1</td>
-                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Professional &amp; Technical Competence</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe1.count}</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe1.percentage}%</td>
-                  </tr>
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 2</td>
-                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Ethical, Social, and Leadership Responsibility</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe2.count}</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe2.percentage}%</td>
-                  </tr>
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">GA 3</td>
-                    <td className="px-4 py-3 text-xs text-gray-700 hidden sm:table-cell">Innovation, Research, and Sustainability Orientation</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe3.count}</td>
-                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{gaStats.poe3.percentage}%</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-gray-900">3</td>
+                    <td className="px-4 py-3 text-xs text-gray-700">
+                      <span className="font-semibold">Innovation, Research and Sustainability Orientation.</span> Creates and applies innovative, research based, and sustainable solutions addressing societal and environmental challenges through collaboration with local and global stakeholders.
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-400">—</td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-400">—</td>
+                    <td className="px-4 py-3 text-center text-xs font-semibold text-indigo-700">{poeStats.poe3.count}({poeStats.poe3.percentage}%)</td>
                   </tr>
                 </tbody>
               </table>
