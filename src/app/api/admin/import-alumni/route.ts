@@ -606,7 +606,7 @@ export async function POST(req: Request) {
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Unknown error";
-        failed.push({ email, reason: msg.includes("email-already-exists") ? "Already exists" : msg });
+        failed.push({ email, reason: msg.includes("email-already-exists") || msg.includes("already in use") ? "Already exists" : msg });
       }
     }
 

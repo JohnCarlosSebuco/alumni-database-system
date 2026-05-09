@@ -100,7 +100,7 @@ export async function POST(req: Request) {
       message: msg,
       stack: error.stack,
     });
-    if (msg.includes("email-already-exists")) {
+    if (msg.includes("email-already-exists") || msg.includes("already in use")) {
       return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
     }
     return NextResponse.json(
