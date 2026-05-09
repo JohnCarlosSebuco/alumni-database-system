@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎓 Alumnayan - Alumni Database System
 
-## Getting Started
+> **Alumnayan** is a powerful alumni management platform designed to connect institutions with their alumni networks, streamline communications, and unlock meaningful engagement opportunities.
 
-First, run the development server:
+<div align="center">
+
+![Next.js](https://img.shields.io/badge/Next.js-13+-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwind-css)
+![Firebase](https://img.shields.io/badge/Firebase-Firestore-FFA500?logo=firebase)
+
+</div>
+
+---
+
+## ✨ What is Alumnayan?
+
+Alumnayan is a comprehensive alumni management and database system that empowers educational institutions to:
+
+- 👥 **Maintain Alumni Networks** - Keep detailed, organized records of all alumni
+- 📄 **Manage Documents** - Secure resume uploads and document storage via Cloudinary
+- 🔍 **Advanced Search & Filtering** - Find alumni by graduation year, program, location, and more
+- 📊 **Generate Insights** - Create powerful reports and analytics on your alumni community
+- 🔐 **Secure Access** - Role-based authentication and data protection
+- 📈 **Track Success** - Monitor alumni achievements and career progression
+- 🤝 **Foster Engagement** - Build stronger connections within your alumni network
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd alumni-database-system
+
+# Install dependencies
+npm install
+```
+
+### Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Project Structure
 
-## Learn More
+```
+src/
+├── app/              # Next.js pages and layouts
+├── components/       # Reusable React components
+├── lib/              # Utilities and helpers
+│   ├── firebase/     # Firebase configuration and services
+│   └── api/          # API route handlers
+├── styles/           # Global styles and Tailwind config
+└── types/            # TypeScript type definitions
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠 Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Technology | Purpose |
+|-----------|---------|
+| **Next.js 13+** | React framework with server-side rendering |
+| **TypeScript** | Type-safe JavaScript development |
+| **Tailwind CSS** | Utility-first styling framework |
+| **Firebase Firestore** | Cloud database and real-time updates |
+| **Cloudinary** | Secure file storage and management |
+| **React Hooks** | State management and side effects |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📚 Key Features
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 📋 Alumni Profile Management
+Create and maintain comprehensive alumni profiles with contact information, graduation details, and career history.
+
+### 🔐 Secure Document Uploads
+Upload and manage authenticated resumes and documents with industry-standard security via Cloudinary.
+
+### 🔎 Smart Filtering & Search
+Powerful query system to find alumni by multiple criteria - graduation year, degree, location, and more.
+
+### 📊 Analytics & Reports
+Generate detailed metrics and reports on your alumni population for strategic insights.
+
+### ✅ Data Verification Tools
+Verify and validate alumni information to maintain data integrity and accuracy.
+
+---
+
+## 🧑‍💻 Development
+
+### Available Scripts
+
+```bash
+# Development server with hot reload
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm run start
+
+# Run linter
+npm run lint
+```
+
+### Project Stack Details
+
+- **Framework**: [Next.js Documentation](https://nextjs.org/docs)
+- **Language**: [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- **Styling**: [Tailwind CSS Docs](https://tailwindcss.com/docs)
+- **Database**: [Firebase Docs](https://firebase.google.com/docs)
+
+---
+
+## 👨‍💼 Developer
+
+**John Carlos Sebuco** - Lead Developer
+
+---
+
+## 📝 License
+
+This project is proprietary and confidential.
+
+---
+
+<div align="center">
+
+Made with ❤️ for alumni connections and institutional success.
+
+</div>
