@@ -60,6 +60,7 @@ export async function POST(req: Request) {
     });
 
     await admin.auth().setCustomUserClaims(userRecord.uid, { role: "alumni" });
+    console.log(`[POST /api/admin/alumni] Auth user created: ${userRecord.uid}`);
 
     const now = new Date().toISOString();
     const userDoc = {
@@ -89,7 +90,10 @@ export async function POST(req: Request) {
       ...(isEmployed !== undefined && { isEmployed }),
     };
 
+    console.log(`[POST /api/admin/alumni] Writing to Firestore for UID: ${userRecord.uid}`);
     await admin.firestore().collection("users").doc(userRecord.uid).set(userDoc);
+    console.log(`[POST /api/admin/alumni] Firestore write successful for UID: ${userRecord.uid}`);
+
     await syncSet("users", userRecord.uid, userDoc);
 
     return NextResponse.json(userDoc, { status: 201 });
