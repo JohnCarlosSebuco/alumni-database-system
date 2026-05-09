@@ -308,7 +308,7 @@ function TransferManual() {
       <Section title="4. Step-by-Step Transfer Guide">
         <SubSection title="Step 1: Clone the Repository">
           <div className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-xs space-y-1 overflow-x-auto">
-            <p>git clone https://github.com/your-org/alumni-database-system.git</p>
+            <p>git clone https://github.com/JohnCarlosSebuco/alumni-database-system.git</p>
             <p>cd alumni-database-system</p>
             <p>npm install</p>
           </div>
@@ -397,81 +397,7 @@ function TransferManual() {
         </SubSection>
       </Section>
 
-      <Section title="5. Database Transfer (Firestore)">
-        <SubSection title="Export from Source Project">
-          <p>Use the Firebase CLI to export Firestore data:</p>
-          <div className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-xs space-y-1 overflow-x-auto">
-            <p><span className="text-gray-500"># Install gcloud CLI if not already installed</span></p>
-            <p>gcloud firestore export gs://SOURCE_BUCKET/backup-folder \</p>
-            <p>  --project=SOURCE_PROJECT_ID</p>
-          </div>
-          <p>
-            This creates a backup of all Firestore collections in the specified Cloud Storage bucket.
-          </p>
-        </SubSection>
-
-        <SubSection title="Import to Destination Project">
-          <div className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-xs space-y-1 overflow-x-auto">
-            <p><span className="text-gray-500"># Copy the backup to the destination bucket first</span></p>
-            <p>gsutil -m cp -r gs://SOURCE_BUCKET/backup-folder gs://DEST_BUCKET/</p>
-            <p></p>
-            <p><span className="text-gray-500"># Import into the destination Firestore</span></p>
-            <p>gcloud firestore import gs://DEST_BUCKET/backup-folder \</p>
-            <p>  --project=DEST_PROJECT_ID</p>
-          </div>
-        </SubSection>
-
-        <SubSection title="Alternative: Script-Based Transfer">
-          <p>
-            For smaller databases, you can use a Node.js script with <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">firebase-admin</code> to
-            read all documents from the source project and write them to the destination. The collections to transfer are:
-          </p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">users</code> - alumni and admin accounts</li>
-            <li><code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">jobs</code> - job postings</li>
-            <li><code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">events</code> - events</li>
-            <li><code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">notifications</code> - notification records</li>
-            <li><code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">surveys</code> - survey definitions and responses</li>
-          </ul>
-        </SubSection>
-      </Section>
-
-      <Section title="6. Storage Transfer (Firebase Storage)">
-        <p>Firebase Storage contains uploaded files (profile photos, resumes, licenses, event banners).</p>
-        <SubSection title="Using gsutil">
-          <div className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-xs space-y-1 overflow-x-auto">
-            <p><span className="text-gray-500"># Download all files from source</span></p>
-            <p>gsutil -m cp -r gs://SOURCE_STORAGE_BUCKET/ ./storage-backup/</p>
-            <p></p>
-            <p><span className="text-gray-500"># Upload to destination</span></p>
-            <p>gsutil -m cp -r ./storage-backup/* gs://DEST_STORAGE_BUCKET/</p>
-          </div>
-        </SubSection>
-        <p>
-          <strong>Note:</strong> Image files uploaded to Cloudinary are stored externally and do not need
-          to be migrated from Firebase. However, you will need a new Cloudinary account/preset for the
-          destination environment.
-        </p>
-      </Section>
-
-      <Section title="7. Authentication Transfer">
-        <p>
-          Firebase Authentication user accounts (emails, passwords) are stored separately from Firestore.
-          To transfer user accounts:
-        </p>
-        <div className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-xs space-y-1 overflow-x-auto">
-          <p><span className="text-gray-500"># Export users from source project</span></p>
-          <p>firebase auth:export users.json --format=json --project=SOURCE_PROJECT_ID</p>
-          <p></p>
-          <p><span className="text-gray-500"># Import users into destination project</span></p>
-          <p>firebase auth:import users.json --project=DEST_PROJECT_ID</p>
-        </div>
-        <p>
-          This preserves user UIDs so Firestore document references remain valid.
-        </p>
-      </Section>
-
-      <Section title="8. Domain &amp; DNS Setup">
+      <Section title="5. Domain &amp; DNS Setup">
         <SubSection title="Vercel Custom Domain">
           <ol className="list-decimal pl-5 space-y-1.5">
             <li>Go to Vercel Dashboard &gt; your project &gt; Settings &gt; Domains</li>
@@ -488,7 +414,7 @@ function TransferManual() {
         </SubSection>
       </Section>
 
-      <Section title="9. Post-Transfer Checklist">
+      <Section title="6. Post-Transfer Checklist">
         <ul className="list-disc pl-5 space-y-1.5">
           <li>Verify all environment variables are set correctly in the hosting platform</li>
           <li>Test user login and registration</li>
