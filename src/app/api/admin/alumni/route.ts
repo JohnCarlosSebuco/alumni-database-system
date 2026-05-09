@@ -94,10 +94,18 @@ export async function POST(req: Request) {
 
     return NextResponse.json(userDoc, { status: 201 });
   } catch (err: unknown) {
-    const msg = (err as Error).message ?? "";
+    const error = err as Error;
+    const msg = error.message ?? "";
+    console.error("[POST /api/admin/alumni] Error creating alumni account:", {
+      message: msg,
+      stack: error.stack,
+    });
     if (msg.includes("email-already-exists")) {
       return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
     }
-    return NextResponse.json({ error: "Failed to create alumni account." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create alumni account.", details: msg },
+      { status: 500 }
+    );
   }
 }
