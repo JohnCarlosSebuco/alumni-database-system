@@ -3,6 +3,7 @@ import admin from "@/lib/firebase/admin";
 import crypto from "crypto";
 import { calculateProfileComplete } from "@/lib/utils/profileComplete";
 import { isAbroadAddress } from "@/lib/utils/courseAlignment";
+import { syncSet, syncSetSub } from "@/lib/firebase/sync";
 
 // ── Auth helper ──────────────────────────────────────────────────────────────
 async function verifyAdminCaller(req: Request) {
@@ -570,6 +571,7 @@ export async function POST(req: Request) {
 
           try {
             await admin.firestore().collection("users").doc(uid).set(cleanDoc);
+            await syncSet("users", uid, cleanDoc);
 
             await admin
               .firestore()
@@ -591,6 +593,7 @@ export async function POST(req: Request) {
                 research: researchArr, communityExtension: communityArr,
                 training: trainingArr,
               });
+            await syncSetSub("users", uid, "profile", "data", { firstName, lastName, birthDate: birthday ?? "", gender: sex ?? "", civilStatus: civilStatus ?? "", contactNumber: contactNumber ?? "", address: locality ?? "", currentEmployment: { isEmployed: isEmployed ?? false, employerName: currentCompany ?? "", position: currentPosition ?? "", industry: industryType ?? "", employmentType: employmentStatus ?? "", startDate: "", city: companyAddress ?? "" }, education: educationArr, employmentHistory: [], licenses: licensesArr, awards: awardsArr, research: researchArr, communityExtension: communityArr, training: trainingArr });
 
             created.push({ email, uid });
           } catch (fsErr: unknown) {

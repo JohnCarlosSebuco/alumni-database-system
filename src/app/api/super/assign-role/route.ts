@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import admin from "@/lib/firebase/admin";
+import { syncSet } from "@/lib/firebase/sync";
 import type { UserRole } from "@/lib/types/alumni.types";
 
 export async function POST(req: Request) {
@@ -29,11 +30,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Cannot change your own role" }, { status: 400 });
     }
 
+    const roleData = { role, updatedAt: new Date().toISOString() };
     await admin
       .firestore()
       .collection("users")
       .doc(targetUid)
-      .set({ role, updatedAt: new Date().toISOString() }, { merge: true });
+      .set(roleData, { merge: true });
+    await syncSet("users", targetUid, roleData);
 
     await admin.auth().setCustomUserClaims(targetUid, { role });
 

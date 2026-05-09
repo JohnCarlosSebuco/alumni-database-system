@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import admin from "@/lib/firebase/admin";
+import { syncUpdate } from "@/lib/firebase/sync";
 
 async function verifyAdminCaller(req: Request) {
   const sessionCookie = req.headers
@@ -101,6 +102,7 @@ export async function PATCH(
     if (isEmployed      !== undefined) firestoreUpdate.isEmployed      = isEmployed;
 
     await admin.firestore().collection("users").doc(uid).update(firestoreUpdate);
+    await syncUpdate("users", uid, firestoreUpdate);
 
     return NextResponse.json({ success: true, ...firestoreUpdate });
   } catch (err: unknown) {

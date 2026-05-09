@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import admin from "@/lib/firebase/admin";
+import { syncUpdate } from "@/lib/firebase/sync";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -47,10 +48,12 @@ export async function POST(req: Request) {
 
   try {
     await admin.auth().updateUser(uid, { password });
-    await admin.firestore().collection("users").doc(uid).update({
+    const claimData = {
       isClaimed: true,
       claimedAt: new Date().toISOString(),
-    });
+    };
+    await admin.firestore().collection("users").doc(uid).update(claimData);
+    await syncUpdate("users", uid, claimData);
     const customToken = await admin.auth().createCustomToken(uid);
     return NextResponse.json({ customToken });
   } catch (err: unknown) {

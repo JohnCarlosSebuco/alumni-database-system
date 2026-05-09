@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import admin from "@/lib/firebase/admin";
 import crypto from "crypto";
+import { syncSet } from "@/lib/firebase/sync";
 
 async function verifyAdminCaller(req: Request) {
   const sessionCookie = req.headers
@@ -89,6 +90,7 @@ export async function POST(req: Request) {
     };
 
     await admin.firestore().collection("users").doc(userRecord.uid).set(userDoc);
+    await syncSet("users", userRecord.uid, userDoc);
 
     return NextResponse.json(userDoc, { status: 201 });
   } catch (err: unknown) {
